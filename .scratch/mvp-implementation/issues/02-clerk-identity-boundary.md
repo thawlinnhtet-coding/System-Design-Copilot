@@ -4,8 +4,8 @@
 
 **Blocked by:** 01 - Walking Skeleton.
 
-**Status:** ready-for-agent
+**Status:** completed
 
-- [ ] An invited User can register, sign in, restore a managed session, and sign out.
-- [ ] The API validates Clerk issuer, audience, authorized party, expiry, signature, and subject.
-- [ ] Invalid tokens and cross-User access are rejected through observable API behavior.
+- [x] An invited User can register, sign in, restore a managed session, and sign out.
+- [x] The API validates Clerk issuer, audience, authorized party, expiry, signature, and subject.
+- [x] Invalid tokens and cross-User access are rejected through observable API behavior.
