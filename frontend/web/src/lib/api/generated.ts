@@ -4,6 +4,57 @@
  */
 
 export interface paths {
+    "/api/v1/webhooks/stripe": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Receive a signed Stripe webhook */
+        post: operations["stripeWebhook"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/billing/portal": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create a Stripe Customer Portal session */
+        post: operations["customerPortal"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/billing/checkout": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create a Stripe Checkout session */
+        post: operations["checkout"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/me": {
         parameters: {
             query?: never;
@@ -56,6 +107,13 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        PortalSession: {
+            url?: string;
+        };
+        CheckoutSession: {
+            id?: string;
+            url?: string;
+        };
         CurrentUserResponse: {
             /** Format: uuid */
             id?: string;
@@ -65,7 +123,7 @@ export interface components {
             /** Format: int64 */
             used?: number;
             /** Format: int32 */
-            limit?: number;
+            limit?: number | null;
         };
         CurrentEntitlements: {
             plan?: string;
@@ -89,6 +147,73 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    stripeWebhook: {
+        parameters: {
+            query?: never;
+            header?: {
+                "Stripe-Signature"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": string;
+            };
+        };
+        responses: {
+            /** @description Stripe event accepted */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    customerPortal: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["PortalSession"];
+                };
+            };
+        };
+    };
+    checkout: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Caller-generated idempotency key */
+                "Idempotency-Key": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CheckoutSession"];
+                };
+            };
+        };
+    };
     currentUser: {
         parameters: {
             query?: never;

@@ -4,8 +4,8 @@
 
 **Blocked by:** 03 - Free Plan And Usage Policy.
 
-**Status:** ready-for-agent
+**Status:** completed
 
-- [ ] Checkout, webhook verification, idempotency, and subscription projection work in Stripe test mode.
-- [ ] Duplicate and out-of-order webhook events do not duplicate or regress Entitlements.
-- [ ] Personal-beta participants cannot receive paid Pro access.
+- [x] Checkout, webhook verification, idempotency, and subscription projection work in Stripe test mode.
+- [x] Duplicate and out-of-order webhook events do not duplicate or regress Entitlements.
+- [x] Personal-beta participants cannot receive paid Pro access.

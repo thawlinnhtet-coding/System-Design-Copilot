@@ -39,7 +39,7 @@ public class SecurityConfiguration {
 				.cors(Customizer.withDefaults())
 				.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 				.authorizeHttpRequests(authorize -> authorize
-						.requestMatchers("/api/v1/health", "/v3/api-docs", "/v3/api-docs/**", "/swagger-ui/**").permitAll()
+						.requestMatchers("/api/v1/health", "/api/v1/webhooks/stripe", "/v3/api-docs", "/v3/api-docs/**", "/swagger-ui/**").permitAll()
 						.anyRequest().authenticated())
 				.oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()))
 				.build();
@@ -58,7 +58,7 @@ public class SecurityConfiguration {
 		var configuration = new CorsConfiguration();
 		configuration.setAllowedOrigins(properties.cors().allowedOrigins());
 		configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-		configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept"));
+		configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept", "Idempotency-Key"));
 		configuration.setAllowCredentials(false);
 
 		var source = new UrlBasedCorsConfigurationSource();

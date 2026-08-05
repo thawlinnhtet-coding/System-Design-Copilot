@@ -1,5 +1,7 @@
 package com.example.backend.entitlement.application;
 
+import com.example.backend.billing.application.BillingPlanResolver;
+import io.swagger.v3.oas.annotations.media.Schema;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,17 +17,20 @@ public class EntitlementService {
 	private final UserAllowanceStore userAllowanceStore;
 	private final UsageRecordStore usageRecordStore;
 	private final EntitlementProperties properties;
+	private final BillingPlanResolver billingPlanResolver;
 	private final Clock clock;
 
 	public EntitlementService(
 			UserAllowanceStore userAllowanceStore,
 			UsageRecordStore usageRecordStore,
 			EntitlementProperties properties,
+			BillingPlanResolver billingPlanResolver,
 			Clock clock
 	) {
 		this.userAllowanceStore = userAllowanceStore;
 		this.usageRecordStore = usageRecordStore;
 		this.properties = properties;
+		this.billingPlanResolver = billingPlanResolver;
 		this.clock = clock;
 	}
 
@@ -33,19 +38,23 @@ public class EntitlementService {
 	public CurrentEntitlements currentEntitlements(UUID userId) {
 		var now = Instant.now(clock);
 		var monthStart = startOfMonth(now);
+		var billingPlan = billingPlanResolver.planFor(userId, now);
+		Integer activeWorkspaceLimit = billingPlan.pro() ? null : properties.free().activeWorkspaces();
+		Integer copilotTurnLimit = billingPlan.pro() ? null : properties.free().copilotTurnsPerMonth();
+		Integer reviewLimit = billingPlan.pro() ? null : properties.free().reviewsPerMonth();
 		return new CurrentEntitlements(
-				"FREE",
-				new Allowance(userAllowanceStore.activeWorkspaceCount(userId), properties.free().activeWorkspaces()),
-				new Allowance(usageRecordStore.countSince(userId, UsageOperation.COPILOT_TURN, monthStart), properties.free().copilotTurnsPerMonth()),
-				new Allowance(usageRecordStore.countSince(userId, UsageOperation.REVIEW, monthStart), properties.free().reviewsPerMonth()),
-				nextMonthStart(now)
+				billingPlan.pro() ? "PRO" : "FREE",
+				new Allowance(userAllowanceStore.activeWorkspaceCount(userId), activeWorkspaceLimit),
+				new Allowance(usageRecordStore.countSince(userId, UsageOperation.COPILOT_TURN, monthStart), copilotTurnLimit),
+				new Allowance(usageRecordStore.countSince(userId, UsageOperation.REVIEW, monthStart), reviewLimit),
+				billingPlan.pro() && billingPlan.paidThrough() != null ? billingPlan.paidThrough() : nextMonthStart(now)
 		);
 	}
 
 	@Transactional
 	public void registerActiveWorkspace(UUID userId) {
 		var activeWorkspaceCount = userAllowanceStore.activeWorkspaceCountForUpdate(userId);
-		if (activeWorkspaceCount >= properties.free().activeWorkspaces()) {
+		if (!billingPlanResolver.planFor(userId, Instant.now(clock)).pro() && activeWorkspaceCount >= properties.free().activeWorkspaces()) {
 			throw new QuotaExceededException("active_workspaces");
 		}
 		userAllowanceStore.updateActiveWorkspaceCount(userId, activeWorkspaceCount + 1);
@@ -76,7 +85,8 @@ public class EntitlementService {
 			return;
 		}
 		var now = Instant.now(clock);
-		if (usageRecordStore.countSince(userId, operation, startOfMonth(now)) >= allowance) {
+		if (!billingPlanResolver.planFor(userId, now).pro()
+				&& usageRecordStore.countSince(userId, operation, startOfMonth(now)) >= allowance) {
 			throw new QuotaExceededException(allowanceName);
 		}
 		usageRecordStore.record(userId, operation, operationId, now);
@@ -99,7 +109,13 @@ public class EntitlementService {
 	) {
 	}
 
-	public record Allowance(long used, int limit) {
+	public record Allowance(long used, Integer limit) {
+
+		@Schema(types = {"integer", "null"}, format = "int32")
+		@Override
+		public Integer limit() {
+			return limit;
+		}
 	}
 
 }
