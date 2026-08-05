@@ -4,8 +4,8 @@
 
 **Blocked by:** 02 - Clerk Identity Boundary.
 
-**Status:** ready-for-agent
+**Status:** completed
 
-- [ ] Authenticated Users see their Free Plan and current usage.
-- [ ] Workspace and AI allowances are enforced transactionally in backend use cases.
-- [ ] Concurrent requests cannot exceed the configured allowance through a race.
+- [x] Authenticated Users see their Free Plan and current usage.
+- [x] Workspace and AI allowances are enforced transactionally in backend use cases.
+- [x] Concurrent requests cannot exceed the configured allowance through a race.

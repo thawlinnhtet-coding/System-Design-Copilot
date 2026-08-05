@@ -20,6 +20,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/me/usage": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["currentEntitlements"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/health": {
         parameters: {
             query?: never;
@@ -44,6 +60,20 @@ export interface components {
             /** Format: uuid */
             id?: string;
             clerkSubject?: string;
+        };
+        Allowance: {
+            /** Format: int64 */
+            used?: number;
+            /** Format: int32 */
+            limit?: number;
+        };
+        CurrentEntitlements: {
+            plan?: string;
+            activeWorkspaces?: components["schemas"]["Allowance"];
+            copilotTurns?: components["schemas"]["Allowance"];
+            reviews?: components["schemas"]["Allowance"];
+            /** Format: date-time */
+            renewsAt?: string;
         };
         HealthResponse: {
             status?: string;
@@ -75,6 +105,26 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["CurrentUserResponse"];
+                };
+            };
+        };
+    };
+    currentEntitlements: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CurrentEntitlements"];
                 };
             };
         };

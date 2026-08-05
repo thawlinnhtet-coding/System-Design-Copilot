@@ -24,6 +24,9 @@ class UserEntity {
 	@Column(name = "created_at", nullable = false, updatable = false)
 	private Instant createdAt;
 
+	@Column(name = "active_workspace_count", nullable = false)
+	private int activeWorkspaceCount;
+
 	protected UserEntity() {
 	}
 
@@ -38,6 +41,14 @@ class UserEntity {
 
 	String getClerkSubject() {
 		return clerkSubject;
+	}
+
+	int getActiveWorkspaceCount() {
+		return activeWorkspaceCount;
+	}
+
+	void setActiveWorkspaceCount(int activeWorkspaceCount) {
+		this.activeWorkspaceCount = activeWorkspaceCount;
 	}
 
 }
