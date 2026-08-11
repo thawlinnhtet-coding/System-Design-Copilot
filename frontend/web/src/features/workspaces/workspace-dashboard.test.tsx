@@ -91,4 +91,16 @@ describe("WorkspaceDashboard", () => {
 
     expect(await screen.findByRole("link", { name: "Continue Workspace" })).toHaveAttribute("href", "/workspace/workspace-1");
   });
+
+  it("guides a new user toward a starter Challenge and practice paths", async () => {
+    session.isSignedIn = true;
+    api.getWorkspaces.mockResolvedValue([]);
+
+    render(<WorkspaceDashboard />);
+
+    expect(await screen.findByRole("heading", { name: "Design a reliable URL shortener." })).toBeVisible();
+    expect(screen.getByRole("link", { name: "Explore starter Challenge" })).toHaveAttribute("href", "/challenges");
+    expect(screen.getByRole("link", { name: /Review an existing design/ })).toHaveAttribute("href", "/data");
+    expect(screen.queryByText("Workspace archive")).not.toBeInTheDocument();
+  });
 });

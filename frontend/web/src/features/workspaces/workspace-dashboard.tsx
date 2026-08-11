@@ -17,7 +17,6 @@ export function WorkspaceDashboard() {
   const api = useAuthenticatedApiClient();
   const router = useRouter();
   const [workspaces, setWorkspaces] = useState<WorkspaceSummary[]>([]);
-  const [usage, setUsage] = useState<WorkspaceUsage | null>(null);
   const [hasLoadedDashboard, setHasLoadedDashboard] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [name, setName] = useState("");
@@ -33,18 +32,12 @@ export function WorkspaceDashboard() {
     }
 
     let current = true;
-    Promise.all([api.getWorkspaces(), api.getUsage()])
-      .then(([nextWorkspaces, nextUsage]) => {
+    api.getWorkspaces()
+      .then((nextWorkspaces) => {
         if (!current) {
           return;
         }
         setWorkspaces(nextWorkspaces);
-        const activeWorkspaces = nextUsage.activeWorkspaces;
-        setUsage(
-          activeWorkspaces?.used !== undefined
-            ? { used: activeWorkspaces.used, limit: activeWorkspaces.limit ?? null }
-            : null,
-        );
       })
       .catch(() => {
         if (current) {
@@ -96,7 +89,6 @@ export function WorkspaceDashboard() {
     try {
       const workspace = await api.createWorkspace(name.trim(), description.trim());
       setWorkspaces((current) => [workspace, ...current]);
-      setUsage((current) => (current ? { ...current, used: current.used + 1 } : current));
       setName("");
       setDescription("");
       if (workspace.id) {
@@ -141,12 +133,6 @@ export function WorkspaceDashboard() {
         ? await api.restoreWorkspace(workspace.id)
         : await api.archiveWorkspace(workspace.id);
       setWorkspaces((current) => current.map((item) => (item.id === updated.id ? updated : item)));
-      setUsage((current) => {
-        if (!current) {
-          return current;
-        }
-        return { ...current, used: updated.status === "ACTIVE" ? current.used + 1 : current.used - 1 };
-      });
     } catch {
       setError("The Workspace status could not be changed. Check your active-Workspace allowance.");
     } finally {
@@ -164,9 +150,6 @@ export function WorkspaceDashboard() {
     try {
       await api.deleteWorkspace(workspace.id);
       setWorkspaces((current) => current.filter((item) => item.id !== workspace.id));
-      if (workspace.status === "ACTIVE") {
-        setUsage((current) => (current ? { ...current, used: current.used - 1 } : current));
-      }
     } catch {
       setError("The Workspace could not be deleted.");
     } finally {
@@ -178,10 +161,10 @@ export function WorkspaceDashboard() {
     <div className="space-y-12">
       <header className="flex flex-wrap items-start justify-between gap-5 border-b border-line pb-6">
         <div>
-          <p className="font-mono text-xs uppercase tracking-[0.22em] text-signal">Practice home</p>
+          <p className="font-mono text-xs uppercase tracking-[0.22em] text-signal">Practice home · Personal beta</p>
           <h1 className="mt-3 font-display text-4xl font-semibold tracking-tight text-foreground sm:text-5xl">Your systems, in progress.</h1>
           <p className="mt-3 max-w-2xl leading-7 text-text-muted">
-            Start with a blank system. Clarify the problem, make the trade-offs, and keep the reasoning visible.
+          Choose what to practice next, then keep your reasoning visible as the system changes.
           </p>
         </div>
       </header>
@@ -202,6 +185,29 @@ export function WorkspaceDashboard() {
           {nextWorkspace?.id ? <Link className={primaryActionClass} href={`/workspace/${nextWorkspace.id}`}>Continue Workspace</Link> : <a className={primaryActionClass} href="#new-workspace">Create Workspace</a>}
         </div>
       </section>
+
+      <section aria-labelledby="practice-paths-heading" className="grid gap-5 border-b border-line pb-8 sm:grid-cols-3">
+        <div className="sm:col-span-3">
+          <p className="font-mono text-xs uppercase tracking-[0.18em] text-text-muted">Practice paths</p>
+          <h2 className="mt-2 font-display text-2xl font-semibold" id="practice-paths-heading">Choose a starting point.</h2>
+        </div>
+        <Link className="group border-t border-line pt-4" href="/challenges"><span className="text-sm font-semibold text-foreground group-hover:text-signal">Explore Challenges <span aria-hidden="true">→</span></span><span className="mt-2 block text-sm leading-6 text-text-muted">Practice against a focused system problem with a clear brief.</span></Link>
+        <a className="group border-t border-line pt-4" href="#new-workspace"><span className="text-sm font-semibold text-foreground group-hover:text-signal">Start Custom Design <span aria-hidden="true">→</span></span><span className="mt-2 block text-sm leading-6 text-text-muted">Bring your own system idea and begin with Clarify.</span></a>
+        <Link className="group border-t border-line pt-4" href="/data"><span className="text-sm font-semibold text-foreground group-hover:text-signal">Review an existing design <span aria-hidden="true">→</span></span><span className="mt-2 block text-sm leading-6 text-text-muted">Import a portable design package for a later review.</span></Link>
+      </section>
+
+      {!isLoading && workspaces.length === 0 ? (
+        <section aria-labelledby="recommended-practice-heading" className="border-y border-line py-7">
+          <p className="font-mono text-xs uppercase tracking-[0.18em] text-signal">Recommended first practice</p>
+          <div className="mt-3 flex flex-wrap items-end justify-between gap-5">
+            <div>
+              <h2 className="font-display text-2xl font-semibold" id="recommended-practice-heading">Design a reliable URL shortener.</h2>
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-text-muted">Start with a concrete problem, state the constraints, and make one defensible architecture decision.</p>
+            </div>
+            <Link className={primaryActionClass} href="/challenges">Explore starter Challenge</Link>
+          </div>
+        </section>
+      ) : null}
 
       <section className="grid gap-8 border-y border-line py-6 lg:grid-cols-[minmax(0,1fr)_18rem]" id="new-workspace">
         <form className="lg:border-r lg:border-line lg:pr-8" onSubmit={createWorkspace}>
@@ -242,30 +248,21 @@ export function WorkspaceDashboard() {
         </form>
 
         <aside className="border-t border-line pt-6 lg:border-t-0 lg:pt-0">
-          <p className="font-mono text-xs uppercase tracking-[0.18em] text-text-muted">Free plan</p>
-          <p className="mt-3 text-3xl font-semibold text-foreground">{usage?.used ?? "-"}<span className="text-lg text-text-muted">/{usage?.limit ?? "-"}</span></p>
-          <p className="mt-1 text-sm text-text-muted">active Workspaces</p>
-          <p className="mt-5 border-t border-line pt-4 text-xs leading-5 text-text-muted">
-            Archived Workspaces remain available without using an active-Workspace allowance.
-          </p>
+          <p className="font-mono text-xs uppercase tracking-[0.18em] text-text-muted">Custom design</p>
+          <p className="mt-3 text-sm leading-6 text-text-muted">No generated solution. You decide what matters, what is uncertain, and which trade-offs to defend.</p>
+          <Link className={`${buttonClassName} mt-5 inline-flex border border-line text-foreground hover:bg-surface-alt`} href="/data">Import existing design</Link>
         </aside>
       </section>
 
-      <section aria-labelledby="workspace-list-heading">
+      {workspaces.length > 0 ? <section aria-labelledby="workspace-list-heading">
         <div className="flex items-baseline justify-between gap-4">
           <div>
-            <p className="font-mono text-xs uppercase tracking-[0.18em] text-text-muted">Workspace archive</p>
+            <p className="font-mono text-xs uppercase tracking-[0.18em] text-text-muted">Recent Workspaces</p>
             <h2 className="mt-2 font-display text-2xl font-semibold text-foreground" id="workspace-list-heading">Keep the loop moving.</h2>
           </div>
-          <span className="text-sm text-text-muted">{workspaces.length} total</span>
         </div>
 
         {isLoading ? <p className="mt-5 text-sm text-text-muted">Loading your Workspaces...</p> : null}
-        {!isLoading && workspaces.length === 0 ? (
-          <div className="mt-5 border-y border-dashed border-line px-6 py-10 text-center text-sm text-text-muted">
-            Your first Workspace starts with a question, not an AI-generated diagram.
-          </div>
-        ) : null}
         <div className="mt-5 divide-y divide-line border-y border-line">
           {workspaces.map((workspace) => (
             <article className="py-5" key={workspace.id}>
@@ -316,14 +313,9 @@ export function WorkspaceDashboard() {
             </article>
           ))}
         </div>
-      </section>
+      </section> : null}
     </div>
   );
 }
 
 const primaryActionClass = "inline-flex min-h-11 items-center justify-center rounded-md bg-signal px-4 text-sm font-semibold text-text-on-dark transition-colors hover:brightness-110";
-
-type WorkspaceUsage = {
-  used: number;
-  limit: number | null;
-};
