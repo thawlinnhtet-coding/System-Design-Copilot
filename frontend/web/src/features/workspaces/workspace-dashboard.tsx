@@ -9,6 +9,8 @@ import {
 } from "@/lib/api/authenticated-client";
 import { useEffect, useState, type FormEvent } from "react";
 
+type CreationMode = "custom" | "manual" | "import";
+
 const buttonClassName =
   "min-h-11 rounded-md px-3 py-2 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus disabled:cursor-not-allowed disabled:opacity-50";
 
@@ -25,6 +27,7 @@ export function WorkspaceDashboard() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState("");
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [creationMode, setCreationMode] = useState<CreationMode>("custom");
 
   useEffect(() => {
     if (!isLoaded || !isSignedIn) {
@@ -162,9 +165,9 @@ export function WorkspaceDashboard() {
       <header className="flex flex-wrap items-start justify-between gap-5 border-b border-line pb-6">
         <div>
           <p className="font-mono text-xs uppercase tracking-[0.22em] text-signal">Practice home · Personal beta</p>
-          <h1 className="mt-3 font-display text-4xl font-semibold tracking-tight text-foreground sm:text-5xl">Your systems, in progress.</h1>
+          <h1 className="mt-3 font-display text-4xl font-semibold tracking-tight text-foreground sm:text-5xl">Start with one decision.</h1>
           <p className="mt-3 max-w-2xl leading-7 text-text-muted">
-          Choose what to practice next, then keep your reasoning visible as the system changes.
+          Choose the recommended starter Challenge, or begin with your own system. Your first Workspace will guide the practice loop.
           </p>
         </div>
       </header>
@@ -175,25 +178,27 @@ export function WorkspaceDashboard() {
         </p>
       ) : null}
 
-      <section aria-labelledby="next-action-heading" className="border-y border-line py-6">
+      {nextWorkspace ? <section aria-labelledby="resume-workspace-heading" className="border-y border-line py-6">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
-            <p className="font-mono text-xs uppercase tracking-[0.18em] text-signal">Next meaningful action</p>
-            <h2 className="mt-2 font-display text-2xl font-semibold" id="next-action-heading">{nextWorkspace ? `Continue ${nextWorkspace.name}` : "Start your first system"}</h2>
-            <p className="mt-2 max-w-2xl text-sm leading-6 text-text-muted">{nextWorkspace ? "Pick up at the Clarify stage and keep the reasoning visible." : "Create a Workspace from a system idea, then make the problem explicit before choosing components."}</p>
+            <p className="font-mono text-xs uppercase tracking-[0.18em] text-signal">Continue Workspace · {nextWorkspace.saveState ?? "Saved"}</p>
+            <h2 className="mt-2 font-display text-2xl font-semibold" id="resume-workspace-heading">{nextWorkspace.name}</h2>
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-text-muted">{nextWorkspace.description ?? "Pick up at Clarify and keep the reasoning visible."}</p>
+            <div aria-label="Workspace stages" className="mt-5 flex flex-wrap gap-2 text-[10px] font-semibold uppercase tracking-[0.1em] text-text-muted"><span className="border border-signal bg-signal-soft px-2 py-1 text-signal">01 Clarify</span><span className="border border-line px-2 py-1">02 Design</span><span className="border border-line px-2 py-1">03 Stress-test</span><span className="border border-line px-2 py-1">04 Review</span></div>
           </div>
-          {nextWorkspace?.id ? <Link className={primaryActionClass} href={`/workspace/${nextWorkspace.id}`}>Continue Workspace</Link> : <a className={primaryActionClass} href="#new-workspace">Create Workspace</a>}
+          {nextWorkspace.id ? <Link className={primaryActionClass} href={`/workspace/${nextWorkspace.id}`}>Continue Clarify</Link> : null}
         </div>
-      </section>
+      </section> : <section aria-labelledby="next-action-heading" className="border-y border-line py-6"><div className="flex flex-wrap items-end justify-between gap-4"><div><p className="font-mono text-xs uppercase tracking-[0.18em] text-signal">Practice / next action</p><h2 className="mt-2 font-display text-2xl font-semibold" id="next-action-heading">Choose your first system.</h2><p className="mt-2 max-w-2xl text-sm leading-6 text-text-muted">Start with a concrete Challenge or bring your own idea. The first step is making the problem explicit.</p></div><Link className={primaryActionClass} href="/challenges">View starter Challenge</Link></div></section>}
 
       <section aria-labelledby="practice-paths-heading" className="grid gap-5 border-b border-line pb-8 sm:grid-cols-3">
         <div className="sm:col-span-3">
-          <p className="font-mono text-xs uppercase tracking-[0.18em] text-text-muted">Practice paths</p>
-          <h2 className="mt-2 font-display text-2xl font-semibold" id="practice-paths-heading">Choose a starting point.</h2>
+          <p className="font-mono text-xs uppercase tracking-[0.18em] text-text-muted">Workspace creation</p>
+          <h2 className="mt-2 font-display text-2xl font-semibold" id="practice-paths-heading">Choose how you want to begin.</h2>
         </div>
-        <Link className="group border-t border-line pt-4" href="/challenges"><span className="text-sm font-semibold text-foreground group-hover:text-signal">Explore Challenges <span aria-hidden="true">→</span></span><span className="mt-2 block text-sm leading-6 text-text-muted">Practice against a focused system problem with a clear brief.</span></Link>
-        <a className="group border-t border-line pt-4" href="#new-workspace"><span className="text-sm font-semibold text-foreground group-hover:text-signal">Start Custom Design <span aria-hidden="true">→</span></span><span className="mt-2 block text-sm leading-6 text-text-muted">Bring your own system idea and begin with Clarify.</span></a>
-        <Link className="group border-t border-line pt-4" href="/data"><span className="text-sm font-semibold text-foreground group-hover:text-signal">Review an existing design <span aria-hidden="true">→</span></span><span className="mt-2 block text-sm leading-6 text-text-muted">Import a portable design package for a later review.</span></Link>
+        <Link className="group border-t border-line pt-4" href="/challenges"><span className="text-sm font-semibold text-foreground group-hover:text-signal">Curated Challenge <span aria-hidden="true">→</span></span><span className="mt-2 block text-sm leading-6 text-text-muted">Practice against a focused system problem with a clear brief.</span></Link>
+        <button className={`group border-t border-line pt-4 text-left ${creationMode === "custom" ? "text-signal" : "text-foreground"}`} onClick={() => { setCreationMode("custom"); document.getElementById("new-workspace")?.scrollIntoView({ behavior: "smooth" }); }} type="button"><span className="text-sm font-semibold">Custom Design <span aria-hidden="true">→</span></span><span className="mt-2 block text-sm leading-6 text-text-muted">Start with your own system and make the problem explicit.</span></button>
+        <button className={`group border-t border-line pt-4 text-left ${creationMode === "manual" ? "text-signal" : "text-foreground"}`} onClick={() => { setCreationMode("manual"); document.getElementById("new-workspace")?.scrollIntoView({ behavior: "smooth" }); }} type="button"><span className="text-sm font-semibold">Manual Architecture Review <span aria-hidden="true">→</span></span><span className="mt-2 block text-sm leading-6 text-text-muted">Reconstruct an existing system from a Review Brief.</span></button>
+        <button className={`group border-t border-line pt-4 text-left sm:col-start-2 ${creationMode === "import" ? "text-signal" : "text-foreground"}`} onClick={() => { setCreationMode("import"); document.getElementById("new-workspace")?.scrollIntoView({ behavior: "smooth" }); }} type="button"><span className="text-sm font-semibold">Import Package <span aria-hidden="true">→</span></span><span className="mt-2 block text-sm leading-6 text-text-muted">Validate a portable architecture before review entry.</span></button>
       </section>
 
       {!isLoading && workspaces.length === 0 ? (
@@ -210,6 +215,7 @@ export function WorkspaceDashboard() {
       ) : null}
 
       <section className="grid gap-8 border-y border-line py-6 lg:grid-cols-[minmax(0,1fr)_18rem]" id="new-workspace">
+        {creationMode === "custom" ? <>
         <form className="lg:border-r lg:border-line lg:pr-8" onSubmit={createWorkspace}>
           <div className="flex items-baseline justify-between gap-4">
             <div>
@@ -252,6 +258,7 @@ export function WorkspaceDashboard() {
           <p className="mt-3 text-sm leading-6 text-text-muted">No generated solution. You decide what matters, what is uncertain, and which trade-offs to defend.</p>
           <Link className={`${buttonClassName} mt-5 inline-flex border border-line text-foreground hover:bg-surface-alt`} href="/data">Import existing design</Link>
         </aside>
+        </> : creationMode === "manual" ? <ManualReviewEntry /> : <ImportEntry />}
       </section>
 
       {workspaces.length > 0 ? <section aria-labelledby="workspace-list-heading">
@@ -319,3 +326,22 @@ export function WorkspaceDashboard() {
 }
 
 const primaryActionClass = "inline-flex min-h-11 items-center justify-center rounded-md bg-signal px-4 text-sm font-semibold text-text-on-dark transition-colors hover:brightness-110";
+
+function ManualReviewEntry() {
+  return <form className="lg:col-span-2"><p className="font-mono text-xs uppercase tracking-[0.18em] text-text-muted">Manual recreation</p><h2 className="mt-2 font-display text-2xl font-semibold">Reconstruct an existing system.</h2><p className="mt-2 max-w-2xl text-sm leading-6 text-text-muted">Describe the system and the review goal first. The resulting Workspace will open as a blank Architecture Review surface.</p><div className="mt-6 grid gap-4 sm:grid-cols-2"><label className="grid gap-2 text-sm text-foreground"><span>System description</span><textarea className="field min-h-28" name="systemDescription" placeholder="What exists today?" required /></label><label className="grid gap-2 text-sm text-foreground"><span>Review goal</span><textarea className="field min-h-28" name="reviewGoal" placeholder="What should the review evaluate?" required /></label></div><div className="mt-4 grid gap-4 sm:grid-cols-2"><label className="grid gap-2 text-sm text-foreground"><span>Known Requirements <span className="text-text-muted">· optional</span></span><textarea className="field min-h-20" name="knownRequirements" placeholder="What must remain true?" /></label><label className="grid gap-2 text-sm text-foreground"><span>Known Assumptions <span className="text-text-muted">· optional</span></span><textarea className="field min-h-20" name="knownAssumptions" placeholder="What are you taking as true?" /></label></div><button aria-describedby="review-entry-status" className={`${buttonClassName} mt-5 cursor-not-allowed border border-line text-text-muted`} disabled type="submit">Create Review Workspace →</button><p className="mt-3 text-xs text-text-muted" id="review-entry-status" role="status">The entry form is ready; Review Workspace persistence is the next backend contract.</p></form>;
+}
+
+function ImportEntry() {
+  return (
+    <div className="lg:col-span-2">
+      <p className="font-mono text-xs uppercase tracking-[0.18em] text-text-muted">Import package</p>
+      <h2 className="mt-2 font-display text-2xl font-semibold">Bring a design into practice.</h2>
+      <p className="mt-2 max-w-2xl text-sm leading-6 text-text-muted">Validate a portable JSON package before creating an Architecture Review Workspace. The validator keeps identity, billing, usage, and Review data outside the import.</p>
+      <div className="mt-6 flex flex-wrap items-center gap-3">
+        <Link className={primaryActionClass} href="/data">Open import validation →</Link>
+        <button className={`${buttonClassName} border border-line text-text-muted`} disabled type="button">Create Review Workspace after validation</button>
+      </div>
+      <p className="mt-3 text-xs text-text-muted">The browser validation surface is available now; server-side Review Workspace creation follows the import contract.</p>
+    </div>
+  );
+}

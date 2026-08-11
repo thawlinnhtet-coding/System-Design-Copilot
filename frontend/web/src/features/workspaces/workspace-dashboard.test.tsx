@@ -35,6 +35,7 @@ describe("WorkspaceDashboard", () => {
     session.isSignedIn = false;
     vi.clearAllMocks();
     router.push.mockReset();
+    Element.prototype.scrollIntoView = vi.fn();
   });
 
   it("asks signed-out visitors to sign in", () => {
@@ -70,13 +71,13 @@ describe("WorkspaceDashboard", () => {
 
     render(<WorkspaceDashboard />);
 
-    expect(await screen.findByText("News feed")).toBeVisible();
+    expect((await screen.findAllByText("News feed"))[0]).toBeVisible();
     fireEvent.change(screen.getByLabelText("System name"), { target: { value: "Ticket booking" } });
     fireEvent.change(screen.getByLabelText("What are you designing?"), { target: { value: "Avoid double booking" } });
     fireEvent.click(screen.getByRole("button", { name: "Create blank workspace" }));
 
     await waitFor(() => expect(api.createWorkspace).toHaveBeenCalledWith("Ticket booking", "Avoid double booking"));
-    expect(await screen.findByText("Ticket booking")).toBeVisible();
+    expect((await screen.findAllByText("Ticket booking"))[0]).toBeVisible();
     expect(screen.getAllByText("CUSTOM", { selector: "p" })).toHaveLength(2);
   });
 
@@ -89,7 +90,7 @@ describe("WorkspaceDashboard", () => {
 
     render(<WorkspaceDashboard />);
 
-    expect(await screen.findByRole("link", { name: "Continue Workspace" })).toHaveAttribute("href", "/workspace/workspace-1");
+    expect(await screen.findByRole("link", { name: "Continue Clarify" })).toHaveAttribute("href", "/workspace/workspace-1");
   });
 
   it("guides a new user toward a starter Challenge and practice paths", async () => {
@@ -100,7 +101,16 @@ describe("WorkspaceDashboard", () => {
 
     expect(await screen.findByRole("heading", { name: "Design a reliable URL shortener." })).toBeVisible();
     expect(screen.getByRole("link", { name: "Explore starter Challenge" })).toHaveAttribute("href", "/challenges");
-    expect(screen.getByRole("link", { name: /Review an existing design/ })).toHaveAttribute("href", "/data");
+    expect(screen.getByRole("button", { name: /Manual Architecture Review/ })).toBeVisible();
+    expect(screen.getByRole("button", { name: /Import Package/ })).toBeVisible();
     expect(screen.queryByText("Workspace archive")).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: /Manual Architecture Review/ }));
+    expect(screen.getByRole("heading", { name: "Reconstruct an existing system." })).toBeVisible();
+    expect(screen.getByRole("button", { name: "Create Review Workspace →" })).toBeDisabled();
+
+    fireEvent.click(screen.getByRole("button", { name: /Import Package/ }));
+    expect(screen.getByRole("heading", { name: "Bring a design into practice." })).toBeVisible();
+    expect(screen.getByRole("link", { name: "Open import validation →" })).toHaveAttribute("href", "/data");
   });
 });
