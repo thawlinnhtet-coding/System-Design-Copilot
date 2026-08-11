@@ -1,39 +1,220 @@
 "use client";
 
 import { useAuth } from "@clerk/nextjs";
+import { useMemo } from "react";
 import type { components } from "./generated";
 
 const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8080";
 const tokenTemplate = process.env.NEXT_PUBLIC_CLERK_JWT_TEMPLATE ?? "system-design-copilot-api";
 type CurrentUserResponse = components["schemas"]["CurrentUserResponse"];
+export type WorkspaceSummary = components["schemas"]["WorkspaceSummary"];
+export type CurrentEntitlements = components["schemas"]["CurrentEntitlements"];
+export type Requirement = components["schemas"]["RequirementResponse"];
+export type Assumption = components["schemas"]["AssumptionResponse"];
+export type UnresolvedQuestion = components["schemas"]["QuestionResponse"];
+export type Decision = components["schemas"]["DecisionResponse"];
+export type ReviewBrief = components["schemas"]["ReviewBriefResponse"];
+export type RequirementInput = components["schemas"]["RequirementRequest"];
+export type AssumptionInput = components["schemas"]["AssumptionRequest"];
+export type QuestionInput = components["schemas"]["QuestionRequest"];
+export type DecisionInput = components["schemas"]["DecisionRequest"];
+export type WorkspaceReasoning = {
+  requirements: NonNullable<components["schemas"]["ReasoningResponse"]["requirements"]>;
+  assumptions: NonNullable<components["schemas"]["ReasoningResponse"]["assumptions"]>;
+  questions: NonNullable<components["schemas"]["ReasoningResponse"]["questions"]>;
+  decisions: NonNullable<components["schemas"]["ReasoningResponse"]["decisions"]>;
+  reviewBrief?: ReviewBrief | null;
+};
+
+export class ApiRequestError extends Error {
+  constructor(public readonly status: number) {
+    super(`API request failed with status ${status}`);
+    this.name = "ApiRequestError";
+  }
+}
 
 export function useAuthenticatedApiClient() {
   const { getToken } = useAuth();
 
-  async function request(path: string, init: RequestInit = {}) {
-    const token = await getToken({ template: tokenTemplate });
-    if (!token) {
-      throw new Error("No active Clerk session is available for this request");
-    }
-
-    const headers = new Headers(init.headers);
-    headers.set("Authorization", `Bearer ${token}`);
-    headers.set("Accept", "application/json");
-
-    return fetch(`${apiBaseUrl}${path}`, {
-      ...init,
-      headers,
-    });
-  }
-
-  return {
-    async getCurrentUser(): Promise<CurrentUserResponse> {
-      const response = await request("/api/v1/me");
-      if (!response.ok) {
-        throw new Error(`Current user request failed with status ${response.status}`);
+  return useMemo(() => {
+    async function request(path: string, init: RequestInit = {}) {
+      const token = await getToken({ template: tokenTemplate });
+      if (!token) {
+        throw new Error("No active Clerk session is available for this request");
       }
 
-      return response.json() as Promise<CurrentUserResponse>;
-    },
-  };
+      const headers = new Headers(init.headers);
+      headers.set("Authorization", `Bearer ${token}`);
+      headers.set("Accept", "application/json");
+
+      return fetch(`${apiBaseUrl}${path}`, {
+        ...init,
+        headers,
+      });
+    }
+
+    async function json<T>(path: string, init?: RequestInit): Promise<T> {
+      const response = await request(path, init);
+      if (!response.ok) {
+        throw new ApiRequestError(response.status);
+      }
+
+      return response.json() as Promise<T>;
+    }
+
+    async function deleteRequest(path: string) {
+      const response = await request(path, { method: "DELETE" });
+      if (!response.ok) {
+        throw new ApiRequestError(response.status);
+      }
+    }
+
+    return {
+      getCurrentUser(): Promise<CurrentUserResponse> {
+        return json<CurrentUserResponse>("/api/v1/me");
+      },
+      getWorkspaces(): Promise<WorkspaceSummary[]> {
+        return json<WorkspaceSummary[]>("/api/v1/workspaces");
+      },
+      getWorkspace(id: string): Promise<WorkspaceSummary> {
+        return json<WorkspaceSummary>(`/api/v1/workspaces/${id}`);
+      },
+      createWorkspace(name: string, description: string): Promise<WorkspaceSummary> {
+        return json<WorkspaceSummary>("/api/v1/workspaces", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name, description }),
+        });
+      },
+      renameWorkspace(id: string, name: string): Promise<WorkspaceSummary> {
+        return json<WorkspaceSummary>(`/api/v1/workspaces/${id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name }),
+        });
+      },
+      archiveWorkspace(id: string): Promise<WorkspaceSummary> {
+        return json<WorkspaceSummary>(`/api/v1/workspaces/${id}/archive`, { method: "POST" });
+      },
+      restoreWorkspace(id: string): Promise<WorkspaceSummary> {
+        return json<WorkspaceSummary>(`/api/v1/workspaces/${id}/restore`, { method: "POST" });
+      },
+      async deleteWorkspace(id: string): Promise<void> {
+        const response = await request(`/api/v1/workspaces/${id}`, { method: "DELETE" });
+        if (!response.ok) {
+          throw new Error(`API request failed with status ${response.status}`);
+        }
+      },
+      getReasoning(id: string): Promise<WorkspaceReasoning> {
+        return json<WorkspaceReasoning>(`/api/v1/workspaces/${id}/reasoning`);
+      },
+      createRequirement(id: string, body: RequirementInput): Promise<Requirement> {
+        return json<Requirement>(`/api/v1/workspaces/${id}/reasoning/requirements`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        });
+      },
+      updateRequirement(workspaceId: string, id: string, body: RequirementInput): Promise<Requirement> {
+        return json<Requirement>(`/api/v1/workspaces/${workspaceId}/reasoning/requirements/${id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        });
+      },
+      async deleteRequirement(workspaceId: string, id: string): Promise<void> {
+        await deleteRequest(`/api/v1/workspaces/${workspaceId}/reasoning/requirements/${id}`);
+      },
+      createAssumption(id: string, body: AssumptionInput): Promise<Assumption> {
+        return json<Assumption>(`/api/v1/workspaces/${id}/reasoning/assumptions`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        });
+      },
+      updateAssumption(workspaceId: string, id: string, body: AssumptionInput): Promise<Assumption> {
+        return json<Assumption>(`/api/v1/workspaces/${workspaceId}/reasoning/assumptions/${id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        });
+      },
+      async deleteAssumption(workspaceId: string, id: string): Promise<void> {
+        await deleteRequest(`/api/v1/workspaces/${workspaceId}/reasoning/assumptions/${id}`);
+      },
+      createQuestion(id: string, body: QuestionInput): Promise<UnresolvedQuestion> {
+        return json<UnresolvedQuestion>(`/api/v1/workspaces/${id}/reasoning/questions`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        });
+      },
+      updateQuestion(workspaceId: string, id: string, body: QuestionInput): Promise<UnresolvedQuestion> {
+        return json<UnresolvedQuestion>(`/api/v1/workspaces/${workspaceId}/reasoning/questions/${id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        });
+      },
+      async deleteQuestion(workspaceId: string, id: string): Promise<void> {
+        await deleteRequest(`/api/v1/workspaces/${workspaceId}/reasoning/questions/${id}`);
+      },
+      createDecision(id: string, body: DecisionInput): Promise<Decision> {
+        return json<Decision>(`/api/v1/workspaces/${id}/reasoning/decisions`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        });
+      },
+      updateDecision(workspaceId: string, id: string, body: DecisionInput): Promise<Decision> {
+        return json<Decision>(`/api/v1/workspaces/${workspaceId}/reasoning/decisions/${id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        });
+      },
+      async deleteDecision(workspaceId: string, id: string): Promise<void> {
+        await deleteRequest(`/api/v1/workspaces/${workspaceId}/reasoning/decisions/${id}`);
+      },
+      saveReviewBrief(workspaceId: string, body: Omit<ReviewBrief, "workspaceId">): Promise<ReviewBrief> {
+        return json<ReviewBrief>(`/api/v1/workspaces/${workspaceId}/reasoning/review-brief`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        });
+      },
+      getUsage(): Promise<CurrentEntitlements> {
+        return json<CurrentEntitlements>("/api/v1/me/usage");
+      },
+      async startCheckout(): Promise<string> {
+        const response = await json<components["schemas"]["CheckoutSession"]>("/api/v1/billing/checkout", {
+          method: "POST",
+          headers: { "Idempotency-Key": crypto.randomUUID() },
+        });
+        return externalBillingUrl(response.url, "Checkout");
+      },
+      async openBillingPortal(): Promise<string> {
+        const response = await json<components["schemas"]["PortalSession"]>("/api/v1/billing/portal", {
+          method: "POST",
+        });
+        return externalBillingUrl(response.url, "Billing Portal");
+      },
+    };
+  }, [getToken]);
+}
+
+function externalBillingUrl(value: string | undefined, destination: string) {
+  if (!value) {
+    throw new Error(`${destination} did not return a destination`);
+  }
+
+  try {
+    const url = new URL(value);
+    if (url.protocol !== "https:") {
+      throw new Error(`${destination} returned an unsafe destination`);
+    }
+    return url.toString();
+  } catch {
+    throw new Error(`${destination} returned an invalid destination`);
+  }
 }
