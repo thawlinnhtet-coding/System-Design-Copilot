@@ -1,6 +1,7 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, screen, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { vi } from "vitest";
+import { renderWithProviders } from "@/test/setup";
 import { BillingOverview } from "./billing-overview";
 
 const session = vi.hoisted(() => ({ isLoaded: true, isSignedIn: false }));
@@ -31,7 +32,7 @@ describe("BillingOverview", () => {
     api.getUsage.mockResolvedValue({ plan: "FREE", activeWorkspaces: { used: 0, limit: 10 } });
     api.startCheckout.mockRejectedValue({ status: 403 });
 
-    render(<BillingOverview />);
+    renderWithProviders(<BillingOverview />);
     fireEvent.click(await screen.findByRole("button", { name: /Upgrade to Pro/i }));
 
     await waitFor(() => expect(api.startCheckout).toHaveBeenCalledTimes(1));

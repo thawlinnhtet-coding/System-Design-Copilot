@@ -9,6 +9,7 @@ This file applies to `docs/` and `CONTEXT.md`. Also follow the repository root `
 - `architecture/ARCHITECTURE.md`: current system structure and operational design.
 - `architecture/IMPLEMENTATION_PLAN.md`: ordered delivery slices and their exit criteria.
 - `adr/`: consequential technical decisions and their trade-offs.
+- `../DESIGN.md`: authoritative visual and interaction design contract.
 
 Do not duplicate the same decision across documents. Link to its source of truth.
 

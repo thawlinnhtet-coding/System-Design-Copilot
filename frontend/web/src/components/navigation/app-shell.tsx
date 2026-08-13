@@ -3,10 +3,10 @@
 import { ArrowUpDown, ChevronDown, ChevronRight, CreditCard, LockKeyhole, LogOut, Menu, ShieldCheck, UserRound, Workflow, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { SignOutButton, useAuth, useUser } from "@clerk/nextjs";
-import { useAuthenticatedApiClient, type CurrentEntitlements } from "@/lib/api/authenticated-client";
 import { planBadge, planLabel, type UsageLoadState } from "@/features/account/plan-label";
+import { useEntitlements } from "@/features/account/use-entitlements";
 
 const primaryNavigation = [
   { href: "/practice", label: "Practice" },
@@ -80,25 +80,9 @@ function ProductLogo() {
 
 function AccountMenu({ isOpen, onToggle }: { isOpen: boolean; onToggle: () => void }) {
   const { user } = useUser();
-  const api = useAuthenticatedApiClient();
-  const [usage, setUsage] = useState<CurrentEntitlements | null>(null);
-  const [usageState, setUsageState] = useState<UsageLoadState>("loading");
-
-  useEffect(() => {
-    let current = true;
-    api.getUsage().then((nextUsage) => {
-      if (!current) return;
-      setUsage(nextUsage);
-      setUsageState("ready");
-    }).catch(() => {
-      if (!current) return;
-      setUsage(null);
-      setUsageState("error");
-    });
-    return () => {
-      current = false;
-    };
-  }, [api]);
+  const entitlements = useEntitlements();
+  const usage = entitlements.data ?? null;
+  const usageState: UsageLoadState = entitlements.isError ? "error" : entitlements.isSuccess ? "ready" : "loading";
 
   const name = user?.fullName ?? ([user?.firstName, user?.lastName].filter(Boolean).join(" ") || "Account user");
   const email = user?.primaryEmailAddress?.emailAddress ?? "Email unavailable";

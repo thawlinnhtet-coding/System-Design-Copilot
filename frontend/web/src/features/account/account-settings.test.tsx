@@ -1,5 +1,6 @@
-import { render, screen } from "@testing-library/react";
+import { screen } from "@testing-library/react";
 import { vi } from "vitest";
+import { renderWithProviders } from "@/test/setup";
 import { AccountSettings } from "./account-settings";
 
 const session = vi.hoisted(() => ({ isLoaded: true, isSignedIn: true }));
@@ -36,7 +37,7 @@ describe("AccountSettings", () => {
       copilotTurns: { used: 38, limit: 50 },
     });
 
-    render(<AccountSettings />);
+    renderWithProviders(<AccountSettings />);
 
     expect(await screen.findByText(/2\/10 Workspaces.*12 Copilot Turns remaining/)).toBeVisible();
     expect(screen.getAllByRole("heading", { name: "Account settings" })).toHaveLength(2);
@@ -56,7 +57,7 @@ describe("AccountSettings", () => {
       renewsAt: "2026-09-10T00:00:00Z",
     });
 
-    render(<AccountSettings />);
+    renderWithProviders(<AccountSettings />);
 
     expect((await screen.findAllByText("Pro")).length).toBeGreaterThan(0);
     expect(screen.getByText("Account type")).toBeVisible();
@@ -65,7 +66,7 @@ describe("AccountSettings", () => {
   it("keeps account details private when signed out", () => {
     session.isSignedIn = false;
 
-    render(<AccountSettings />);
+    renderWithProviders(<AccountSettings />);
 
     expect(screen.getByRole("button", { name: "Sign in to continue" })).toBeVisible();
     expect(api.getUsage).not.toHaveBeenCalled();

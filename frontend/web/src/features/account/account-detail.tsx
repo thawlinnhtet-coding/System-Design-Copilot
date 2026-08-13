@@ -2,9 +2,10 @@
 
 import { SignInButton, useAuth, useClerk, useUser } from "@clerk/nextjs";
 import Link from "next/link";
-import { useEffect, useState, type ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { useAuthenticatedApiClient, type CurrentEntitlements } from "@/lib/api/authenticated-client";
 import { AccountSettingsSidebar, type AccountSection } from "./account-navigation";
+import { useEntitlements } from "./use-entitlements";
 
 const sectionCopy: Record<Exclude<AccountSection, "overview">, { eyebrow: string; title: string; description: string }> = {
   profile: {
@@ -37,29 +38,7 @@ const sectionCopy: Record<Exclude<AccountSection, "overview">, { eyebrow: string
 export function AccountDetail({ section }: { section: Exclude<AccountSection, "overview"> }) {
   const { isLoaded, isSignedIn } = useAuth();
   const { user } = useUser();
-  const api = useAuthenticatedApiClient();
-  const [usage, setUsage] = useState<CurrentEntitlements | null>(null);
-  const [usageLoading, setUsageLoading] = useState(section === "plan");
-  const [usageError, setUsageError] = useState(false);
-
-  useEffect(() => {
-    if (section !== "plan" || !isLoaded || !isSignedIn) return;
-
-    let current = true;
-    api.getUsage().then((value) => {
-      if (!current) return;
-      setUsage(value);
-      setUsageLoading(false);
-    }).catch(() => {
-      if (!current) return;
-      setUsageError(true);
-      setUsageLoading(false);
-    });
-
-    return () => {
-      current = false;
-    };
-  }, [api, isLoaded, isSignedIn, section]);
+  const entitlements = useEntitlements();
 
   if (!isLoaded) return <p className="px-5 py-12 text-sm text-text-muted sm:px-8 lg:px-10">Restoring your session...</p>;
   if (!isSignedIn) {
@@ -80,7 +59,7 @@ export function AccountDetail({ section }: { section: Exclude<AccountSection, "o
       <div className="flex min-h-[calc(100vh-64px)] flex-col bg-background lg:flex-row" data-testid="account-detail-plan">
         <AccountSettingsSidebar activeSection="plan" />
         <main className="min-w-0 flex-1 bg-[#f7f5ef] px-5 py-7 sm:px-8 lg:px-[46px] lg:py-[42px]">
-          <PlanDetail usage={usage} loaded={!usageLoading} loadError={usageError} />
+          <PlanDetail usage={entitlements.data ?? null} loaded={entitlements.isSuccess} loadError={entitlements.isError} />
         </main>
       </div>
     );

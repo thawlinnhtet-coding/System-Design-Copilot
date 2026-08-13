@@ -3,13 +3,16 @@
 import { SignInButton, useAuth } from "@clerk/nextjs";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { useAuthenticatedApiClient } from "@/lib/api/authenticated-client";
+import { entitlementsQueryKey } from "@/features/account/use-entitlements";
 
 const buttonClassName = "inline-flex min-h-11 items-center justify-center rounded-md px-4 py-2 text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus";
 
 export function BillingCheckoutResult({ canceled = false }: { canceled?: boolean }) {
   const { isLoaded, isSignedIn } = useAuth();
   const api = useAuthenticatedApiClient();
+  const queryClient = useQueryClient();
   const [plan, setPlan] = useState<string | null>(null);
   const [hasError, setHasError] = useState(false);
 
@@ -25,6 +28,7 @@ export function BillingCheckoutResult({ canceled = false }: { canceled?: boolean
           if (active) {
             setPlan(usage.plan ?? "FREE");
             setHasError(false);
+            void queryClient.setQueryData(entitlementsQueryKey, usage);
           }
         })
         .catch(() => {
@@ -49,7 +53,7 @@ export function BillingCheckoutResult({ canceled = false }: { canceled?: boolean
       active = false;
       window.clearInterval(interval);
     };
-  }, [api, canceled, isLoaded, isSignedIn]);
+  }, [api, canceled, isLoaded, isSignedIn, queryClient]);
 
   if (!isLoaded) return <p className="text-sm text-text-muted">Restoring your session...</p>;
 

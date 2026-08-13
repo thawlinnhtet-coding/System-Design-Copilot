@@ -9,3 +9,7 @@
 - [x] Checkout, webhook verification, idempotency, and subscription projection work in Stripe test mode.
 - [x] Duplicate and out-of-order webhook events do not duplicate or regress Entitlements.
 - [x] Personal-beta participants cannot receive paid Pro access.
+
+## Approved UI alignment
+
+During the public Free beta, account UI communicates the Free Plan and current usage without presenting ordinary participants with a paid upgrade or checkout path. Any synthetic local or staging billing controls must be clearly non-production and must not appear as public beta functionality.

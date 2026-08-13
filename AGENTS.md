@@ -4,7 +4,7 @@
 
 System Design Copilot is an active-practice workspace. Help users reason about requirements, architecture, failure modes, and trade-offs. Do not turn the product into a passive course, generic chatbot, diagram generator, or automatic architecture generator.
 
-The canonical domain language is in `CONTEXT.md`. Product requirements are in `docs/product/PRD.md`. System-wide technical decisions are in `docs/adr/`.
+The canonical domain language is in `CONTEXT.md`. Product requirements are in `docs/product/PRD.md`. System-wide technical decisions are in `docs/adr/`. The approved Pencil artifact `ui_design` is the visual and interaction design source of truth. `DESIGN.md` records its durable design rules and implementation notes; when the two differ, follow `ui_design` and update `DESIGN.md` in the same change.
 
 ## Repository Map
 
@@ -29,7 +29,7 @@ The closest `AGENTS.md` applies. A child file may add stricter rules but must no
 
 ## Engineering Workflow
 
-1. Read the relevant PRD requirement, `CONTEXT.md`, accepted ADRs, and the nearest `AGENTS.md`.
+1. Read the relevant PRD requirement, `CONTEXT.md`, and, for frontend work, the approved `ui_design` artifact plus its supporting `DESIGN.md` notes, accepted ADRs, and the nearest `AGENTS.md`.
 2. Make the smallest end-to-end change that satisfies the behavior.
 3. Add or update tests at the boundary where the behavior can regress.
 4. Run the scoped checks while working and all affected checks before finishing.

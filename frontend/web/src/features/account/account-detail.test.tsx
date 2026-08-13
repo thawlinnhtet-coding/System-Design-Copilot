@@ -1,5 +1,6 @@
-import { render, screen } from "@testing-library/react";
+import { screen } from "@testing-library/react";
 import { vi } from "vitest";
+import { renderWithProviders } from "@/test/setup";
 import { AccountDetail } from "./account-detail";
 
 const session = vi.hoisted(() => ({ isLoaded: true, isSignedIn: true }));
@@ -26,10 +27,10 @@ describe("AccountDetail", () => {
   });
 
   it("renders the separate Profile & security detail state", () => {
-    render(<AccountDetail section="profile" />);
+    renderWithProviders(<AccountDetail section="profile" />);
 
     expect(screen.getByTestId("account-settings-sidebar")).toBeVisible();
-    expect(screen.getByText("Personal information")).toBeVisible();
+    expect(screen.getByRole("heading", { name: "Profile" })).toBeVisible();
     expect(screen.getByText("Email address")).toBeVisible();
     expect(screen.getByRole("button", { name: "Review sessions" })).toBeVisible();
     expect(screen.getByRole("button", { name: "Manage sign-in" })).toBeVisible();
@@ -44,7 +45,7 @@ describe("AccountDetail", () => {
       reviews: { used: 5, limit: 5 },
     });
 
-    render(<AccountDetail section="plan" />);
+    renderWithProviders(<AccountDetail section="plan" />);
 
     expect(await screen.findByText("Free personal beta")).toBeVisible();
     expect(screen.getByText("Active Workspaces")).toBeVisible();
@@ -60,7 +61,7 @@ describe("AccountDetail", () => {
       renewsAt: "2026-09-10T00:00:00Z",
     });
 
-    render(<AccountDetail section="plan" />);
+    renderWithProviders(<AccountDetail section="plan" />);
 
     expect(await screen.findByText("Your Pro plan.")).toBeVisible();
     expect(screen.getByRole("button", { name: /Manage billing/ })).toBeVisible();

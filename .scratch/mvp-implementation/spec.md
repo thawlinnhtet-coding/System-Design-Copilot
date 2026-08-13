@@ -4,17 +4,17 @@ Status: ready-for-agent
 
 ## Problem Statement
 
-Learners and engineers need an active-practice workspace for developing system-design judgment. They need to create and evolve an Architecture Document, state Requirements, Assumptions, and Decisions, respond to Scenarios, and receive evidence-grounded AI feedback without surrendering control of the design. The product must preserve private Workspace ownership, enforce Plan and usage policy in the backend, and begin as a low-cost, invite-only personal beta before a commercial launch.
+Learners and engineers need an active-practice workspace for developing system-design judgment. They need to create and evolve an Architecture Document, state Requirements, Assumptions, and Decisions, respond to Scenarios, and receive evidence-grounded AI feedback without surrendering control of the design. The product must preserve private Workspace ownership, enforce Plan and usage policy in the backend, and begin as a low-cost, public Free personal beta before a commercial launch.
 
 ## Solution
 
-Deliver the approved System Design Copilot MVP as a Next.js frontend and Spring Boot modular monolith. Clerk provides managed identity while Spring Boot remains the business-policy boundary. Users create private Workspaces from custom designs, curated Challenges, or validated Import Packages; build and save Architecture Documents; record reasoning; receive advisory Copilot guidance and asynchronous Reviews; and track usage and progress.
+Deliver the approved System Design Copilot MVP as a Next.js frontend and Spring Boot modular monolith. Clerk provides managed identity while Spring Boot remains the business-policy boundary. Users create fixed-type private Workspaces from curated Challenges, custom designs, validated Import Packages, or Manual Recreation Review Briefs; build and save Architecture Documents; record reasoning; receive advisory Copilot guidance and asynchronous Reviews; and track usage and progress.
 
-The first hosted release is an invite-only, best-effort personal beta. Participants use the Free Plan, Stripe remains in test mode, AI requires consent and uses strict privacy routing, and the application enforces a USD 0.10 global daily AI cap. Commercial launch is separately gated on a commercial-eligible frontend host, paid broker, payment enablement, and production recovery controls.
+The first hosted release is a public Free, best-effort personal beta. Participants use the Free Plan, Stripe remains in test mode, AI requires consent and uses strict privacy routing, and the application enforces a USD 0.10 global daily AI cap. Commercial launch is separately gated on a commercial-eligible frontend host, paid broker, payment enablement, and production recovery controls.
 
 ## User Stories
 
-1. As a beta participant, I want to register only when invited, so that the personal beta remains controlled.
+1. As a beta participant, I want to register for the public Free beta, so that I can begin practice without an invitation while the product still enforces abuse and spend controls.
 2. As a User, I want to sign in with email/password, Google, or GitHub through Clerk, so that authentication is secure without product-managed credentials.
 3. As a User, I want my session restored after refresh and to sign out of one or all sessions, so that I control product access.
 4. As a User, I want the product to recognize me through a durable internal User record, so that my Workspaces remain mine across sessions.
@@ -47,10 +47,10 @@ The first hosted release is an invite-only, best-effort personal beta. Participa
 
 - The backend remains a package-by-feature modular monolith and is the security, ownership, Entitlement, quota, validation, billing, and AI-policy boundary.
 - The browser uses Clerk for authentication and sends a short-lived Clerk JWT to the API only when needed. The API validates issuer, audience, authorized party, signature, expiry, and immutable subject. It does not manage passwords, refresh tokens, OAuth credentials, or CSRF cookies.
-- Clerk owns invitation-only registration for the personal beta. The product has no Invitation entity, API, or database table.
+- Clerk owns public Free-beta registration and identity. The product has no Invitation entity, API, or database table; abuse protection is enforced through Clerk and backend policy boundaries.
 - PostgreSQL stores the durable internal User associated with Clerk's immutable user ID and remains authoritative for all durable product state.
 - REST is versioned under `/api/v1`, described by OpenAPI, and consumed through generated frontend types. Errors use RFC 9457 Problem Details with stable application error codes.
-- The frontend uses Pencil as its design source and Tailwind CSS plus shadcn/ui as its implementation system. Playwright screenshot coverage is limited to stable public pages and core states.
+- The frontend uses the repository-root `DESIGN.md` as its design source, a narrow browser prototype as the approval baseline, and Tailwind CSS plus shadcn/ui as its implementation system. Playwright screenshot coverage is limited to stable public pages and core states.
 - The Architecture Document is validated schema-versioned JSONB. Requirements, Assumptions, Decisions, Reviews, Findings, Usage Records, and job state remain relational. Review submission creates an immutable Architecture Revision.
 - Access to all User-owned resources is checked by authenticated User and resource relationship, never a client-supplied owner identifier.
 - Free and Pro share the same AI model profiles. The Copilot profile uses `deepseek/deepseek-v4-flash-0731`; the Review profile uses `openai/gpt-5.6-luna`. Plans differ only in backend-enforced allowance and operational controls.
@@ -58,7 +58,7 @@ The first hosted release is an invite-only, best-effort personal beta. Participa
 - AI context is bounded, treats Workspace text as untrusted data, excludes secrets and unrelated content, and records safe model, provider, prompt, token, latency, outcome, and cost metadata.
 - Reviews are asynchronous. Submission atomically creates the Revision, Review Request, durable job state, and outbox event. RabbitMQ delivery is at least once; consumers are idempotent, lease work, use bounded retries, and dead-letter exhausted work. PostgreSQL is Review status authority.
 - Stripe is the commercial payment authority; verified webhook projections drive backend Entitlements. During personal beta, Stripe uses test mode only, and only a synthetic local or staging test account receives test Pro activation.
-- The personal beta is Vercel Hobby, invite-only, Free Plan only, private/best-effort, and does not promise recovery or backup-deletion guarantees. Commercial launch requires a commercial-eligible frontend host, paid broker, independent backups, restore drill, deletion-tombstone workflow, production observability, and real payment enablement.
+- The personal beta is Vercel Hobby, public Free-only, best-effort, and does not promise recovery or backup-deletion guarantees. Commercial launch requires a commercial-eligible frontend host, paid broker, independent backups, restore drill, deletion-tombstone workflow, production observability, abuse controls, and real payment enablement.
 - The initial product-maintained Curated Challenge library contains URL shortener, news feed, and ticket booking. A Challenge-authoring UI remains out of scope.
 
 ## Testing Decisions
@@ -73,7 +73,7 @@ The first hosted release is an invite-only, best-effort personal beta. Participa
 
 ## Out Of Scope
 
-- Real payment collection, paid Pro access, and public registration during the personal beta.
+- Real payment collection and paid Pro access for ordinary Users during the personal beta.
 - Team Workspaces, organizations, real-time collaboration, public sharing, community Challenge authoring, native mobile applications, and full event-sourced edit history.
 - Automatic architecture generation or direct AI mutation of a Workspace.
 - Production RPO/RTO, independent backup recovery, and backup-deletion-tombstone guarantees during the personal beta.

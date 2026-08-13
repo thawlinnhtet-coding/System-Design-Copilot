@@ -1,5 +1,6 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, screen } from "@testing-library/react";
 import { vi } from "vitest";
+import { renderWithProviders } from "@/test/setup";
 import { AppShell } from "./app-shell";
 
 const api = vi.hoisted(() => ({ getUsage: vi.fn() }));
@@ -24,7 +25,7 @@ describe("AppShell account menu", () => {
   });
 
   it("opens the Pencil-matched overview action and keeps profile details separate", async () => {
-    render(<AppShell><div>Page content</div></AppShell>);
+    renderWithProviders(<AppShell><div>Page content</div></AppShell>);
 
     fireEvent.click(screen.getByRole("button", { name: "Open account menu" }));
 

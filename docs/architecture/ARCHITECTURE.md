@@ -79,7 +79,7 @@ The applications are independently built and deployed. A monorepo keeps the Open
 ### 6.1 Responsibilities
 
 - Render public product, pricing, authentication, dashboard, catalog, workspace, Review, and billing experiences.
-- Use Pencil as the source of UI designs, then implement approved designs with Tailwind CSS and shadcn/ui primitives.
+- Use the repository-root `DESIGN.md` as the source of UI design intent, validate representative behavior in a browser prototype, then implement approved designs with Tailwind CSS and shadcn/ui primitives.
 - Provide a responsive React Flow architecture editor.
 - Validate forms and imports early for usability while treating backend validation as authoritative.
 - Manage API cache, background job polling, editor draft state, and autosave feedback.
@@ -158,7 +158,7 @@ Each feature can contain `api`, `application`, `domain`, and `infrastructure` pa
 | Identity     | Users, credentials, verification, OIDC identities, sessions, refresh rotation                |
 | Billing      | Stripe customers, subscriptions, Entitlements, webhook handling                              |
 | Challenge    | Curated Challenge catalog and access policy                                                  |
-| Workspace    | Workspace lifecycle, source, ownership, Requirements and Assumptions                         |
+| Workspace    | Workspace lifecycle, fixed Type, Source, ownership, Review Brief context, Requirements and Assumptions |
 | Architecture | Working document, schema validation, optimistic saves, immutable Revisions, import/export    |
 | Decision     | Recorded architectural choices and evidence links                                            |
 | Copilot      | Context assembly, guidance prompts, streaming turns, AI usage                                |
@@ -247,6 +247,8 @@ The working Architecture Document is schema-versioned JSONB. Import and export u
 
 Nodes, edges, and evidence-bearing portable records use stable opaque identifiers. Server-managed ownership, billing, Usage Record, Review, provider, and audit fields are never accepted from import content. The database row separately stores Workspace ID, optimistic version, timestamps, and checksum where useful.
 
+Architecture nodes use a stable vendor-neutral Component Type, editable label, bounded type-specific properties, optional provider metadata, and extensible metadata. Custom Components use the same document shape with a user-selected semantic icon and category. Architecture Boundaries are nested labeled containers rather than runtime nodes. Connections use stable Connection Intents plus protocol, data intent, communication style, and guarantees. The Canvas does not simulate packet delivery or runtime behavior.
+
 ### 8.3 Revisions
 
 The working design state remains mutable. Review submission atomically creates an Architecture Revision containing:
@@ -272,7 +274,7 @@ The Review references this immutable Architecture Revision. Autosaves do not cre
 ### 9.1 Session Design
 
 - Clerk owns email/password authentication, email verification, credential recovery, Google OAuth, GitHub OAuth, and browser session lifecycle.
-- Clerk restricts registration to invited participants during the personal beta; the product has no Invitation record or invitation API. Public registration is enabled only for commercial launch.
+- Public Free registration is enabled during the personal beta without a product Invitation record or invitation API. Clerk remains the identity authority; layered backend rate limits, quotas, concurrency caps, and spend controls protect sensitive operations.
 - The frontend obtains a short-lived Clerk session JWT only to call the separately hosted Spring API and sends it in the `Authorization` header without persisting it in browser storage.
 - Spring Security validates the token signature against Clerk's keys and validates issuer, audience, authorized party, expiry, and immutable subject before associating it with a product User.
 - Clerk revokes current or all browser sessions. API JWTs expire within 10 minutes, bounding the effect of a token issued before revocation.
@@ -462,7 +464,7 @@ Local credentials are development-only and configurable. Each added container im
 
 ## 17. Hosted Deployment
 
-Hosted deployment occurs only in Milestone 8 after all feature slices pass their local quality gates. The first hosted release is a personal beta on Vercel Hobby, restricts participants to the Free Plan, and uses Stripe test mode only; it cannot collect real payments or offer paid Pro access. Stripe test-mode Pro activation is verified only with a dedicated synthetic account in local or staging environments. A later commercial launch migrates the frontend to a commercial-eligible host or plan, first deploys the integrated application to a production-like staging environment, passes browser, provider, operational, and recovery checks there, then promotes the verified release to production. Public URLs and verification dates are recorded without credentials or private dashboard links.
+Hosted deployment occurs only in Milestone 8 after all feature slices pass their local quality gates. The first hosted release is a personal beta on Vercel Hobby, restricts participants to the Free Plan for real billing, and uses Stripe test mode only; it cannot collect real payments. When test-mode Pro is enabled, authenticated beta users may exercise Checkout and webhook activation without real charges; an optional synthetic Clerk subject can still narrow access in local or staging environments. A later commercial launch migrates the frontend to a commercial-eligible host or plan, first deploys the integrated application to a production-like staging environment, passes browser, provider, operational, and recovery checks there, then promotes the verified release to production. Public URLs and verification dates are recorded without credentials or private dashboard links.
 
 ### 17.1 Frontend
 

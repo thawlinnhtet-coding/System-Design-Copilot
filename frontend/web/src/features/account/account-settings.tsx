@@ -3,37 +3,17 @@
 import { SignInButton, useAuth, useSession, useUser } from "@clerk/nextjs";
 import { ArrowUpDown, CreditCard, LockKeyhole, ShieldCheck, UserRound } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useState } from "react";
-import { useAuthenticatedApiClient, type CurrentEntitlements } from "@/lib/api/authenticated-client";
 import { AccountSettingsSidebar } from "./account-navigation";
 import { planLabel, type UsageLoadState } from "./plan-label";
+import { useEntitlements } from "./use-entitlements";
 
 export function AccountSettings() {
   const { isLoaded, isSignedIn } = useAuth();
   const { user } = useUser();
   const { session } = useSession();
-  const api = useAuthenticatedApiClient();
-  const [usage, setUsage] = useState<CurrentEntitlements | null>(null);
-  const [usageState, setUsageState] = useState<UsageLoadState>("loading");
-
-  useEffect(() => {
-    if (!isLoaded || !isSignedIn) return;
-
-    let current = true;
-    api.getUsage().then((nextUsage) => {
-      if (!current) return;
-      setUsage(nextUsage);
-      setUsageState("ready");
-    }).catch(() => {
-      if (!current) return;
-      setUsage(null);
-      setUsageState("error");
-    });
-
-    return () => {
-      current = false;
-    };
-  }, [api, isLoaded, isSignedIn]);
+  const entitlements = useEntitlements();
+  const usage = entitlements.data ?? null;
+  const usageState: UsageLoadState = entitlements.isError ? "error" : entitlements.isSuccess ? "ready" : "loading";
 
   if (!isLoaded) {
     return <p className="px-5 py-12 text-sm text-text-muted sm:px-8 lg:px-14">Restoring your session...</p>;

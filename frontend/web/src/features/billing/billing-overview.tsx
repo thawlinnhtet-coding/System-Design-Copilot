@@ -2,8 +2,9 @@
 
 import { SignInButton, useAuth } from "@clerk/nextjs";
 import { ArrowUpRight, CreditCard, RefreshCw } from "lucide-react";
-import { useEffect, useState } from "react";
-import { useAuthenticatedApiClient, type ApiRequestError, type CurrentEntitlements } from "@/lib/api/authenticated-client";
+import { useState } from "react";
+import { useAuthenticatedApiClient, type ApiRequestError } from "@/lib/api/authenticated-client";
+import { useEntitlements } from "@/features/account/use-entitlements";
 
 const buttonClassName =
   "inline-flex min-h-11 items-center justify-center gap-2 rounded-md px-4 py-2 text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus disabled:cursor-not-allowed disabled:opacity-50";
@@ -11,26 +12,10 @@ const buttonClassName =
 export function BillingOverview() {
   const { isLoaded, isSignedIn } = useAuth();
   const api = useAuthenticatedApiClient();
-  const [usage, setUsage] = useState<CurrentEntitlements | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busyAction, setBusyAction] = useState<"checkout" | "portal" | null>(null);
-
-  useEffect(() => {
-    if (!isLoaded || !isSignedIn) return;
-
-    let current = true;
-    api.getUsage()
-      .then((nextUsage) => {
-        if (current) setUsage(nextUsage);
-      })
-      .catch(() => {
-        if (current) setError("We could not load your plan. Try again.");
-      });
-
-    return () => {
-      current = false;
-    };
-  }, [api, isLoaded, isSignedIn]);
+  const entitlements = useEntitlements();
+  const usage = entitlements.data ?? null;
 
   if (!isLoaded) {
     return <p className="text-sm text-text-muted">Restoring your session...</p>;
@@ -50,7 +35,7 @@ export function BillingOverview() {
   }
 
   const isPro = usage?.plan === "PRO";
-  const isLoading = !usage && !error;
+  const isLoading = entitlements.isLoading;
 
   async function openPortal() {
     setBusyAction("portal");
@@ -76,7 +61,7 @@ export function BillingOverview() {
 
   return (
     <div className="space-y-6">
-      {error ? <p className="rounded-md border border-danger/30 bg-danger/10 px-4 py-3 text-sm text-danger" role="alert">{error}</p> : null}
+      {error || entitlements.isError ? <p className="rounded-md border border-danger/30 bg-danger/10 px-4 py-3 text-sm text-danger" role="alert">{error ?? "We could not load your plan. Try again."}</p> : null}
 
       <section className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_18rem]">
         <div className="rounded-lg border border-line bg-surface p-6 sm:p-8">

@@ -44,6 +44,7 @@ This file applies to `frontend/`. Also follow the repository root `AGENTS.md`.
 
 ## UI And Accessibility
 
+- Treat the approved repository-root `ui_design` Pencil artifact as the authoritative visual and interaction design contract. Use `DESIGN.md` for its supporting rules and implementation notes; if they conflict, follow `ui_design` and update `DESIGN.md` in the same change. Do not introduce competing UI design tokens or visual grammar.
 - Preserve the product's engineering-workspace identity; avoid generic dashboard styling.
 - Compose shadcn/ui primitives rather than editing generated primitive internals unnecessarily.
 - Meet WCAG 2.1 AA for core flows, including focus visibility, labels, contrast, and keyboard navigation.

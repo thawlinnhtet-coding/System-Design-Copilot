@@ -54,7 +54,7 @@ This plan implements `docs/product/PRD.md` using the architecture in `ARCHITECTU
 ### Frontend
 
 - Scaffold Next.js App Router with strict TypeScript and npm.
-- Use Pencil as the source of UI designs. Add Tailwind CSS, shadcn/ui foundation, TanStack Query, Vitest, Testing Library, and Playwright. Add Zustand, React Hook Form, Zod, and React Flow with the editor and form features that use them.
+- Use the repository-root `DESIGN.md` as the UI design source, validate a narrow browser prototype, and implement with Tailwind CSS and shadcn/ui. Add TanStack Query, Vitest, Testing Library, and Playwright. Add Zustand, React Hook Form, Zod, and React Flow with the editor and form features that use them.
 - Establish the public route layout. Add authenticated routes with the identity feature.
 - Create the typed API client and an OpenAPI type-generation command.
 - Add a health-status page that calls the backend.
@@ -73,7 +73,7 @@ This plan implements `docs/product/PRD.md` using the architecture in `ARCHITECTU
 - GitHub Actions backend CI: Maven `verify`.
 - Add an OpenAPI generation or drift check that prevents stale generated frontend types.
 - Add GitHub dependency update and secret-scanning configuration available to the repository.
-- Add focused Playwright screenshot checks for Pencil-approved public pages and stable core states; exclude the dynamic architecture canvas from visual regression.
+- Add focused Playwright screenshot checks for Markdown-and-browser-approved public pages and stable core states; exclude the dynamic architecture canvas from visual regression.
 
 ### Exit Criteria
 
@@ -135,7 +135,7 @@ This plan implements `docs/product/PRD.md` using the architecture in `ARCHITECTU
 ### Exit Criteria
 
 - Free policy is enforced in application services, not only the UI.
-- Stripe test-mode activation grants Pro after a verified webhook for a dedicated synthetic test account in local or staging environments, never for a personal-beta participant.
+ - Stripe test-mode activation grants Pro after a verified webhook for authenticated test users when enabled; `STRIPE_SYNTHETIC_CLERK_SUBJECT` remains an optional local/staging allowlist, and blank allows any authenticated test user without real charges.
 - Duplicate and out-of-order webhook tests pass.
 - Downgrade behavior preserves content and follows `BILL-007`.
 
@@ -145,8 +145,9 @@ This plan implements `docs/product/PRD.md` using the architecture in `ARCHITECTU
 
 - Add Workspace, Requirement, Assumption, Decision, Workspace Scenario, and Scenario Response migrations.
 - Implement create, list, retrieve, rename, archive, restore, and delete.
-- Start with custom Workspaces to establish the smallest vertical path.
-- Build dashboard, create flow, and Workspace shell.
+- Start with Custom Design Workspaces to establish the smallest vertical path, while persisting fixed Workspace Type and Workspace Source values.
+- Build the Custom Design Workspace create flow from Workspace name and System Idea, the Clarify focus, flexible Clarify/Design/Stress-test/Feedback stage rail, and Workspace shell.
+- Keep the initial Architecture Document blank and make the first Requirement, Canvas, and Copilot entry points progressive rather than blocking.
 - Enforce ownership and active-Workspace Entitlements.
 
 ### Slice 4.2: Document Contract
@@ -158,7 +159,15 @@ This plan implements `docs/product/PRD.md` using the architecture in `ARCHITECTU
 
 ### Slice 4.3: Canvas
 
-- Add initial Component palette: client, service, gateway, database, cache, queue, load balancer, storage, worker, and external system.
+- Define the complete vendor-neutral Component Type taxonomy across clients, edge, networking, security, compute, data, messaging, coordination, identity, operations, external systems, and Boundaries.
+- Ship Phase 1 palette coverage for Browser Client, Mobile/API Client, DNS, CDN, WAF, Load Balancer, API Gateway, Service, Worker, Function, Relational Database, NoSQL Database, Cache, Object Storage, Queue, Event Bus, Identity Provider, External API, Region, Network, Cluster, and Trust Boundary.
+- Add Custom Component fallback with semantic icon selection, labels, category, provider metadata, and extensible metadata.
+- Add a minimal common Component property core with stable Component Type and label plus optional description, provider metadata, and extensible metadata. Keep placement, size, and visual state outside Component properties.
+- Add typed category properties for responsibility/runtime/state/scaling on Compute, model/access/partitioning/consistency/replication/retention/recovery on Data Stores, delivery/ordering/retry/retention/replay on Messaging, traffic/trust/authentication on Edge and Security, and trust/lifecycle/signals on Identity, Secrets, and Observability.
+- Use bounded text and typed enums for v1 Component properties, reject unknown typed fields, and bound extensible metadata; do not model credentials, provider runtime configuration, or runtime simulation.
+- Add typed Connection Intents for request/response, DNS resolution, data read/write, event publish/consume, queue delivery, stream, replication, authentication, and file/object transfer.
+- Model Regions, networks, subnets, clusters, zones, and trust scopes as nested labeled Boundaries with one visual parent per document layer.
+- Add categorized palette, click-to-place, optional drag-and-drop, and searchable keyboard insertion.
 - Implement controlled React Flow nodes, Connections, selection, property panels, grouping, undo/redo, and viewport persistence.
 - Implement a Workspace-keyed Zustand editor store.
 - Add debounced autosave and explicit save/conflict/offline status.
@@ -182,8 +191,10 @@ This plan implements `docs/product/PRD.md` using the architecture in `ARCHITECTU
 ### Slice 5.1: Challenge Catalog
 
 - Define version-controlled starter Challenge content and seed strategy for URL shortener, news feed, and ticket booking.
-- Implement catalog query, filters, Plan visibility, and Challenge detail.
-- Create a Workspace by copying the required Challenge starting context.
+- Publish immutable Challenge Versions with problem, constraints, tags, difficulty, estimated practice time, and optional Scenarios.
+- Implement public-safe catalog metadata, filters, Plan visibility, locked premium previews, and Challenge detail.
+- Create a Challenge Workspace by snapshotting the selected Challenge Version and offer continue-or-new behavior for existing attempts.
+- Keep reference architectures hidden from the Challenge catalog and Workspace start flow.
 - Add premium access tests even if the first seed set is mostly Free.
 
 ### Slice 5.2: Import And Export
@@ -191,12 +202,19 @@ This plan implements `docs/product/PRD.md` using the architecture in `ARCHITECTU
 - Add browser pre-validation for user feedback.
 - Send files to the backend for authoritative validation and sanitization.
 - Reject unsupported schema versions and all server-owned fields.
-- Create a new imported Workspace on success.
+- Return validated portable starting content to the owning Workspace creation flow without deciding Workspace Type or Review behavior.
 - Export portable design data only.
+
+### Slice 5.3: Manual Architecture Review Entry
+
+- Add Review Brief capture with required System Description and Review Goal plus optional Known Requirements and Assumptions.
+- Require a Review Goal and create an Import Package-sourced Architecture Review Workspace for validated imported content.
+- Create a Manual Recreation-sourced Architecture Review Workspace with a blank Architecture Canvas.
+- Preserve the Review Brief as Workspace context and allow repeated editable Revisions and Reviews.
 
 ### Exit Criteria
 
-- Curated, custom, and supported imported Workspace sources complete end to end.
+- Challenge, Custom Design, Import Package, and Manual Recreation Workspace entry paths complete end to end with fixed Workspace Types and visible Sources.
 - Invalid import errors identify location and correction where safe.
 - Imported ownership, identity, billing, Review, and provider fields cannot affect server records.
 
@@ -222,6 +240,7 @@ This plan implements `docs/product/PRD.md` using the architecture in `ARCHITECTU
 ### Slice 6.3: Scenarios
 
 - Implement curated Scenario presentation and response capture first.
+- Introduce curated Challenge Scenarios as progressive, inspectable, non-blocking pressure tests.
 - Add constrained AI-assisted Scenario generation after the curated path is stable.
 - Validate generated Scenario schema and relevance.
 - Link completed Scenarios into later Review context.
@@ -288,7 +307,7 @@ This plan implements `docs/product/PRD.md` using the architecture in `ARCHITECTU
 - For commercial launch, deploy the integrated frontend and backend to staging, configure sibling `app.<staging-domain>` and `api.<staging-domain>` custom domains, and verify TLS, CORS, Clerk sessions and social-login callbacks, email links, Stripe redirects, liveness, readiness, and recovery behavior in current browsers.
 - For commercial launch, promote the verified staging release to production, configure sibling production custom domains, and repeat deployed smoke tests. Record public service URLs and verification dates without recording provider credentials or private dashboard URLs.
 - For the initial personal beta, deploy the frontend only under Vercel Hobby terms; keep every participant on the Free Plan; keep Stripe in test mode; and disable real Checkout and paid Pro access. Perform the staging and commercial-production steps only after moving the frontend to a commercial-eligible host or plan.
-- Restrict the personal beta to Clerk-managed invitations; do not create a product Invitation record or API. Enable public registration only for commercial launch.
+- Allow public Free registration through Clerk without creating a product Invitation record or API. Require progressive abuse controls, verified email before AI/billing, and Free-only Stripe test-mode guardrails during the personal beta.
 - Treat personal-beta data as best-effort and disposable, disclose that no recovery or backup-deletion guarantee exists, and defer the independent backup, restore, RPO/RTO, and deletion-tombstone release gates to commercial launch.
 - For commercial launch, add structured production logs, correlation IDs, safe metrics, and alerts.
 - For commercial launch, add dashboards or provider-native views for queue depth, dead letters, AI failures and cost, database saturation, webhook lag, backup failures, and verified-backup age over 18 hours.

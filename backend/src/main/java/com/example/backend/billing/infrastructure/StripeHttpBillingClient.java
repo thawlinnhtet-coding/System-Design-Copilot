@@ -57,10 +57,7 @@ class StripeHttpBillingClient implements BillingClient {
 	@Override
 	public BillingClient.StripeSubscription retrieveSubscription(String stripeSubscriptionId) {
 		var response = get("subscriptions/" + URLEncoder.encode(stripeSubscriptionId, StandardCharsets.UTF_8));
-		var periodEndSeconds = response.path("current_period_end").asLong(-1);
-		if (periodEndSeconds < 0) {
-			periodEndSeconds = response.path("items").path("data").path(0).path("current_period_end").asLong(-1);
-		}
+		var periodEndSeconds = currentPeriodEndSeconds(response);
 		if (periodEndSeconds < 0) {
 			throw new BillingProviderException();
 		}
@@ -155,6 +152,13 @@ class StripeHttpBillingClient implements BillingClient {
 				.map(entry -> URLEncoder.encode(entry.getKey(), StandardCharsets.UTF_8) + "=" + URLEncoder.encode(entry.getValue(), StandardCharsets.UTF_8))
 				.reduce((left, right) -> left + "&" + right)
 				.orElse("");
+	}
+
+	static long currentPeriodEndSeconds(JsonNode subscription) {
+		var topLevelPeriodEnd = subscription.path("current_period_end").asLong(-1);
+		return topLevelPeriodEnd >= 0
+				? topLevelPeriodEnd
+				: subscription.path("items").path("data").path(0).path("current_period_end").asLong(-1);
 	}
 
 }

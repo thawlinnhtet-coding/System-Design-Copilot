@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
 import { IBM_Plex_Mono, IBM_Plex_Sans, Space_Grotesk } from "next/font/google";
+import { QueryProvider } from "@/components/system/query-provider";
 import "./globals.css";
 
 const bodyFont = IBM_Plex_Sans({
@@ -36,8 +37,8 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         lang="en"
         className={`${bodyFont.variable} ${displayFont.variable} ${monoFont.variable} h-full antialiased`}
       >
-        <body className="min-h-full flex flex-col" suppressHydrationWarning>
-          {children}
+        <body className="min-h-full flex flex-col">
+          <QueryProvider>{children}</QueryProvider>
         </body>
       </html>
     </ClerkProvider>
