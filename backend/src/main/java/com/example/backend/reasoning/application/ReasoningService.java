@@ -26,7 +26,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Service
-public class ReasoningService implements WorkspaceDataCleanup {
+public class ReasoningService implements WorkspaceDataCleanup, ReasoningSnapshotProvider {
 
 	private static final TypeReference<List<UUID>> UUID_LIST = new TypeReference<>() { };
 	private static final TypeReference<List<String>> STRING_LIST = new TypeReference<>() { };
@@ -62,6 +62,17 @@ public class ReasoningService implements WorkspaceDataCleanup {
 	public ReasoningResponse get(UUID userId, UUID workspaceId) {
 		ensureWorkspace(userId, workspaceId);
 		return response(userId, workspaceId);
+	}
+
+	@Override
+	@Transactional(readOnly = true)
+	public String snapshotForRevision(UUID userId, UUID workspaceId) {
+		ensureWorkspace(userId, workspaceId);
+		try {
+			return objectMapper.writeValueAsString(response(userId, workspaceId));
+		} catch (JsonProcessingException exception) {
+			throw new IllegalStateException("Could not snapshot Workspace reasoning", exception);
+		}
 	}
 
 	@Transactional
