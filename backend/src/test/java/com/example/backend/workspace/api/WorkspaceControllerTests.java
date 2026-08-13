@@ -353,6 +353,21 @@ class WorkspaceControllerTests {
 				.andExpect(status().isBadRequest()).andExpect(jsonPath("$.code").value("invalid_architecture_document"));
 	}
 
+	@Test
+	void protectsArchitectureDocumentsByOwnershipAndWorkspaceLifecycle() throws Exception {
+		var owner = bearerToken("architecture_owner_" + System.nanoTime());
+		var other = bearerToken("architecture_other_" + System.nanoTime());
+		var created = mockMvc.perform(post("/api/v1/workspaces").header("Authorization", owner).contentType(MediaType.APPLICATION_JSON)
+				.content("{\"name\":\"Private\",\"description\":\"Protected document\"}")).andReturn();
+		var id = workspaceId(created.getResponse().getContentAsString());
+		var document = "{\"schemaVersion\":1,\"components\":[{\"id\":\"api\",\"type\":\"SERVICE\",\"label\":\"API\",\"category\":\"COMPUTE\",\"properties\":{\"runtime\":\"JAVA\"}}],\"connections\":[]}";
+		mockMvc.perform(put("/api/v1/workspaces/{workspaceId}/architecture-document", id).header("Authorization", other).contentType(MediaType.APPLICATION_JSON)
+				.content("{\"expectedVersion\":0,\"document\":" + document + "}")).andExpect(status().isNotFound());
+		mockMvc.perform(post("/api/v1/workspaces/{workspaceId}/archive", id).header("Authorization", owner)).andExpect(status().isOk());
+		mockMvc.perform(put("/api/v1/workspaces/{workspaceId}/architecture-document", id).header("Authorization", owner).contentType(MediaType.APPLICATION_JSON)
+				.content("{\"expectedVersion\":0,\"document\":" + document + "}")).andExpect(status().isConflict()).andExpect(jsonPath("$.code").value("workspace_archived"));
+	}
+
 	private UUID workspaceId(String response) throws Exception {
 		JsonNode root = objectMapper.readTree(response);
 		return UUID.fromString(root.path("id").asText());

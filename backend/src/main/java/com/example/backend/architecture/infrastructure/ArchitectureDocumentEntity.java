@@ -27,5 +27,4 @@ public class ArchitectureDocumentEntity {
 	public long getVersion() { return version; }
 	public String getDocument() { return document; }
 	public Instant getUpdatedAt() { return updatedAt; }
-	public void replace(long version, String document, Instant updatedAt) { this.version = version; this.document = document; this.updatedAt = updatedAt; }
 }
