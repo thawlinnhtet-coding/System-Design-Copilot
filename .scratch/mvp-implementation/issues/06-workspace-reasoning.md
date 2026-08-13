@@ -4,7 +4,7 @@
 
 **Blocked by:** 05 - Custom Workspace Lifecycle.
 
-**Status:** in-progress
+**Status:** completed
 
 **Implementation note:** Workspace reasoning records and Review Brief persistence are implemented in the shared Workspace API and Clarify surface. Immutable Architecture Revision snapshots remain with Ticket 07, which owns the revision contract and snapshot lifecycle.
 
@@ -16,6 +16,6 @@
 - [x] Assumptions support category, quantitative value/unit where applicable, rationale, confidence, status, source, and related Requirements.
 - [x] Unresolved Questions support status, why it matters, resolution notes, related Requirements/Assumptions, and optional resulting Decision references.
 - [x] Decisions retain a chosen option, rationale, alternatives, positive consequences, risks, status, and evidence references.
-- [ ] Review Briefs require System Description and Review Goal at entry, remain editable, and are snapshotted into each Architecture Revision.
-- [ ] Live reasoning edits cannot alter older Revision snapshots; removed records remain historically addressable for prior Reviews.
+- [x] Review Briefs require System Description and Review Goal at entry, remain editable, and are snapshotted into each Architecture Revision.
+- [x] Live reasoning edits cannot alter older Revision snapshots; removed records remain historically addressable for prior Reviews.
 - [x] Cross-User access to every reasoning record is rejected.
