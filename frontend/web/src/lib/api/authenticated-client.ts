@@ -26,8 +26,8 @@ export type WorkspaceReasoning = {
   reviewBrief?: ReviewBrief | null;
 };
 
-export type ArchitectureComponentCategory = "COMPUTE" | "DATA_STORE" | "MESSAGING" | "EDGE_SECURITY" | "IDENTITY_SECRETS" | "OBSERVABILITY";
-export type ArchitectureComponentType = "SERVICE" | "FUNCTION" | "BATCH_JOB" | "RELATIONAL_DATABASE" | "DOCUMENT_DATABASE" | "CACHE" | "OBJECT_STORE" | "QUEUE" | "STREAM" | "GATEWAY" | "LOAD_BALANCER" | "WAF" | "IDENTITY_PROVIDER" | "SECRETS_MANAGER" | "LOGGING" | "METRICS" | "TRACING" | "EXTERNAL_API";
+export type ArchitectureComponentCategory = "COMPUTE" | "DATA_STORE" | "MESSAGING" | "EDGE_SECURITY" | "IDENTITY_SECRETS" | "OBSERVABILITY" | "CUSTOM";
+export type ArchitectureComponentType = "SERVICE" | "FUNCTION" | "BATCH_JOB" | "RELATIONAL_DATABASE" | "DOCUMENT_DATABASE" | "CACHE" | "OBJECT_STORE" | "QUEUE" | "STREAM" | "GATEWAY" | "LOAD_BALANCER" | "WAF" | "IDENTITY_PROVIDER" | "SECRETS_MANAGER" | "LOGGING" | "METRICS" | "TRACING" | "EXTERNAL_API" | "CUSTOM_COMPONENT";
 export type ArchitectureDocument = {
   schemaVersion: 1;
   components: Array<{

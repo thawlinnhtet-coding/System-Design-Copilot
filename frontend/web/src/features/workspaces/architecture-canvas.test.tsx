@@ -18,16 +18,17 @@ describe("ArchitectureCanvas", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     api.getArchitectureDocument.mockResolvedValue({ workspaceId: "workspace-1", version: 0, document: { schemaVersion: 1, components: [], connections: [], boundaries: [] } });
-    api.saveArchitectureDocument.mockResolvedValue({ workspaceId: "workspace-1", version: 1, document: { schemaVersion: 1, components: [], connections: [], boundaries: [] } });
+    api.saveArchitectureDocument.mockImplementation(async (workspaceId: string, version: number, document: unknown) => ({ workspaceId, version: version + 1, document }));
   });
 
   it("loads the document and exposes keyboard-accessible component insertion", async () => {
-    renderWithProviders(<ArchitectureCanvas workspaceId="workspace-1" />);
+    const view = renderWithProviders(<ArchitectureCanvas workspaceId="workspace-1" />);
 
     expect(await screen.findByText("Architecture Document")).toBeVisible();
     fireEvent.click(screen.getByRole("button", { name: "Service" }));
 
-    expect(await screen.findByRole("textbox", { name: "Label" })).toHaveValue("Service");
+    await screen.findByRole("button", { name: "Delete Component" });
+    expect(view.container.querySelector("#component-label")).toHaveValue("Service");
     expect(screen.getByRole("status")).toHaveTextContent("Unsaved changes");
   });
 

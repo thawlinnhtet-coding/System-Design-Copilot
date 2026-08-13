@@ -369,6 +369,21 @@ class WorkspaceControllerTests {
 				.content("{\"expectedVersion\":0,\"document\":" + document + "}")).andExpect(status().isConflict()).andExpect(jsonPath("$.code").value("workspace_archived"));
 	}
 
+	@Test
+	void acceptsCustomComponentsAndNestedBoundaries() throws Exception {
+		var token = bearerToken("architecture_boundaries_" + System.nanoTime());
+		var created = mockMvc.perform(post("/api/v1/workspaces").header("Authorization", token).contentType(MediaType.APPLICATION_JSON)
+				.content("{\"name\":\"Boundaries\",\"description\":\"Custom components\"}")).andReturn();
+		var id = workspaceId(created.getResponse().getContentAsString());
+		var document = """
+				{"schemaVersion":1,"components":[{"id":"vendor","type":"CUSTOM_COMPONENT","label":"Fraud Provider","category":"CUSTOM","properties":{"semanticIcon":"service","provider":"Acme"}}],"connections":[],"boundaries":[{"id":"region","label":"Primary region","type":"REGION","componentIds":["vendor"]},{"id":"trust","label":"Trusted network","type":"TRUST","parentBoundaryId":"region","componentIds":[]}]}
+				""";
+		mockMvc.perform(put("/api/v1/workspaces/{workspaceId}/architecture-document", id).header("Authorization", token)
+				.contentType(MediaType.APPLICATION_JSON).content("{\"expectedVersion\":0,\"document\":" + document + "}"))
+				.andExpect(status().isOk()).andExpect(jsonPath("$.document.components[0].type").value("CUSTOM_COMPONENT"))
+				.andExpect(jsonPath("$.document.boundaries[1].parentBoundaryId").value("region"));
+	}
+
 	private UUID workspaceId(String response) throws Exception {
 		JsonNode root = objectMapper.readTree(response);
 		return UUID.fromString(root.path("id").asText());

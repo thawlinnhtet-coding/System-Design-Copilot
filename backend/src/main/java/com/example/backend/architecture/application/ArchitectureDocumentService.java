@@ -22,8 +22,8 @@ import java.util.UUID;
 @Service
 public class ArchitectureDocumentService {
 	private static final int SCHEMA_VERSION = 1;
-	private static final Set<String> CATEGORIES = Set.of("COMPUTE", "DATA_STORE", "MESSAGING", "EDGE_SECURITY", "IDENTITY_SECRETS", "OBSERVABILITY");
-	private static final Set<String> COMPONENT_TYPES = Set.of("SERVICE", "FUNCTION", "BATCH_JOB", "RELATIONAL_DATABASE", "DOCUMENT_DATABASE", "CACHE", "OBJECT_STORE", "QUEUE", "STREAM", "GATEWAY", "LOAD_BALANCER", "WAF", "IDENTITY_PROVIDER", "SECRETS_MANAGER", "LOGGING", "METRICS", "TRACING", "EXTERNAL_API");
+	private static final Set<String> CATEGORIES = Set.of("COMPUTE", "DATA_STORE", "MESSAGING", "EDGE_SECURITY", "IDENTITY_SECRETS", "OBSERVABILITY", "CUSTOM");
+	private static final Set<String> COMPONENT_TYPES = Set.of("SERVICE", "FUNCTION", "BATCH_JOB", "RELATIONAL_DATABASE", "DOCUMENT_DATABASE", "CACHE", "OBJECT_STORE", "QUEUE", "STREAM", "GATEWAY", "LOAD_BALANCER", "WAF", "IDENTITY_PROVIDER", "SECRETS_MANAGER", "LOGGING", "METRICS", "TRACING", "EXTERNAL_API", "CUSTOM_COMPONENT");
 	private static final Set<String> CONNECTION_INTENTS = Set.of("REQUEST_RESPONSE", "DNS_RESOLUTION", "DATA_READ_WRITE", "EVENT_PUBLISH", "EVENT_CONSUME", "QUEUE_DELIVERY", "STREAM", "REPLICATION", "AUTHENTICATION", "FILE_OBJECT_TRANSFER");
 	private static final Set<String> PROTOCOLS = Set.of("HTTP", "HTTPS", "GRPC", "TCP", "UDP", "AMQP", "KAFKA", "SQL", "REDIS", "DNS", "S3");
 	private static final Set<String> GUARANTEES = Set.of("BEST_EFFORT", "AT_MOST_ONCE", "AT_LEAST_ONCE", "EXACTLY_ONCE", "STRONG", "EVENTUAL");
@@ -127,10 +127,10 @@ public class ArchitectureDocumentService {
 	private void optionalEnum(JsonNode node, String name, Set<String> values) { if (!node.path(name).isMissingNode() && (!node.path(name).isTextual() || !values.contains(node.path(name).asText()))) fail(name + " is unsupported"); }
 	private void validateProperties(String category, JsonNode value) {
 		if (!value.isObject()) fail("properties is required");
-		var required = switch (category) { case "COMPUTE" -> "runtime"; case "DATA_STORE" -> "consistency"; case "MESSAGING" -> "deliveryGuarantee"; case "EDGE_SECURITY" -> "exposure"; case "IDENTITY_SECRETS" -> "responsibility"; case "OBSERVABILITY" -> "signal"; default -> throw new IllegalStateException("Unknown category"); };
+		var required = switch (category) { case "COMPUTE" -> "runtime"; case "DATA_STORE" -> "consistency"; case "MESSAGING" -> "deliveryGuarantee"; case "EDGE_SECURITY" -> "exposure"; case "IDENTITY_SECRETS" -> "responsibility"; case "OBSERVABILITY" -> "signal"; case "CUSTOM" -> "semanticIcon"; default -> throw new IllegalStateException("Unknown category"); };
 		if (!value.path(required).isTextual()) fail("properties requires " + required);
-		var values = switch (category) { case "COMPUTE" -> Set.of("JAVA", "NODE_JS", "PYTHON", "GO", "OTHER"); case "DATA_STORE" -> Set.of("STRONG", "EVENTUAL", "CAUSAL"); case "MESSAGING" -> Set.of("AT_MOST_ONCE", "AT_LEAST_ONCE", "EXACTLY_ONCE"); case "EDGE_SECURITY" -> Set.of("PUBLIC", "PRIVATE", "INTERNAL"); case "IDENTITY_SECRETS" -> Set.of("IDENTITY", "SECRETS"); case "OBSERVABILITY" -> Set.of("LOGS", "METRICS", "TRACES"); default -> Set.<String>of(); };
-		if (!values.contains(value.path(required).asText())) fail("properties " + required + " is unsupported"); validateMetadata(value);
+		var values = switch (category) { case "COMPUTE" -> Set.of("JAVA", "NODE_JS", "PYTHON", "GO", "OTHER"); case "DATA_STORE" -> Set.of("STRONG", "EVENTUAL", "CAUSAL"); case "MESSAGING" -> Set.of("AT_MOST_ONCE", "AT_LEAST_ONCE", "EXACTLY_ONCE"); case "EDGE_SECURITY" -> Set.of("PUBLIC", "PRIVATE", "INTERNAL"); case "IDENTITY_SECRETS" -> Set.of("IDENTITY", "SECRETS"); case "OBSERVABILITY" -> Set.of("LOGS", "METRICS", "TRACES"); case "CUSTOM" -> Set.<String>of(); default -> Set.<String>of(); };
+		if (!values.isEmpty() && !values.contains(value.path(required).asText())) fail("properties " + required + " is unsupported"); validateMetadata(value);
 	}
 	private void validateMetadata(JsonNode value) {
 		if (value.isMissingNode() || value.isNull()) return; if (!value.isObject() || value.size() > 20) fail("metadata is invalid");
