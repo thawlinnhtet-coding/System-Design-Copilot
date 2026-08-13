@@ -7,6 +7,8 @@ import com.example.backend.billing.application.BillingService;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Component;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.net.URI;
 import java.net.URLEncoder;
@@ -23,6 +25,7 @@ import java.util.UUID;
 class StripeHttpBillingClient implements BillingClient {
 
 	private static final URI STRIPE_API = URI.create("https://api.stripe.com/v1/");
+	private static final Logger logger = LoggerFactory.getLogger(StripeHttpBillingClient.class);
 
 	private final BillingProperties properties;
 	private final ObjectMapper objectMapper = new ObjectMapper();
@@ -56,10 +59,19 @@ class StripeHttpBillingClient implements BillingClient {
 		var response = get("subscriptions/" + URLEncoder.encode(stripeSubscriptionId, StandardCharsets.UTF_8));
 		var periodEndSeconds = response.path("current_period_end").asLong(-1);
 		if (periodEndSeconds < 0) {
+			periodEndSeconds = response.path("items").path("data").path(0).path("current_period_end").asLong(-1);
+		}
+		if (periodEndSeconds < 0) {
 			throw new BillingProviderException();
 		}
 		return new BillingClient.StripeSubscription(text(response, "id"), text(response, "customer"), text(response, "status"),
 				java.time.Instant.ofEpochSecond(periodEndSeconds), response.path("cancel_at_period_end").asBoolean(false));
+	}
+
+	@Override
+	public BillingClient.CheckoutCompletion retrieveCheckoutCompletion(String stripeCheckoutSessionId) {
+		var response = get("checkout/sessions/" + URLEncoder.encode(stripeCheckoutSessionId, StandardCharsets.UTF_8));
+		return new BillingClient.CheckoutCompletion(text(response, "customer"), text(response, "subscription"), text(response, "payment_status"));
 	}
 
 	@Override
@@ -83,12 +95,14 @@ class StripeHttpBillingClient implements BillingClient {
 					.build();
 			var response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 			if (response.statusCode() < 200 || response.statusCode() >= 300) {
+				logStripeFailure(path, response.statusCode(), response.body());
 				throw new BillingProviderException();
 			}
 			return objectMapper.readTree(response.body());
 		} catch (BillingProviderException exception) {
 			throw exception;
 		} catch (Exception exception) {
+			logger.warn("Stripe request failed path={} reason={}", path, exception.getClass().getSimpleName());
 			throw new BillingProviderException();
 		}
 	}
@@ -105,13 +119,26 @@ class StripeHttpBillingClient implements BillingClient {
 					.build();
 			var response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 			if (response.statusCode() < 200 || response.statusCode() >= 300) {
+				logStripeFailure(path, response.statusCode(), response.body());
 				throw new BillingProviderException();
 			}
 			return objectMapper.readTree(response.body());
 		} catch (BillingProviderException exception) {
 			throw exception;
 		} catch (Exception exception) {
+			logger.warn("Stripe request failed path={} reason={}", path, exception.getClass().getSimpleName());
 			throw new BillingProviderException();
+		}
+	}
+
+	private void logStripeFailure(String path, int statusCode, String responseBody) {
+		try {
+			var error = objectMapper.readTree(responseBody).path("error");
+			logger.warn("Stripe request rejected path={} status={} type={} code={} message={}",
+					path, statusCode, error.path("type").asText("unknown"), error.path("code").asText("unknown"),
+					error.path("message").asText("unknown"));
+		} catch (Exception exception) {
+			logger.warn("Stripe request rejected path={} status={} with an unreadable error response", path, statusCode);
 		}
 	}
 
@@ -129,4 +156,5 @@ class StripeHttpBillingClient implements BillingClient {
 				.reduce((left, right) -> left + "&" + right)
 				.orElse("");
 	}
+
 }

@@ -68,26 +68,26 @@ class BillingServiceTests {
 	}
 
 	@Test
-	void rejectsInvalidSignaturesAndDefaultsToDenyWhenNoSyntheticSubjectIsConfigured() {
+	void allowsAnyAuthenticatedTestUserWhenNoSyntheticSubjectIsConfigured() {
 		var store = new InMemoryStore();
 		var service = service(store, "");
-		var user = new CurrentUserService.CurrentUser(UUID.randomUUID(), "synthetic_test_user");
+		var user = new CurrentUserService.CurrentUser(UUID.randomUUID(), "personal_beta_user");
 
-		assertThrows(BillingAccessDeniedException.class, () -> service.startCheckout(user, "checkout-key"));
+		assertEquals("cs_test", service.startCheckout(user, "checkout-key").id());
 		assertThrows(InvalidStripeSignatureException.class,
 				() -> service.processWebhook(event("evt_invalid", "customer.subscription.updated", NOW, "active", NOW.plusSeconds(60)), "t=1775995200,v1=bad"));
 		assertEquals(0, store.receiptCount());
 	}
 
 	@Test
-	void revokesTestProWhenTheSyntheticAccountGuardIsDisabled() {
+	void keepsTestProWhenTheOptionalSyntheticAccountRestrictionIsDisabled() {
 		var store = new InMemoryStore();
 		var userId = UUID.randomUUID();
 		store.saveCustomer(new BillingProjectionStore.Customer(userId, "synthetic_test_user", "cus_test", NOW, null));
 		var webhook = event("evt_active", "customer.subscription.updated", NOW, "active", NOW.plusSeconds(2_592_000));
 		service(store, "synthetic_test_user").processWebhook(webhook, signedHeader(webhook));
 
-		assertFalse(service(store, "").planFor(userId, NOW).pro());
+		assertTrue(service(store, "").planFor(userId, NOW).pro());
 	}
 
 	@Test
@@ -128,6 +128,20 @@ class BillingServiceTests {
 				() -> service(store, "synthetic_test_user").startCheckout(new CurrentUserService.CurrentUser(userId, "synthetic_test_user"), "checkout-key"));
 	}
 
+	@Test
+	void projectsProFromAVerifiedCompletedCheckoutWhenTheSubscriptionEventIsDelayed() {
+		var store = new InMemoryStore();
+		var userId = UUID.randomUUID();
+		store.saveCustomer(new BillingProjectionStore.Customer(userId, "synthetic_test_user", "cus_test", NOW, null));
+		var service = service(store, "synthetic_test_user");
+		var checkout = checkoutCompletedEvent("evt_checkout", NOW);
+
+		service.processWebhook(checkout, signedHeader(checkout));
+
+		assertTrue(service.planFor(userId, NOW).pro());
+		assertEquals("active", store.findSubscriptionByUserId(userId).orElseThrow().status());
+	}
+
 	private DefaultBillingService service(InMemoryStore store, String syntheticSubject) {
 		return service(store, syntheticSubject, new FakeBillingClient());
 	}
@@ -147,6 +161,11 @@ class BillingServiceTests {
 		return ("{\"id\":\"" + eventId + "\",\"type\":\"" + type + "\",\"created\":" + eventCreatedAt.getEpochSecond()
 				+ ",\"livemode\":" + liveMode + ",\"data\":{\"object\":{\"id\":\"sub_test\",\"customer\":\"cus_test\",\"status\":\"" + status
 				+ "\",\"current_period_end\":" + periodEnd.getEpochSecond() + "}}}").getBytes(StandardCharsets.UTF_8);
+	}
+
+	private byte[] checkoutCompletedEvent(String eventId, Instant eventCreatedAt) {
+		return ("{\"id\":\"" + eventId + "\",\"type\":\"checkout.session.completed\",\"created\":" + eventCreatedAt.getEpochSecond()
+				+ ",\"livemode\":false,\"data\":{\"object\":{\"id\":\"cs_test\"}}}").getBytes(StandardCharsets.UTF_8);
 	}
 
 	private String signedHeader(byte[] payload) {
@@ -188,6 +207,11 @@ class BillingServiceTests {
 		@Override
 		public BillingClient.StripeSubscription retrieveSubscription(String stripeSubscriptionId) {
 			return currentSubscription;
+		}
+
+		@Override
+		public BillingClient.CheckoutCompletion retrieveCheckoutCompletion(String stripeCheckoutSessionId) {
+			return new BillingClient.CheckoutCompletion("cus_test", "sub_test", "paid");
 		}
 
 		@Override

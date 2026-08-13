@@ -186,6 +186,12 @@ export function useAuthenticatedApiClient() {
       getUsage(): Promise<CurrentEntitlements> {
         return json<CurrentEntitlements>("/api/v1/me/usage");
       },
+      async reconcileCompletedCheckout(sessionId: string): Promise<void> {
+        const response = await request(`/api/v1/billing/checkout/complete?session_id=${encodeURIComponent(sessionId)}`, { method: "POST" });
+        if (!response.ok) {
+          throw new ApiRequestError(response.status);
+        }
+      },
       async startCheckout(): Promise<string> {
         const response = await json<components["schemas"]["CheckoutSession"]>("/api/v1/billing/checkout", {
           method: "POST",

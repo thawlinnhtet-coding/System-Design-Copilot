@@ -8,10 +8,11 @@ export const metadata: Metadata = {
   description: "Manage identity, usage, consent, portable data, and privacy.",
 };
 
-const sections = new Set<AccountSection>(["profile", "plan", "ai", "data", "privacy"]);
+type AccountDetailSection = Exclude<AccountSection, "overview">;
+const sections = new Set<AccountDetailSection>(["profile", "plan", "ai", "data", "privacy"]);
 
 export default async function AccountDetailPage({ params }: { params: Promise<{ section: string }> }) {
   const { section } = await params;
-  const resolvedSection = sections.has(section as AccountSection) ? section as AccountSection : "profile";
+  const resolvedSection = sections.has(section as AccountDetailSection) ? section as AccountDetailSection : "profile";
   return <AppShell compactHeader fullBleed><AccountDetail section={resolvedSection} /></AppShell>;
 }

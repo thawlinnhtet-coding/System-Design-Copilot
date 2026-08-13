@@ -75,6 +75,32 @@ class DefaultBillingService implements BillingService, BillingPlanResolver {
 
 	@Override
 	@Transactional
+	public void reconcileCompletedCheckout(CurrentUserService.CurrentUser user, String stripeCheckoutSessionId) {
+		if (!properties.usesStripeTestMode() || !properties.allowsSyntheticAccount(user.clerkSubject())) {
+			throw new BillingAccessDeniedException();
+		}
+		if (stripeCheckoutSessionId == null || stripeCheckoutSessionId.isBlank() || stripeCheckoutSessionId.length() > 255) {
+			throw new InvalidBillingRequestException();
+		}
+		var customer = projectionStore.findCustomerByUserIdForUpdate(user.id()).orElseThrow(BillingAccessDeniedException::new);
+		var completion = billingClient.retrieveCheckoutCompletion(stripeCheckoutSessionId);
+		if (!customer.stripeCustomerId().equals(completion.stripeCustomerId())
+				|| (!"paid".equals(completion.paymentStatus()) && !"no_payment_required".equals(completion.paymentStatus()))) {
+			throw new BillingAccessDeniedException();
+		}
+		var subscription = billingClient.retrieveSubscription(completion.stripeSubscriptionId());
+		if (!customer.stripeCustomerId().equals(subscription.stripeCustomerId())) {
+			throw new BillingAccessDeniedException();
+		}
+		var now = Instant.now(clock);
+		var status = subscription.cancelAtPeriodEnd() ? "canceled" : subscription.status();
+		projectionStore.saveSubscription(new BillingProjectionStore.Subscription(
+				user.id(), subscription.id(), subscription.stripeCustomerId(), status, subscription.currentPeriodEnd(),
+				"past_due".equals(status) ? now : null, now, "checkout-" + stripeCheckoutSessionId, now));
+	}
+
+	@Override
+	@Transactional
 	public void processWebhook(byte[] rawBody, String stripeSignature) {
 		// Stripe signs the exact bytes received, so authentication must precede JSON parsing.
 		if (!properties.usesStripeTestMode()) {
@@ -88,12 +114,20 @@ class DefaultBillingService implements BillingService, BillingPlanResolver {
 		if (event.liveMode()) {
 			throw new InvalidStripeWebhookException();
 		}
-		if (!event.isSubscriptionEvent()) {
+		if (!event.isBillingEvent()) {
 			return;
 		}
 
-		var subscription = event.subscription();
-		var customer = projectionStore.findCustomerByStripeCustomerIdForUpdate(subscription.stripeCustomerId());
+		var checkoutCompletion = event.checkoutSessionId() == null ? null : billingClient.retrieveCheckoutCompletion(event.checkoutSessionId());
+		if (checkoutCompletion != null && !"paid".equals(checkoutCompletion.paymentStatus()) && !"no_payment_required".equals(checkoutCompletion.paymentStatus())) {
+			return;
+		}
+		var subscription = checkoutCompletion == null ? event.subscription() : billingClient.retrieveSubscription(checkoutCompletion.stripeSubscriptionId());
+		var customerId = checkoutCompletion == null ? subscription.stripeCustomerId() : checkoutCompletion.stripeCustomerId();
+		if (!subscription.stripeCustomerId().equals(customerId)) {
+			throw new InvalidStripeWebhookException();
+		}
+		var customer = projectionStore.findCustomerByStripeCustomerIdForUpdate(customerId);
 		if (customer.isEmpty() || !properties.allowsSyntheticAccount(customer.get().clerkSubject())) {
 			return;
 		}
@@ -164,15 +198,18 @@ class DefaultBillingService implements BillingService, BillingPlanResolver {
 			if (createdAt.equals(Instant.ofEpochSecond(-1))) {
 				throw new InvalidStripeWebhookException();
 			}
+			if ("checkout.session.completed".equals(type)) {
+				return new StripeEvent(id, type, createdAt, liveMode, null, text(root.path("data").path("object"), "id"));
+			}
 			if (!type.startsWith("customer.subscription.")) {
-				return new StripeEvent(id, type, createdAt, liveMode, null);
+				return new StripeEvent(id, type, createdAt, liveMode, null, null);
 			}
 			var object = root.path("data").path("object");
 			var periodEndSeconds = object.path("current_period_end").asLong(-1);
 			var periodEnd = periodEndSeconds < 0 ? null : Instant.ofEpochSecond(periodEndSeconds);
 			return new StripeEvent(id, type, createdAt, liveMode, new BillingClient.StripeSubscription(
 					text(object, "id"), text(object, "customer"), text(object, "status").toLowerCase(Locale.ROOT), periodEnd,
-					object.path("cancel_at_period_end").asBoolean(false)));
+					object.path("cancel_at_period_end").asBoolean(false)), null);
 		} catch (InvalidStripeWebhookException exception) {
 			throw exception;
 		} catch (Exception exception) {
@@ -188,9 +225,9 @@ class DefaultBillingService implements BillingService, BillingPlanResolver {
 		return value;
 	}
 
-	private record StripeEvent(String id, String type, Instant createdAt, boolean liveMode, BillingClient.StripeSubscription subscription) {
-		boolean isSubscriptionEvent() {
-			return subscription != null;
+	private record StripeEvent(String id, String type, Instant createdAt, boolean liveMode, BillingClient.StripeSubscription subscription, String checkoutSessionId) {
+		boolean isBillingEvent() {
+			return subscription != null || checkoutSessionId != null;
 		}
 	}
 

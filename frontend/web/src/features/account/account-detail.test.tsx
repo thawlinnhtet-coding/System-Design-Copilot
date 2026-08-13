@@ -31,8 +31,9 @@ describe("AccountDetail", () => {
     expect(screen.getByTestId("account-settings-sidebar")).toBeVisible();
     expect(screen.getByText("Personal information")).toBeVisible();
     expect(screen.getByText("Email address")).toBeVisible();
-    expect(screen.getByRole("button", { name: /Manage active sessions/ })).toBeVisible();
-    expect(screen.getByRole("button", { name: /Change password/ })).toBeVisible();
+    expect(screen.getByRole("button", { name: "Review sessions" })).toBeVisible();
+    expect(screen.getByRole("button", { name: "Manage sign-in" })).toBeVisible();
+    expect(screen.getByText("Two-factor authentication")).toBeVisible();
   });
 
   it("renders plan usage detail with current allowance rows", async () => {

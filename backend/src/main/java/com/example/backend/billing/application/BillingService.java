@@ -8,6 +8,8 @@ public interface BillingService {
 
 	PortalSession startCustomerPortal(CurrentUserService.CurrentUser user);
 
+	void reconcileCompletedCheckout(CurrentUserService.CurrentUser user, String stripeCheckoutSessionId);
+
 	void processWebhook(byte[] rawBody, String stripeSignature);
 
 	record CheckoutSession(String id, String url) {

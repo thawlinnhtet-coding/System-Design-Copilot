@@ -47,6 +47,21 @@ describe("AccountSettings", () => {
     expect(screen.getByRole("link", { name: "Open Profile & security →" })).toHaveAttribute("href", "/account/profile");
   });
 
+  it("renders the authenticated Pro plan returned by the usage API", async () => {
+    api.getUsage.mockResolvedValue({
+      plan: "PRO",
+      activeWorkspaces: { used: 3, limit: null },
+      copilotTurns: { used: 12, limit: null },
+      reviews: { used: 2, limit: null },
+      renewsAt: "2026-09-10T00:00:00Z",
+    });
+
+    render(<AccountSettings />);
+
+    expect((await screen.findAllByText("Pro")).length).toBeGreaterThan(0);
+    expect(screen.getByText("Account type")).toBeVisible();
+  });
+
   it("keeps account details private when signed out", () => {
     session.isSignedIn = false;
 

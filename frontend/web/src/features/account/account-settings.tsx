@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useAuthenticatedApiClient, type CurrentEntitlements } from "@/lib/api/authenticated-client";
 import { AccountSettingsSidebar } from "./account-navigation";
+import { planLabel, type UsageLoadState } from "./plan-label";
 
 export function AccountSettings() {
   const { isLoaded, isSignedIn } = useAuth();
@@ -13,15 +14,20 @@ export function AccountSettings() {
   const { session } = useSession();
   const api = useAuthenticatedApiClient();
   const [usage, setUsage] = useState<CurrentEntitlements | null>(null);
+  const [usageState, setUsageState] = useState<UsageLoadState>("loading");
 
   useEffect(() => {
     if (!isLoaded || !isSignedIn) return;
 
     let current = true;
     api.getUsage().then((nextUsage) => {
-      if (current) setUsage(nextUsage);
+      if (!current) return;
+      setUsage(nextUsage);
+      setUsageState("ready");
     }).catch(() => {
-      if (current) setUsage(null);
+      if (!current) return;
+      setUsage(null);
+      setUsageState("error");
     });
 
     return () => {
@@ -48,17 +54,19 @@ export function AccountSettings() {
 
   const name = user?.fullName ?? ([user?.firstName, user?.lastName].filter(Boolean).join(" ") || "Account user");
   const email = user?.primaryEmailAddress?.emailAddress ?? "Email unavailable";
-  const plan = usage?.plan === "PRO" ? "Pro" : usage ? "Free personal beta" : "Plan loading";
-  const activeWorkspaces = allowanceSummary(usage?.activeWorkspaces, "Workspaces");
-  const copilotTurns = allowanceSummary(usage?.copilotTurns, "Copilot Turns remaining", true);
-  const planDetail = usage?.plan === "PRO" && usage.renewsAt
-    ? `Renews ${formatDate(usage.renewsAt)} · ${activeWorkspaces}`
-    : `${activeWorkspaces} · ${copilotTurns}`;
+  const plan = planLabel(usage, usageState);
+  const activeWorkspaces = allowanceSummary(usage?.activeWorkspaces, "Workspaces", false, usageState);
+  const copilotTurns = allowanceSummary(usage?.copilotTurns, "Copilot Turns remaining", true, usageState);
+  const planDetail = usageState === "error"
+    ? "Usage is temporarily unavailable. Open Plan & usage to retry."
+    : usage?.plan === "PRO" && usage.renewsAt
+      ? `Renews ${formatDate(usage.renewsAt)} · ${activeWorkspaces}`
+      : `${activeWorkspaces} · ${copilotTurns}`;
 
   return (
     <div className="flex min-h-[calc(100vh-64px)] flex-col bg-background lg:flex-row" data-testid="account-settings-overview">
       <div className="hidden lg:block">
-        <AccountSettingsSidebar activeSection="profile" variant="overview" />
+        <AccountSettingsSidebar activeSection="overview" />
       </div>
 
       <section className="min-w-0 flex-1 px-5 py-8 sm:px-8 lg:px-14 lg:py-[38px]">
@@ -77,7 +85,7 @@ export function AccountSettings() {
             <div className="h-px bg-line" />
 
             <div className="grid gap-11 lg:grid-cols-2">
-              <ProfileSummary name={name} email={email} />
+              <ProfileSummary name={name} email={email} plan={plan} />
               <AccessSessions session={session} />
             </div>
 
@@ -104,13 +112,13 @@ export function AccountSettings() {
   );
 }
 
-function ProfileSummary({ name, email }: { name: string; email: string }) {
+function ProfileSummary({ name, email, plan }: { name: string; email: string; plan: string }) {
   return (
     <section className="flex flex-col gap-[15px]" aria-labelledby="profile-summary-heading">
       <p className="font-mono text-[11px] leading-[1.3] text-text-muted" id="profile-summary-heading">PROFILE SUMMARY</p>
       <ProfileRow label="Name" value={name} />
       <ProfileRow label="Email" value={`${email} · Verified`} />
-      <ProfileRow label="Account type" value="Personal beta" />
+      <ProfileRow label="Account type" value={plan} />
     </section>
   );
 }
@@ -171,8 +179,8 @@ function MobileAccountNavigation({ plan, activeWorkspaces, session }: { plan: st
   );
 }
 
-function allowanceSummary(allowance: { used?: number; limit?: number | null } | undefined, label: string, remaining = false) {
-  if (!allowance) return `Loading ${label}`;
+function allowanceSummary(allowance: { used?: number; limit?: number | null } | undefined, label: string, remaining = false, state: UsageLoadState = "ready") {
+  if (!allowance) return state === "error" ? `${label} unavailable` : `Loading ${label}`;
   if (allowance.limit == null) return `Unlimited ${label}`;
   const value = remaining ? Math.max(0, allowance.limit - (allowance.used ?? 0)) : `${allowance.used ?? 0}/${allowance.limit}`;
   return remaining ? `${value} ${label}` : `${value} ${label}`;

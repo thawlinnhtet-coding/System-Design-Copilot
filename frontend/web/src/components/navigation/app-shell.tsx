@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { SignOutButton, useAuth, useUser } from "@clerk/nextjs";
 import { useAuthenticatedApiClient, type CurrentEntitlements } from "@/lib/api/authenticated-client";
+import { planBadge, planLabel, type UsageLoadState } from "@/features/account/plan-label";
 
 const primaryNavigation = [
   { href: "/practice", label: "Practice" },
@@ -81,23 +82,28 @@ function AccountMenu({ isOpen, onToggle }: { isOpen: boolean; onToggle: () => vo
   const { user } = useUser();
   const api = useAuthenticatedApiClient();
   const [usage, setUsage] = useState<CurrentEntitlements | null>(null);
+  const [usageState, setUsageState] = useState<UsageLoadState>("loading");
 
   useEffect(() => {
-    if (!isOpen) return;
     let current = true;
     api.getUsage().then((nextUsage) => {
-      if (current) setUsage(nextUsage);
+      if (!current) return;
+      setUsage(nextUsage);
+      setUsageState("ready");
     }).catch(() => {
-      if (current) setUsage(null);
+      if (!current) return;
+      setUsage(null);
+      setUsageState("error");
     });
     return () => {
       current = false;
     };
-  }, [api, isOpen]);
+  }, [api]);
 
   const name = user?.fullName ?? ([user?.firstName, user?.lastName].filter(Boolean).join(" ") || "Account user");
   const email = user?.primaryEmailAddress?.emailAddress ?? "Email unavailable";
-  const workspaceDetail = usage?.activeWorkspaces ? `${usage.activeWorkspaces.used ?? 0} of ${usage.activeWorkspaces.limit ?? "∞"} active Workspaces` : "Usage details loading";
+  const workspaceDetail = usage?.activeWorkspaces ? `${usage.activeWorkspaces.used ?? 0} of ${usage.activeWorkspaces.limit ?? "∞"} active Workspaces` : usageState === "error" ? "Usage details unavailable" : "Usage details loading";
+  const badge = planBadge(usage, usageState);
   const menuItems = [
     { href: "/account/profile", label: "Profile & security", detail: "Personal information and active sessions", icon: UserRound },
     { href: "/account/plan", label: "Plan & usage", detail: workspaceDetail, icon: CreditCard },
@@ -114,7 +120,7 @@ function AccountMenu({ isOpen, onToggle }: { isOpen: boolean; onToggle: () => vo
         </span>
         <span className="flex min-w-0 flex-1 flex-col gap-0.5">
           <span className="text-xs font-medium text-text-on-dark">Account</span>
-          <span className="font-mono text-[9px] font-semibold tracking-[0.08em] text-[#9a5310]">PERSONAL BETA</span>
+          <span className="font-mono text-[9px] font-semibold tracking-[0.08em] text-[#9a5310]">{badge}</span>
         </span>
         <ChevronDown aria-hidden="true" className="text-text-on-dark-secondary" size={14} />
       </button>
@@ -123,7 +129,7 @@ function AccountMenu({ isOpen, onToggle }: { isOpen: boolean; onToggle: () => vo
           <div className="flex flex-col gap-1 px-2 py-2.5">
             <p className="text-sm font-semibold text-foreground">{name}</p>
             <p className="text-xs text-text-muted">{email}</p>
-            <p className="font-mono text-[10px] font-semibold text-[#9a5310]">{usage?.plan === "PRO" ? "PRO" : "FREE"} · PERSONAL BETA</p>
+            <p className="font-mono text-[10px] font-semibold text-[#9a5310]">{planLabel(usage, usageState)}</p>
           </div>
           <Link className="rounded-[3px] px-2 py-1.5 text-[11px] font-medium text-signal transition-colors hover:bg-surface-alt" data-testid="account-settings-overview-link" href="/account" role="menuitem">
             Account settings overview →

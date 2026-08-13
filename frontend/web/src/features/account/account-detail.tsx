@@ -1,12 +1,12 @@
 "use client";
 
-import { SignInButton, useAuth, useClerk, useSession, useUser } from "@clerk/nextjs";
+import { SignInButton, useAuth, useClerk, useUser } from "@clerk/nextjs";
 import Link from "next/link";
 import { useEffect, useState, type ReactNode } from "react";
 import { useAuthenticatedApiClient, type CurrentEntitlements } from "@/lib/api/authenticated-client";
 import { AccountSettingsSidebar, type AccountSection } from "./account-navigation";
 
-const sectionCopy: Record<AccountSection, { eyebrow: string; title: string; description: string }> = {
+const sectionCopy: Record<Exclude<AccountSection, "overview">, { eyebrow: string; title: string; description: string }> = {
   profile: {
     eyebrow: "ACCOUNT / PROFILE & SECURITY",
     title: "Personal information & security",
@@ -34,7 +34,7 @@ const sectionCopy: Record<AccountSection, { eyebrow: string; title: string; desc
   },
 };
 
-export function AccountDetail({ section }: { section: AccountSection }) {
+export function AccountDetail({ section }: { section: Exclude<AccountSection, "overview"> }) {
   const { isLoaded, isSignedIn } = useAuth();
   const { user } = useUser();
   const api = useAuthenticatedApiClient();
@@ -78,8 +78,8 @@ export function AccountDetail({ section }: { section: AccountSection }) {
   if (section === "plan") {
     return (
       <div className="flex min-h-[calc(100vh-64px)] flex-col bg-background lg:flex-row" data-testid="account-detail-plan">
-        <AccountSettingsSidebar activeSection="plan" variant="overview" />
-        <main className="min-w-0 flex-1 px-5 py-8 sm:px-8 lg:px-14 lg:py-[38px]">
+        <AccountSettingsSidebar activeSection="plan" />
+        <main className="min-w-0 flex-1 bg-[#f7f5ef] px-5 py-7 sm:px-8 lg:px-[46px] lg:py-[42px]">
           <PlanDetail usage={usage} loaded={!usageLoading} loadError={usageError} />
         </main>
       </div>
@@ -89,53 +89,55 @@ export function AccountDetail({ section }: { section: AccountSection }) {
   const copy = sectionCopy[section];
 
   return (
-    <div className="min-h-[calc(100vh-64px)] bg-background" data-testid={`account-detail-${section}`}>
-      <header className="border-b border-line bg-surface px-5 py-[18px] sm:px-8 lg:px-10">
-        <div className="flex flex-col gap-[5px]">
-          <p className="font-mono text-[10px] leading-[1.4] text-signal">{copy.eyebrow}</p>
-          <h1 className="font-display text-[28px] font-medium leading-[1.1] tracking-[-0.025em]">{copy.title}</h1>
-          <p className="max-w-[720px] text-[13px] leading-[1.45] text-text-muted">{copy.description}</p>
-        </div>
-      </header>
-
-      <div className="flex min-h-[calc(100vh-180px)] flex-col lg:flex-row">
-        <AccountSettingsSidebar activeSection={section} variant="detail" />
-        <div className="min-w-0 flex-1 px-5 py-7 sm:px-8 lg:px-10 lg:py-6">
-          <div className="w-full">
+    <div className="flex min-h-[calc(100vh-64px)] flex-col bg-background lg:flex-row" data-testid={`account-detail-${section}`}>
+        <AccountSettingsSidebar activeSection={section} />
+        <main className="min-w-0 flex-1 bg-[#f7f5ef] px-5 py-7 sm:px-8 lg:px-[46px] lg:py-[42px]">
+          <div className="w-full max-w-[1080px]">
+            <DetailHeader title={section === "privacy" ? "Privacy & deletion" : section === "data" ? "Import & export" : copy.title} description={section === "profile" ? "Manage your personal details, sign-in methods, and account security." : copy.description} />
             {section === "profile" ? <ProfileDetail email={email} /> : null}
             {section === "ai" ? <AiDetail /> : null}
             {section === "data" ? <DataDetail /> : null}
             {section === "privacy" ? <PrivacyDetail /> : null}
           </div>
-        </div>
-      </div>
+        </main>
     </div>
   );
 }
 
-function DetailCard({ children, className = "" }: { children: ReactNode; className?: string }) {
-  return <section className={`flex flex-col gap-2 rounded-[5px] border border-line bg-surface p-4 ${className}`}>{children}</section>;
+function DetailHeader({ title, description }: { title: string; description: string }) {
+  return (
+    <header className="mb-6 flex flex-col gap-2">
+      <h1 className="font-display text-[30px] font-semibold leading-[1.1] tracking-[-0.025em] text-foreground">{title}</h1>
+      <p className="text-sm leading-[1.45] text-text-muted">{description}</p>
+    </header>
+  );
 }
 
 function ProfileDetail({ email }: { email: string }) {
-  const { session } = useSession();
   const clerk = useClerk();
   const openProfile = () => clerk.openUserProfile();
 
   return (
-    <DetailCard data-testid="profile-security-card">
-      <p className="font-mono text-[10px] leading-[1.4] text-text-muted">PERSONAL INFORMATION</p>
-      <h2 className="font-display text-[17px] leading-[1.2] text-foreground">Personal information</h2>
-      <DetailRow label="Email address" value={`${email} · Verified`} />
-      <DetailRow label="This device" value={session ? "Current browser · Active now" : "Restoring session"} />
-      <DetailRow label="Other devices" value="2 active" />
-      <button className="w-fit text-[11px] font-medium text-signal hover:underline" onClick={openProfile} type="button">Manage active sessions →</button>
-      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-line py-2.5 text-xs leading-5">
-        <span className="text-text-muted">Password</span>
-        <button className="text-xs font-medium text-signal hover:underline" onClick={openProfile} type="button">Change password →</button>
-      </div>
-    </DetailCard>
+    <div className="flex max-w-[1120px] flex-col gap-4" data-testid="profile-security-card">
+      <SettingsSection title="Profile">
+        <SettingsRow label="Name" detail="Your display name is visible only within your account." action="Edit" onAction={openProfile} />
+        <SettingsRow label="Email address" detail={`${email} · Verified`} action="Edit" onAction={openProfile} />
+      </SettingsSection>
+      <SettingsSection title="Security">
+        <SettingsRow label="Sign-in methods" detail="Manage your password, passkeys, and supported sign-in methods." action="Manage sign-in" onAction={openProfile} />
+        <SettingsRow label="Two-factor authentication" detail="Add a second verification step to protect your account." action="Set up" onAction={openProfile} />
+        <SettingsRow label="Active sessions" detail="Review devices that are currently signed in to your account." action="Review sessions" onAction={openProfile} />
+      </SettingsSection>
+    </div>
   );
+}
+
+function SettingsSection({ title, children }: { title: string; children: ReactNode }) {
+  return <section className="flex flex-col gap-4 border border-[#e2e4de] bg-white p-[22px]"><h2 className="text-lg font-semibold text-foreground">{title}</h2>{children}</section>;
+}
+
+function SettingsRow({ label, detail, action, onAction }: { label: string; detail: string; action: string; onAction: () => void }) {
+  return <div className="flex flex-col gap-3 border-t border-[#edf0eb] pt-4 first:border-t-0 first:pt-0 sm:flex-row sm:items-center sm:justify-between"><div className="flex max-w-[720px] flex-col gap-1"><p className="text-sm font-semibold text-[#2a3431]">{label}</p><p className="text-[13px] leading-[1.4] text-[#66716c]">{detail}</p></div><button className="inline-flex h-8 shrink-0 items-center justify-center rounded-[4px] bg-signal px-3 text-[13px] font-semibold text-white hover:brightness-110" onClick={onAction} type="button">{action}</button></div>;
 }
 
 function PlanDetail({ usage, loaded, loadError }: { usage: CurrentEntitlements | null; loaded: boolean; loadError: boolean }) {
@@ -222,45 +224,38 @@ function AiDetail() {
   const [consentGranted, setConsentGranted] = useState(true);
 
   return (
-    <DetailCard className="border-l-[3px] border-l-signal" data-testid="ai-processing-card">
-      <p className="font-mono text-[10px] leading-[1.4] text-signal">CONSENT STATUS</p>
-      <h2 className="font-display text-[17px] leading-[1.2]">Consent managed per Workspace</h2>
-      <p className="text-[11px] leading-[1.4] text-foreground">Included: Requirements, Assumptions, Architecture Document, Decisions, completed Scenario context, and current Review goal.</p>
-      <p className="text-[11px] leading-[1.4] text-text-muted">Excluded: identity-provider data, passwords, tokens, billing secrets, and unrelated Workspaces.</p>
-      <p className="text-[11px] leading-[1.4] text-text-muted">Revoking blocks future AI operations. Previously transmitted context cannot be retracted.</p>
-      <div className="flex flex-wrap gap-2.5">
-        <button className="text-[11px] font-medium text-signal hover:underline" type="button">Review exact scope →</button>
-        <button aria-pressed={consentGranted} className="text-[11px] font-medium text-[#9a5310] hover:underline" onClick={() => setConsentGranted((value) => !value)} type="button">Revoke future processing</button>
-      </div>
-    </DetailCard>
+    <div className="flex max-w-[1120px] flex-col gap-4" data-testid="ai-processing-card">
+      <SettingsSection title="AI processing consent">
+        <SettingsRow label="Consent scope" detail="Review the Workspace categories sent to an AI provider for each operation." action="Review exact scope" onAction={() => undefined} />
+        <SettingsRow label="Provider privacy routing" detail="Choose the approved provider-routing policy for future processing." action="View details" onAction={() => undefined} />
+        <SettingsRow label="Revocation control" detail={consentGranted ? "Consent is granted. Revoking blocks future AI operations; prior transmissions cannot be retracted." : "Future AI processing is blocked until you grant consent again."} action={consentGranted ? "Revoke consent" : "Grant consent"} onAction={() => setConsentGranted((value) => !value)} />
+      </SettingsSection>
+    </div>
   );
 }
 
 function DataDetail() {
   return (
-    <DetailCard data-testid="portable-data-card">
-      <p className="font-mono text-[10px] leading-[1.4] text-text-muted">PORTABLE WORKSPACE DATA</p>
-      <h2 className="font-display text-[17px] leading-[1.2]">Import and export design content</h2>
-      <p className="text-[11px] leading-[1.4] text-text-muted">Includes portable Requirements, Assumptions, Decisions, Components, and Connections.</p>
-      <p className="text-[11px] leading-[1.4] text-text-muted">Excludes identity, billing, usage, provider, and Review data.</p>
-      <Link className="w-fit text-[11px] font-medium text-signal hover:underline" href="/data">Open data tools →</Link>
-    </DetailCard>
+    <div className="flex max-w-[1120px] flex-col gap-4" data-testid="portable-data-card">
+      <SettingsSection title="Import & export">
+        <SettingsRow label="Export workspace data" detail="Download a versioned portable package containing design content only." action="Start export" onAction={() => undefined} />
+        <SettingsRow label="Import workspace data" detail="Create a new Workspace from a compatible portable package." action="Import a package" onAction={() => undefined} />
+        <SettingsRow label="Format and exclusions" detail="Identity, billing, usage, providers, and Reviews remain excluded from portable packages." action="Read guide" onAction={() => undefined} />
+      </SettingsSection>
+    </div>
   );
 }
 
 function PrivacyDetail() {
   return (
-    <DetailCard data-testid="privacy-deletion-card">
-      <p className="font-mono text-[10px] leading-[1.4] text-text-muted">PRIVACY &amp; DELETION</p>
-      <h2 className="font-display text-[17px] leading-[1.2]">Account controls</h2>
-      <p className="text-[11px] leading-[1.4] text-text-muted">Review active sessions or request account deletion.</p>
-      <Link className="w-fit text-[11px] font-medium text-danger hover:underline" href="/account/privacy/confirm">Delete account →</Link>
-    </DetailCard>
+    <div className="flex max-w-[1120px] flex-col gap-4" data-testid="privacy-deletion-card">
+      <SettingsSection title="Privacy & deletion">
+        <SettingsRow label="Privacy choices" detail="Review how your account and private Workspace content are handled." action="Review privacy" onAction={() => undefined} />
+        <SettingsRow label="Data export" detail="Prepare a portable copy of your Workspace design content." action="Request export" onAction={() => undefined} />
+        <div className="flex flex-col gap-3 border-t border-[#f2d7d4] pt-4 sm:flex-row sm:items-center sm:justify-between"><div className="flex flex-col gap-1"><p className="text-sm font-semibold text-[#8d332a]">Delete account</p><p className="text-[13px] leading-[1.4] text-[#66716c]">Recent authentication is required before deletion can be requested.</p></div><Link className="inline-flex h-8 shrink-0 items-center justify-center rounded-[4px] bg-danger px-3 text-[13px] font-semibold text-white hover:brightness-110" href="/account/privacy/confirm">Delete account</Link></div>
+      </SettingsSection>
+    </div>
   );
-}
-
-function DetailRow({ label, value }: { label: string; value: string }) {
-  return <div className="flex justify-between gap-3 border-b border-line py-[7px] text-[11px] leading-[1.4]"><span className="text-text-muted">{label}</span><span className="text-right text-foreground">{value}</span></div>;
 }
 
 function formatRenewal(value: string | undefined) {

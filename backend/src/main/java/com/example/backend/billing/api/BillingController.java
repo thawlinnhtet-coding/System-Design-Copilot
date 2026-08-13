@@ -15,6 +15,7 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -49,6 +50,14 @@ public class BillingController {
 	@SecurityRequirement(name = "clerkBearerAuth")
 	public BillingService.PortalSession customerPortal(@AuthenticationPrincipal Jwt jwt) {
 		return billingService.startCustomerPortal(currentUserService.getOrCreate(jwt.getSubject()));
+	}
+
+	@PostMapping("/billing/checkout/complete")
+	@Operation(summary = "Reconcile a completed Stripe Checkout session for the signed-in user")
+	@SecurityRequirement(name = "clerkBearerAuth")
+	public void completeCheckout(@AuthenticationPrincipal Jwt jwt, @RequestParam("session_id") String sessionId, HttpServletResponse response) {
+		billingService.reconcileCompletedCheckout(currentUserService.getOrCreate(jwt.getSubject()), sessionId);
+		response.setStatus(HttpServletResponse.SC_NO_CONTENT);
 	}
 
 	@PostMapping(value = "/webhooks/stripe", consumes = MediaType.APPLICATION_JSON_VALUE)

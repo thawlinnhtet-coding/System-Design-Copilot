@@ -10,8 +10,13 @@ public interface BillingClient {
 
 	StripeSubscription retrieveSubscription(String stripeSubscriptionId);
 
+	CheckoutCompletion retrieveCheckoutCompletion(String stripeCheckoutSessionId);
+
 	BillingService.PortalSession createCustomerPortalSession(String stripeCustomerId);
 
 	record StripeSubscription(String id, String stripeCustomerId, String status, java.time.Instant currentPeriodEnd, boolean cancelAtPeriodEnd) {
+	}
+
+	record CheckoutCompletion(String stripeCustomerId, String stripeSubscriptionId, String paymentStatus) {
 	}
 }

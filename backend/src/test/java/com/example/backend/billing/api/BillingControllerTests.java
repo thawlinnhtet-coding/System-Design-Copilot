@@ -16,9 +16,11 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Primary;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.annotation.DirtiesContext;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
@@ -50,6 +52,9 @@ class BillingControllerTests {
 
 	@Autowired
 	private MockMvc mockMvc;
+
+	@Autowired
+	private JdbcTemplate jdbcTemplate;
 
 	@Test
 	void deniesCheckoutForUsersOtherThanTheConfiguredSyntheticAccount() throws Exception {
@@ -88,6 +93,27 @@ class BillingControllerTests {
 		mockMvc.perform(post("/api/v1/billing/portal").header("Authorization", bearerToken("synthetic_test_user")))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.url").value("https://billing.stripe.test/portal"));
+	}
+
+	@Test
+	@DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
+	void reconcilesTheCompletedCheckoutForItsAuthenticatedOwner() throws Exception {
+		jdbcTemplate.update("DELETE FROM stripe_subscription_projections");
+		jdbcTemplate.update("DELETE FROM billing_customers");
+
+		mockMvc.perform(post("/api/v1/billing/checkout")
+				.header("Authorization", bearerToken("synthetic_test_user"))
+				.header("Idempotency-Key", "checkout-reconcile"))
+				.andExpect(status().isOk());
+
+		mockMvc.perform(post("/api/v1/billing/checkout/complete")
+				.param("session_id", "cs_test")
+				.header("Authorization", bearerToken("synthetic_test_user")))
+				.andExpect(status().isNoContent());
+
+		mockMvc.perform(get("/api/v1/me/usage").header("Authorization", bearerToken("synthetic_test_user")))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.plan").value("PRO"));
 	}
 
 	@Test
@@ -192,6 +218,11 @@ class BillingControllerTests {
 				@Override
 				public BillingClient.StripeSubscription retrieveSubscription(String stripeSubscriptionId) {
 					return new BillingClient.StripeSubscription("sub_endpoint", "cus_endpoint", "active", Instant.now().plusSeconds(2_592_000), false);
+				}
+
+				@Override
+				public BillingClient.CheckoutCompletion retrieveCheckoutCompletion(String stripeCheckoutSessionId) {
+					return new BillingClient.CheckoutCompletion("cus_endpoint", "sub_endpoint", "paid");
 				}
 
 				@Override
