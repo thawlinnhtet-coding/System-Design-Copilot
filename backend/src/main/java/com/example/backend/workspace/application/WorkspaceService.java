@@ -125,9 +125,14 @@ public class WorkspaceService implements WorkspaceAccess {
 				workspace.getProgressPercent(),
 				workspace.getSaveState(),
 				workspace.getLatestReviewState(),
+				reviewBriefRequired(workspace.getSource()),
 				workspace.getCreatedAt(),
 				workspace.getUpdatedAt()
 		);
+	}
+
+	private boolean reviewBriefRequired(String source) {
+		return "IMPORT_PACKAGE".equals(source) || "MANUAL_RECREATION".equals(source);
 	}
 
 	public record WorkspaceSummary(
@@ -139,6 +144,7 @@ public class WorkspaceService implements WorkspaceAccess {
 			int progressPercent,
 			String saveState,
 			String latestReviewState,
+			boolean reviewBriefRequired,
 			Instant createdAt,
 			Instant updatedAt
 	) {

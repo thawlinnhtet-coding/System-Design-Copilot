@@ -186,6 +186,7 @@ class WorkspaceControllerTests {
 				.contentType(MediaType.APPLICATION_JSON)
 				.content("{\"name\":\"News feed\",\"description\":\"Practice the feed trade-offs\"}"))
 				.andExpect(status().isCreated())
+				.andExpect(jsonPath("$.reviewBriefRequired").value(false))
 				.andReturn();
 		var workspaceId = workspaceId(workspaceResponse.getResponse().getContentAsString());
 

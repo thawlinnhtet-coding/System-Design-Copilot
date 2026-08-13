@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 const buttonClass = "inline-flex min-h-10 items-center justify-center rounded-md px-3 text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus disabled:cursor-not-allowed disabled:opacity-50";
 const primaryButton = `${buttonClass} bg-signal text-text-on-dark hover:brightness-110`;
 
-export function WorkspaceReasoning({ workspaceId, readOnly = false }: { workspaceId: string; readOnly?: boolean }) {
+export function WorkspaceReasoning({ workspaceId, readOnly = false, reviewBriefRequired = false }: { workspaceId: string; readOnly?: boolean; reviewBriefRequired?: boolean }) {
   const api = useAuthenticatedApiClient();
   const [reasoning, setReasoning] = useState<WorkspaceReasoning | null>(null);
   const [loading, setLoading] = useState(true);
@@ -50,6 +50,11 @@ export function WorkspaceReasoning({ workspaceId, readOnly = false }: { workspac
 
   if (loading) return <p className="text-sm text-text-muted">Restoring your reasoning...</p>;
   if (!reasoning) return <p className="rounded-md border border-danger/30 bg-danger/10 px-4 py-3 text-sm text-danger" role="alert">{error ?? "Reasoning is unavailable."}</p>;
+
+  const hasReviewBrief = Boolean(reasoning.reviewBrief?.systemDescription?.trim() && reasoning.reviewBrief?.reviewGoal?.trim());
+  if (reviewBriefRequired && !hasReviewBrief) {
+    return <div className="space-y-10"><ReviewBriefForm busy={busy} brief={reasoning.reviewBrief} requiredAtEntry onSave={(body) => run(() => api.saveReviewBrief(workspaceId, body))} /></div>;
+  }
 
   return (
     <div className="space-y-10">
@@ -130,7 +135,7 @@ export function WorkspaceReasoning({ workspaceId, readOnly = false }: { workspac
         </div>
       </ReasoningSection>
 
-      <ReviewBriefForm busy={busy} brief={reasoning.reviewBrief} onSave={(body) => run(() => api.saveReviewBrief(workspaceId, body))} />
+      <ReviewBriefForm busy={busy} brief={reasoning.reviewBrief} requiredAtEntry={reviewBriefRequired} onSave={(body) => run(() => api.saveReviewBrief(workspaceId, body))} />
       </fieldset>
     </div>
   );
@@ -156,8 +161,12 @@ function DecisionRow({ busy, item, onDelete, onSave }: { busy: boolean; item: De
   return <details className="group py-4"><summary className="flex cursor-pointer list-none items-start justify-between gap-4"><span><span className="font-mono text-[10px] uppercase tracking-[0.12em] text-signal">{item.status}</span><span className="mt-1 block text-sm font-semibold">{item.title}</span><span className="mt-1 block text-sm text-text-muted">{item.chosenOption} — {item.rationale}</span></span><span className="text-xs text-text-muted">Decision</span></summary><form className="mt-4 grid gap-3" onSubmit={(event) => { event.preventDefault(); const form = new FormData(event.currentTarget); onSave(decisionBody(form)); }}><input className="field" defaultValue={item.title} name="title" required /><input className="field" defaultValue={item.chosenOption} name="chosenOption" required /><textarea className="field min-h-20" defaultValue={item.rationale} name="rationale" required /><select className="field" defaultValue={item.status} name="status"><option value="PROPOSED">Proposed</option><option value="ACCEPTED">Accepted</option><option value="SUPERSEDED">Superseded</option></select><input className="field" defaultValue={item.orderIndex} min="0" name="orderIndex" type="number" /><div className="flex gap-2"><button className={primaryButton} disabled={busy} type="submit">Save Decision</button><button className={`${buttonClass} text-danger hover:bg-danger/10`} disabled={busy} onClick={onDelete} type="button">Delete</button></div></form></details>;
 }
 
-function ReviewBriefForm({ brief, busy, onSave }: { brief?: { systemDescription?: string; reviewGoal?: string } | null; busy: boolean; onSave: (body: { systemDescription: string; reviewGoal: string }) => void }) {
-  return <section className="border-t border-line pt-6"><p className="font-mono text-[11px] uppercase tracking-[0.16em] text-text-muted">Review Brief</p><h2 className="mt-2 font-display text-2xl font-semibold">What should a later review examine?</h2><p className="mt-2 max-w-2xl text-sm leading-6 text-text-muted">Optional now for Custom Design Workspaces; required when entering an Architecture Review Workspace.</p><form className="mt-5 grid gap-3" onSubmit={(event) => { event.preventDefault(); const form = new FormData(event.currentTarget); onSave({ systemDescription: text(form, "systemDescription"), reviewGoal: text(form, "reviewGoal") }); }}><textarea aria-label="System Description" className="field min-h-24" defaultValue={brief?.systemDescription} name="systemDescription" placeholder="Describe the existing system or product." required /><textarea aria-label="Review Goal" className="field min-h-20" defaultValue={brief?.reviewGoal} name="reviewGoal" placeholder="What should a later review evaluate?" required /><button className={`${primaryButton} w-fit`} disabled={busy} type="submit">Save Review Brief</button></form></section>;
+function ReviewBriefForm({ brief, busy, onSave, requiredAtEntry }: { brief?: { systemDescription?: string; reviewGoal?: string } | null; busy: boolean; onSave: (body: { systemDescription: string; reviewGoal: string }) => void; requiredAtEntry: boolean }) {
+  const helper = requiredAtEntry
+    ? "Required before you can begin an Architecture Review Workspace. You can update it as the review focus changes."
+    : "Optional for this Workspace. Add it when you want a later review to examine a specific system and goal.";
+
+  return <section className="border-t border-line pt-6"><p className="font-mono text-[11px] uppercase tracking-[0.16em] text-text-muted">Review Brief</p><h2 className="mt-2 font-display text-2xl font-semibold">What should a later review examine?</h2><p className="mt-2 max-w-2xl text-sm leading-6 text-text-muted">{helper}</p><form className="mt-5 grid gap-3" onSubmit={(event) => { event.preventDefault(); const form = new FormData(event.currentTarget); onSave({ systemDescription: text(form, "systemDescription"), reviewGoal: text(form, "reviewGoal") }); }}><textarea aria-label="System Description" className="field min-h-24" defaultValue={brief?.systemDescription} name="systemDescription" placeholder="Describe the existing system or product." required /><textarea aria-label="Review Goal" className="field min-h-20" defaultValue={brief?.reviewGoal} name="reviewGoal" placeholder="What should a later review evaluate?" required /><button className={`${primaryButton} w-fit`} disabled={busy} type="submit">Save Review Brief</button></form></section>;
 }
 
 function EmptyState({ text }: { text: string }) { return <p className="border-y border-dashed border-line px-4 py-5 text-sm text-text-muted">{text}</p>; }

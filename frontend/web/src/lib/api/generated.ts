@@ -398,6 +398,7 @@ export interface components {
             progressPercent?: number;
             saveState?: string;
             latestReviewState?: string;
+            reviewBriefRequired?: boolean;
             /** Format: date-time */
             createdAt?: string;
             /** Format: date-time */
