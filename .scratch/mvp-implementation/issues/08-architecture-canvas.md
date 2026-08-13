@@ -4,7 +4,9 @@
 
 **Blocked by:** 06 - Workspace Reasoning; 07 - Architecture Document Contract.
 
-**Status:** ready-for-agent
+**Status:** in progress
+
+**Implementation note:** The first vertical slice is now live in the Workspace Design stage: React Flow canvas, typed component palette and inspector, directed connections, Zustand local draft state, debounced optimistic saves, explicit conflict recovery, revision checkpointing, archive read-only mode, and session undo/redo. Full boundary editing, structured connection forms, offline recovery, and the remaining rich property fields are still follow-up slices.
 
 **UI delivery:** Implement this ticket's user-facing desktop and mobile states from `ui_design`; keep backend ownership and validation authoritative, and add or update a Playwright journey for the completed flow.
 

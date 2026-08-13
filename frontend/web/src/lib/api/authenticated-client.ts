@@ -26,8 +26,37 @@ export type WorkspaceReasoning = {
   reviewBrief?: ReviewBrief | null;
 };
 
+export type ArchitectureComponentCategory = "COMPUTE" | "DATA_STORE" | "MESSAGING" | "EDGE_SECURITY" | "IDENTITY_SECRETS" | "OBSERVABILITY";
+export type ArchitectureComponentType = "SERVICE" | "FUNCTION" | "BATCH_JOB" | "RELATIONAL_DATABASE" | "DOCUMENT_DATABASE" | "CACHE" | "OBJECT_STORE" | "QUEUE" | "STREAM" | "GATEWAY" | "LOAD_BALANCER" | "WAF" | "IDENTITY_PROVIDER" | "SECRETS_MANAGER" | "LOGGING" | "METRICS" | "TRACING" | "EXTERNAL_API";
+export type ArchitectureDocument = {
+  schemaVersion: 1;
+  components: Array<{
+    id: string;
+    category: ArchitectureComponentCategory;
+    type: ArchitectureComponentType;
+    label: string;
+    properties: Record<string, string | number | boolean>;
+    metadata?: Record<string, string | number | boolean>;
+    position?: { x: number; y: number };
+    boundaryId?: string;
+  }>;
+  connections: Array<{
+    id: string;
+    fromComponentId: string;
+    toComponentId: string;
+    intent: string;
+    protocol?: string;
+    guarantee?: string;
+    notes?: string;
+    metadata?: Record<string, string | number | boolean>;
+  }>;
+  boundaries: Array<Record<string, unknown>>;
+};
+export type ArchitectureDocumentResponse = { workspaceId: string; version: number; document: ArchitectureDocument; updatedAt?: string };
+export type ArchitectureRevisionResponse = { id: string; workspaceId: string; documentVersion: number; document: ArchitectureDocument; reasoningContext: unknown; createdAt?: string };
+
 export class ApiRequestError extends Error {
-  constructor(public readonly status: number) {
+  constructor(public readonly status: number, public readonly details?: Record<string, unknown>) {
     super(`API request failed with status ${status}`);
     this.name = "ApiRequestError";
   }
@@ -56,7 +85,9 @@ export function useAuthenticatedApiClient() {
     async function json<T>(path: string, init?: RequestInit): Promise<T> {
       const response = await request(path, init);
       if (!response.ok) {
-        throw new ApiRequestError(response.status);
+        let details: Record<string, unknown> | undefined;
+        try { details = await response.json() as Record<string, unknown>; } catch { /* response may be empty */ }
+        throw new ApiRequestError(response.status, details);
       }
 
       return response.json() as Promise<T>;
@@ -182,6 +213,19 @@ export function useAuthenticatedApiClient() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(body),
         });
+      },
+      getArchitectureDocument(workspaceId: string): Promise<ArchitectureDocumentResponse> {
+        return json<ArchitectureDocumentResponse>(`/api/v1/workspaces/${workspaceId}/architecture-document`);
+      },
+      saveArchitectureDocument(workspaceId: string, expectedVersion: number, document: ArchitectureDocument): Promise<ArchitectureDocumentResponse> {
+        return json<ArchitectureDocumentResponse>(`/api/v1/workspaces/${workspaceId}/architecture-document`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ expectedVersion, document }),
+        });
+      },
+      createArchitectureRevision(workspaceId: string): Promise<ArchitectureRevisionResponse> {
+        return json<ArchitectureRevisionResponse>(`/api/v1/workspaces/${workspaceId}/architecture-revisions`, { method: "POST" });
       },
       getUsage(): Promise<CurrentEntitlements> {
         return json<CurrentEntitlements>("/api/v1/me/usage");

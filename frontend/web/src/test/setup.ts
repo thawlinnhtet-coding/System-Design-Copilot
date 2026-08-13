@@ -4,6 +4,16 @@ import { cleanup, render } from "@testing-library/react";
 import { createElement } from "react";
 import { afterEach } from "vitest";
 
+class ResizeObserverStub {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+}
+
+if (typeof globalThis.ResizeObserver === "undefined") {
+  globalThis.ResizeObserver = ResizeObserverStub as unknown as typeof ResizeObserver;
+}
+
 afterEach(() => cleanup());
 
 function TestQueryProvider({ children }: { children: React.ReactNode }) {

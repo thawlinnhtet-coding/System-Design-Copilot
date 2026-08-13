@@ -1,0 +1,154 @@
+"use client";
+
+import "@xyflow/react/dist/style.css";
+import { Background, Controls, Handle, MarkerType, Position, ReactFlow, ReactFlowProvider, type Connection, type Edge, type NodeProps } from "@xyflow/react";
+import { useQuery } from "@tanstack/react-query";
+import { Database, Layers3, Network, Plus, Save, Server, Trash2, Waypoints } from "lucide-react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { ApiRequestError, type ArchitectureComponentCategory, type ArchitectureComponentType, type ArchitectureDocument } from "@/lib/api/authenticated-client";
+import { useAuthenticatedApiClient } from "@/lib/api/authenticated-client";
+import { componentDefaults, useArchitectureEditorStore, type CanvasNode, type CanvasNodeData } from "./architecture-editor-store";
+
+const palette: Array<{ label: string; category: ArchitectureComponentCategory; type: ArchitectureComponentType; icon: typeof Server }> = [
+  { label: "Service", category: "COMPUTE", type: "SERVICE", icon: Server },
+  { label: "Database", category: "DATA_STORE", type: "RELATIONAL_DATABASE", icon: Database },
+  { label: "Queue", category: "MESSAGING", type: "QUEUE", icon: Waypoints },
+  { label: "Gateway", category: "EDGE_SECURITY", type: "GATEWAY", icon: Network },
+];
+
+const nodeTypes = { component: ArchitectureNode };
+
+export function ArchitectureCanvas({ workspaceId, readOnly = false }: { workspaceId: string; readOnly?: boolean }) {
+  return <ReactFlowProvider><ArchitectureCanvasInner readOnly={readOnly} workspaceId={workspaceId} /></ReactFlowProvider>;
+}
+
+function ArchitectureCanvasInner({ workspaceId, readOnly }: { workspaceId: string; readOnly: boolean }) {
+  const api = useAuthenticatedApiClient();
+  const query = useQuery({ queryKey: ["architecture-document", workspaceId], queryFn: () => api.getArchitectureDocument(workspaceId), enabled: Boolean(workspaceId), retry: false });
+  const initializedWorkspace = useArchitectureEditorStore((state) => state.workspaceId);
+  const document = useArchitectureEditorStore((state) => state.document);
+  const version = useArchitectureEditorStore((state) => state.version);
+  const nodes = useArchitectureEditorStore((state) => state.nodes);
+  const edges = useArchitectureEditorStore((state) => state.edges);
+  const dirty = useArchitectureEditorStore((state) => state.dirty);
+  const selectedNodeId = useArchitectureEditorStore((state) => state.selectedNodeId);
+  const initialize = useArchitectureEditorStore((state) => state.initialize);
+  const applyNodes = useArchitectureEditorStore((state) => state.applyNodes);
+  const setEdges = useArchitectureEditorStore((state) => state.setEdges);
+  const updateComponent = useArchitectureEditorStore((state) => state.updateComponent);
+  const addComponent = useArchitectureEditorStore((state) => state.addComponent);
+  const deleteSelected = useArchitectureEditorStore((state) => state.deleteSelected);
+  const selectNode = useArchitectureEditorStore((state) => state.selectNode);
+  const replaceFromServer = useArchitectureEditorStore((state) => state.replaceFromServer);
+  const markSaved = useArchitectureEditorStore((state) => state.markSaved);
+  const [saveState, setSaveState] = useState<"loading" | "saved" | "unsaved" | "saving" | "conflict" | "error" | "offline">("loading");
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [conflictSnapshot, setConflictSnapshot] = useState<{ version: number; document: ArchitectureDocument } | null>(null);
+  const [revisionMessage, setRevisionMessage] = useState<string | null>(null);
+  const online = useSyncExternalStore((onChange) => { window.addEventListener("online", onChange); window.addEventListener("offline", onChange); return () => { window.removeEventListener("online", onChange); window.removeEventListener("offline", onChange); }; }, () => navigator.onLine, () => true);
+  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const saving = useRef(false);
+
+  useEffect(() => {
+    if (query.data && initializedWorkspace !== workspaceId) {
+      initialize(workspaceId, query.data.version, query.data.document);
+    }
+  }, [initializedWorkspace, initialize, query.data, workspaceId]);
+
+  useEffect(() => {
+    if (readOnly || !document || !dirty || saving.current || !online) return;
+    setSaveState("unsaved");
+    if (saveTimer.current) clearTimeout(saveTimer.current);
+    saveTimer.current = setTimeout(() => void saveDocument(), 700);
+    return () => { if (saveTimer.current) clearTimeout(saveTimer.current); };
+    // saveDocument intentionally reads the current editor snapshot when the debounce fires.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dirty, document, online, readOnly, version]);
+
+  async function saveDocument(): Promise<boolean> {
+    const current = useArchitectureEditorStore.getState();
+    if (!current.document || !current.dirty || saving.current) return Boolean(current.document && !current.dirty);
+    if (!online) {
+      setSaveState("offline");
+      setSaveError("You are offline. Your local draft will stay here until the connection returns.");
+      return false;
+    }
+    saving.current = true;
+    setSaveState("saving");
+    setSaveError(null);
+    try {
+      const response = await api.saveArchitectureDocument(workspaceId, current.version, current.document);
+      markSaved(response.version, response.document);
+      setSaveState("saved");
+      setConflictSnapshot(null);
+      return true;
+    } catch (error) {
+      if (error instanceof ApiRequestError && error.status === 409) {
+        setSaveState("conflict");
+        setSaveError("This document changed in another session. Your local draft is preserved.");
+        const nextVersion = error.details?.currentVersion;
+        const nextDocument = error.details?.currentDocument;
+        if (typeof nextVersion === "number" && nextDocument && typeof nextDocument === "object") setConflictSnapshot({ version: nextVersion, document: nextDocument as ArchitectureDocument });
+      } else {
+        setSaveState("error");
+        setSaveError("We could not save the canvas. Your local draft is preserved.");
+      }
+      return false;
+    } finally {
+      saving.current = false;
+    }
+  }
+
+  async function createRevision() {
+    setRevisionMessage(null);
+    try {
+      if (!(await saveDocument())) {
+        setRevisionMessage("Resolve the canvas save state before creating a revision.");
+        return;
+      }
+      await api.createArchitectureRevision(workspaceId);
+      setRevisionMessage("Revision checkpoint created.");
+    } catch {
+      setRevisionMessage("Save the current canvas before creating a revision.");
+    }
+  }
+
+  function connect(connection: Connection) {
+    if (readOnly) return;
+    if (!connection.source || !connection.target || connection.source === connection.target) return;
+    const edge: Edge = { id: `connection-${crypto.randomUUID()}`, source: connection.source, target: connection.target, label: "REQUEST RESPONSE", markerEnd: { type: MarkerType.ArrowClosed }, data: { intent: "REQUEST_RESPONSE" } };
+    setEdges([...useArchitectureEditorStore.getState().edges, edge]);
+  }
+
+  const selected = nodes.find((node) => node.id === selectedNodeId);
+  const visibleSaveState = !online ? "offline" : initializedWorkspace === workspaceId && saveState === "loading" ? "saved" : saveState;
+  const statusLabel = { loading: "Loading", saved: "Saved", unsaved: "Unsaved changes", saving: "Saving…", conflict: "Conflict", error: "Save failed", offline: "Offline" }[visibleSaveState];
+
+  if (query.isLoading) return <section aria-label="Architecture canvas" className="border border-line bg-[#101316] p-8 text-sm text-text-on-dark-secondary">Loading Architecture Document…</section>;
+  if (query.isError || !document) return <section aria-label="Architecture canvas" className="border border-danger/40 bg-danger/10 p-8 text-sm text-danger" role="alert">We could not load the Architecture Canvas. Try again.</section>;
+
+  return <section aria-label="Architecture canvas" className="overflow-hidden border border-[#2b3337] bg-[#101316] text-[#f2f3f3]" onKeyDown={(event) => { if ((event.key === "Delete" || event.key === "Backspace") && selectedNodeId) { event.preventDefault(); deleteSelected(); } }} tabIndex={0}>
+    <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#2b3337] px-4 py-3">
+      <div><p className="font-mono text-[10px] uppercase tracking-[0.16em] text-[#a9aeb3]">Architecture Document</p><p className="mt-1 text-sm text-[#f2f3f3]">Build the structure. Explain the trade-offs.</p></div>
+      <div className="flex items-center gap-2"><span aria-live="polite" className={`flex items-center gap-1.5 font-mono text-[11px] ${visibleSaveState === "conflict" || visibleSaveState === "error" ? "text-[#ff9a8b]" : "text-[#a9e5d8]"}`} role="status"><Save aria-hidden="true" size={13} />{statusLabel}</span><button className="inline-flex min-h-9 items-center gap-2 border border-[#3c4542] px-3 text-xs font-semibold text-[#f2f3f3] hover:border-[#a9e5d8]" onClick={() => void createRevision()} type="button">Checkpoint Revision</button></div>
+    </div>
+    {saveError ? <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#6d3d37] bg-[#321d1a] px-4 py-3 text-xs text-[#ffb4a8]" role="alert"><span>{saveError}</span><button className="border border-[#ff9a8b] px-2 py-1 font-semibold text-[#ffb4a8]" onClick={() => { const current = useArchitectureEditorStore.getState(); const serverVersion = conflictSnapshot?.version ?? query.data?.version ?? current.version; const serverDocument = conflictSnapshot?.document ?? query.data?.document ?? current.document; replaceFromServer(serverVersion, serverDocument as ArchitectureDocument); setSaveState("saved"); setSaveError(null); setConflictSnapshot(null); }} type="button">Use server version</button></div> : null}
+    {revisionMessage ? <p className="border-b border-[#2b3337] px-4 py-2 text-xs text-[#a9e5d8]" role="status">{revisionMessage}</p> : null}
+    <div className="grid min-h-[560px] lg:grid-cols-[180px_minmax(0,1fr)_260px]">
+      <aside aria-label="Component palette" className="border-b border-[#2b3337] bg-[#151b1d] p-3 lg:border-b-0 lg:border-r"><p className="font-mono text-[10px] uppercase tracking-[0.14em] text-[#a9aeb3]">Add Component</p><div className="mt-3 grid grid-cols-2 gap-2 lg:grid-cols-1">{palette.map(({ category, icon: Icon, label, type }) => <button className="flex min-h-11 items-center gap-2 border border-[#344047] px-2 text-left text-xs text-[#f2f3f3] hover:border-[#a9e5d8] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#a9e5d8] disabled:cursor-not-allowed disabled:opacity-50" disabled={readOnly} key={type} onClick={() => addComponent(category, type)} type="button"><Icon aria-hidden="true" size={15} /><span>{label}</span><Plus aria-hidden="true" className="ml-auto text-[#a9aeb3]" size={13} /></button>)}</div><p className="mt-5 text-[11px] leading-5 text-[#a9aeb3]">{readOnly ? "This Workspace is archived. Restore it before editing." : "Click to place a node. Select a node to inspect it. Drag handles to connect."}</p></aside>
+      <div className="min-h-[460px] bg-[#101316]" data-testid="architecture-flow"><ReactFlow nodes={nodes} edges={edges} nodeTypes={nodeTypes} nodesConnectable={!readOnly} nodesDraggable={!readOnly} onConnect={connect} onNodeClick={(_, node) => selectNode(node.id)} onPaneClick={() => selectNode(null)} onNodesChange={readOnly ? undefined : applyNodes} fitView proOptions={{ hideAttribution: true }}><Background color="#202a2d" gap={28} size={1} /><Controls position="bottom-left" showInteractive={false} /></ReactFlow></div>
+      <aside aria-label="Component inspector" className="border-t border-[#2b3337] bg-[#151b1d] p-4 lg:border-l lg:border-t-0">{selected ? <Inspector disabled={readOnly} node={selected} onChange={(patch) => updateComponent(selected.id, patch)} onDelete={deleteSelected} /> : <div className="flex h-full min-h-40 flex-col justify-center"><Layers3 aria-hidden="true" className="text-[#a9aeb3]" size={21} /><p className="mt-3 text-sm text-[#f2f3f3]">Select a Component</p><p className="mt-1 text-xs leading-5 text-[#a9aeb3]">Inspect its semantic type and label, or use the palette to add a new one.</p></div>}</aside>
+    </div>
+  </section>;
+}
+
+function ArchitectureNode({ data, selected }: NodeProps<CanvasNode>) {
+  return <div className={`min-w-[150px] border bg-[#1b2220] px-3 py-2.5 shadow-none ${selected ? "border-[#a9e5d8]" : "border-[#3c4542]"}`}><Handle className="!h-2 !w-2 !border-0 !bg-[#a9e5d8]" position={Position.Left} type="target" /><div className="flex items-start gap-2"><Layers3 aria-hidden="true" className="mt-0.5 shrink-0 text-[#a9e5d8]" size={16} /><div className="min-w-0"><p className="truncate text-xs font-semibold text-[#f2f3f3]">{data.label}</p><p className="mt-1 font-mono text-[9px] uppercase text-[#a9aeb3]">{data.type.replaceAll("_", " ")}</p></div></div><Handle className="!h-2 !w-2 !border-0 !bg-[#a9e5d8]" position={Position.Right} type="source" /></div>;
+}
+
+function Inspector({ disabled, node, onChange, onDelete }: { disabled: boolean; node: CanvasNode; onChange: (patch: Partial<CanvasNodeData>) => void; onDelete: () => void }) {
+  const propertyKey = { COMPUTE: "runtime", DATA_STORE: "consistency", MESSAGING: "deliveryGuarantee", EDGE_SECURITY: "exposure", IDENTITY_SECRETS: "responsibility", OBSERVABILITY: "signal" }[node.data.category];
+  const propertyOptions = { runtime: ["JAVA", "NODE_JS", "PYTHON", "GO", "OTHER"], consistency: ["STRONG", "EVENTUAL", "CAUSAL"], deliveryGuarantee: ["AT_MOST_ONCE", "AT_LEAST_ONCE", "EXACTLY_ONCE"], exposure: ["PUBLIC", "PRIVATE", "INTERNAL"], responsibility: ["IDENTITY", "SECRETS"], signal: ["LOGS", "METRICS", "TRACES"] }[propertyKey];
+  const options = propertyOptions ?? [];
+  return <div><p className="font-mono text-[10px] uppercase tracking-[0.14em] text-[#a9aeb3]">Component Inspector</p><label className="mt-5 block text-xs text-[#a9aeb3]" htmlFor="component-label">Label</label><input className="mt-2 min-h-10 w-full border border-[#3c4542] bg-[#101316] px-2 text-sm text-[#f2f3f3] outline-none focus:border-[#a9e5d8] disabled:opacity-50" disabled={disabled} id="component-label" onChange={(event) => onChange({ label: event.target.value })} value={node.data.label} /><label className="mt-4 block text-xs text-[#a9aeb3]" htmlFor="component-category">Category</label><select className="mt-2 min-h-10 w-full border border-[#3c4542] bg-[#101316] px-2 text-sm text-[#f2f3f3] outline-none focus:border-[#a9e5d8] disabled:opacity-50" disabled={disabled} id="component-category" onChange={(event) => { const category = event.target.value as ArchitectureComponentCategory; onChange({ category, properties: componentDefaults[category] }); }} value={node.data.category}><option value="COMPUTE">Compute</option><option value="DATA_STORE">Data store</option><option value="MESSAGING">Messaging</option><option value="EDGE_SECURITY">Edge / security</option><option value="IDENTITY_SECRETS">Identity / secrets</option><option value="OBSERVABILITY">Observability</option></select><label className="mt-4 block text-xs text-[#a9aeb3]" htmlFor="component-type">Type</label><select className="mt-2 min-h-10 w-full border border-[#3c4542] bg-[#101316] px-2 text-sm text-[#f2f3f3] outline-none focus:border-[#a9e5d8] disabled:opacity-50" disabled={disabled} id="component-type" onChange={(event) => onChange({ type: event.target.value as ArchitectureComponentType })} value={node.data.type}><option value="SERVICE">Service</option><option value="FUNCTION">Function</option><option value="RELATIONAL_DATABASE">Relational database</option><option value="DOCUMENT_DATABASE">Document database</option><option value="CACHE">Cache</option><option value="QUEUE">Queue</option><option value="STREAM">Stream</option><option value="GATEWAY">Gateway</option><option value="EXTERNAL_API">External API</option></select><label className="mt-4 block text-xs text-[#a9aeb3]" htmlFor="component-property">{propertyKey.replace(/([A-Z])/g, " $1")}</label><select className="mt-2 min-h-10 w-full border border-[#3c4542] bg-[#101316] px-2 text-sm text-[#f2f3f3] outline-none focus:border-[#a9e5d8] disabled:opacity-50" disabled={disabled} id="component-property" onChange={(event) => onChange({ properties: { ...node.data.properties, [propertyKey]: event.target.value } })} value={String(node.data.properties[propertyKey] ?? options[0])}>{options.map((value) => <option key={value} value={value}>{value.replaceAll("_", " ")}</option>)}</select><button className="mt-7 inline-flex min-h-9 items-center gap-2 border border-[#ff9a8b] px-3 text-xs font-semibold text-[#ffb4a8] hover:bg-[#321d1a] disabled:cursor-not-allowed disabled:opacity-50" disabled={disabled} onClick={onDelete} type="button"><Trash2 aria-hidden="true" size={14} />Delete Component</button></div>;
+}
