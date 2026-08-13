@@ -305,6 +305,54 @@ class WorkspaceControllerTests {
 				.andExpect(jsonPath("$.code").value("workspace_archived"));
 	}
 
+	@Test
+	void savesValidatedArchitectureDocumentsDetectsStaleSavesAndCreatesImmutableRevisions() throws Exception {
+		var token = bearerToken("architecture_document_" + System.nanoTime());
+		var created = mockMvc.perform(post("/api/v1/workspaces")
+				.header("Authorization", token)
+				.contentType(MediaType.APPLICATION_JSON)
+				.content("{\"name\":\"Orders\",\"description\":\"Document contract\"}"))
+				.andExpect(status().isCreated()).andReturn();
+		var id = workspaceId(created.getResponse().getContentAsString());
+		var document = """
+				{"schemaVersion":1,"components":[{"id":"api","type":"SERVICE","label":"Orders API","category":"COMPUTE","properties":{"runtime":"JAVA"}}],"connections":[]}
+				""";
+
+		mockMvc.perform(put("/api/v1/workspaces/{workspaceId}/architecture-document", id)
+				.header("Authorization", token).contentType(MediaType.APPLICATION_JSON)
+				.content("{\"expectedVersion\":0,\"document\":" + document + "}"))
+				.andExpect(status().isOk()).andExpect(jsonPath("$.version").value(1))
+				.andExpect(jsonPath("$.document.components[0].id").value("api"));
+
+		mockMvc.perform(put("/api/v1/workspaces/{workspaceId}/architecture-document", id)
+				.header("Authorization", token).contentType(MediaType.APPLICATION_JSON)
+				.content("{\"expectedVersion\":0,\"document\":" + document + "}"))
+				.andExpect(status().isConflict()).andExpect(jsonPath("$.code").value("architecture_document_conflict"))
+				.andExpect(jsonPath("$.currentVersion").value(1));
+
+		var revision = mockMvc.perform(post("/api/v1/workspaces/{workspaceId}/architecture-revisions", id)
+				.header("Authorization", token))
+				.andExpect(status().isCreated()).andExpect(jsonPath("$.documentVersion").value(1)).andReturn();
+		var revisionId = objectMapper.readTree(revision.getResponse().getContentAsString()).path("id").asText();
+		mockMvc.perform(get("/api/v1/workspaces/{workspaceId}/architecture-revisions/{revisionId}", id, revisionId)
+				.header("Authorization", token)).andExpect(status().isOk())
+				.andExpect(jsonPath("$.document.components[0].label").value("Orders API"));
+	}
+
+	@Test
+	void rejectsArchitectureDocumentsWithUnsupportedSchemasCredentialsOrInvalidConnections() throws Exception {
+		var token = bearerToken("architecture_validation_" + System.nanoTime());
+		var response = mockMvc.perform(post("/api/v1/workspaces").header("Authorization", token).contentType(MediaType.APPLICATION_JSON)
+				.content("{\"name\":\"Validation\",\"description\":\"Keep documents safe\"}")).andReturn();
+		var id = workspaceId(response.getResponse().getContentAsString());
+		var invalid = """
+				{"schemaVersion":2,"components":[{"id":"api","type":"SERVICE","label":"API","category":"COMPUTE","properties":{"secret":"never"}}],"connections":[{"id":"self","fromComponentId":"api","toComponentId":"api","intent":"REQUEST_RESPONSE"}]}
+				""";
+		mockMvc.perform(put("/api/v1/workspaces/{workspaceId}/architecture-document", id).header("Authorization", token)
+				.contentType(MediaType.APPLICATION_JSON).content("{\"expectedVersion\":0,\"document\":" + invalid + "}"))
+				.andExpect(status().isBadRequest()).andExpect(jsonPath("$.code").value("invalid_architecture_document"));
+	}
+
 	private UUID workspaceId(String response) throws Exception {
 		JsonNode root = objectMapper.readTree(response);
 		return UUID.fromString(root.path("id").asText());
