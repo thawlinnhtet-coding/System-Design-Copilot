@@ -2,15 +2,18 @@
 
 import { AlertTriangle, CheckCircle2, Download, FileJson, Upload } from "lucide-react";
 import { useState, type ChangeEvent } from "react";
+import { ApiRequestError, useAuthenticatedApiClient } from "@/lib/api/authenticated-client";
 import { downloadPortablePackage, packageBytes, portablePackageMaxBytes, validatePortablePackage, type PortablePackage } from "@/lib/portable-package";
 
-const emptyPackage: PortablePackage = { format: "system-design-copilot", schemaVersion: 1, workspace: { title: "", requirements: [], assumptions: [], decisions: [], architecture: { nodes: [], edges: [], groups: [], viewport: {} } } };
+const emptyPackage: PortablePackage = { format: "system-design-copilot", schemaVersion: 1, workspace: { title: "Starter design", requirements: [], assumptions: [], decisions: [], architecture: { schemaVersion: 1, components: [], connections: [], boundaries: [] } } };
 
 export function PortableData() {
   const [selectedPackage, setSelectedPackage] = useState<PortablePackage | null>(null);
   const [errors, setErrors] = useState<string[]>([]);
   const [fileName, setFileName] = useState<string | null>(null);
   const [isReading, setIsReading] = useState(false);
+  const [serverValidated, setServerValidated] = useState(false);
+  const api = useAuthenticatedApiClient();
 
   async function handleFile(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
@@ -18,13 +21,26 @@ export function PortableData() {
     setFileName(file.name);
     setSelectedPackage(null);
     setErrors([]);
+    setServerValidated(false);
     if (file.size > portablePackageMaxBytes) { setErrors(["This file is larger than the 1 MiB import limit."]); return; }
     setIsReading(true);
     try {
       const parsed = JSON.parse(await file.text()) as unknown;
       const result = validatePortablePackage(parsed);
       setErrors(result.errors);
-      setSelectedPackage(result.package ?? null);
+      if (result.package) {
+        setSelectedPackage(result.package);
+        await new Promise((resolve) => window.setTimeout(resolve, 0));
+        try {
+          const serverResult = await api.validatePortableImport(result.package);
+          setServerValidated(true);
+          if (serverResult.preview?.bytes && serverResult.preview.bytes > portablePackageMaxBytes) setErrors(["The server rejected this package because it exceeds the import limit."]);
+        } catch (caught) {
+          const details = caught instanceof ApiRequestError ? caught.details : undefined;
+          const serverErrors = Array.isArray(details?.errors) ? details.errors.map((item) => typeof item === "object" && item !== null && "reason" in item ? String(item.reason) : "The server rejected this package.") : ["The server could not validate this package. Correct it and try again."];
+          setErrors(serverErrors);
+        }
+      }
     } catch { setErrors(["The file is not valid JSON."]); } finally { setIsReading(false); }
   }
 
@@ -41,7 +57,7 @@ export function PortableData() {
         </label>
         {fileName ? <p className="mt-3 truncate text-xs text-text-muted" title={fileName}>{fileName}</p> : null}
         {errors.length ? <div className="mt-5 space-y-2 rounded-md border border-danger/30 bg-danger/10 p-4 text-sm text-danger" role="alert">{errors.map((error) => <p className="flex gap-2" key={error}><AlertTriangle aria-hidden="true" className="mt-0.5 shrink-0" size={15} />{error}</p>)}</div> : null}
-        {selectedPackage ? <div className="mt-5 rounded-md border border-success/30 bg-success/10 p-4 text-sm"><p className="flex items-center gap-2 font-semibold text-success"><CheckCircle2 aria-hidden="true" size={16} /> Package validated</p><p className="mt-2 text-text-muted">{selectedPackage.workspace.title || "Untitled design"} · {packageBytes(selectedPackage)} bytes</p><p className="mt-3 text-text-muted">The server-side import and Review Goal handoff will create a new Architecture Review Workspace in the next Workspace entry slice.</p></div> : null}
+        {selectedPackage ? <div className="mt-5 rounded-md border border-success/30 bg-success/10 p-4 text-sm"><p className="flex items-center gap-2 font-semibold text-success"><CheckCircle2 aria-hidden="true" size={16} /> {serverValidated ? "Package validated by the server" : "Package preview ready"}</p><p className="mt-2 text-text-muted">{selectedPackage.workspace.title || "Untitled design"} · {packageBytes(selectedPackage)} bytes</p><p className="mt-3 text-text-muted">The validated portable content is ready for a Workspace entry flow without importing identity, billing, usage, provider, or Review state.</p></div> : null}
       </section>
 
       <section className="rounded-lg border border-line bg-surface p-6 sm:p-8">
