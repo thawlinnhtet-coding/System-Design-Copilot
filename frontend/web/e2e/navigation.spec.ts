@@ -9,9 +9,9 @@ test.describe("public practice surfaces", () => {
     await expect(page.getByRole("link", { name: "System Design Copilot home" }).locator("img")).toHaveCSS("width", "24px");
     await expect(page.getByRole("link", { name: "System Design Copilot home" })).toBeVisible();
     await expect(page.getByLabel("Public navigation").getByRole("link", { name: "Explore Challenges" })).toHaveAttribute("href", "/challenges");
-    await expect(page.getByRole("button", { name: "Make an architecture decision" })).toHaveAttribute("aria-pressed", "true");
-    await page.getByRole("button", { name: "Respond to a Scenario" }).click();
-    await expect(page.getByRole("button", { name: "Respond to a Scenario" })).toHaveAttribute("aria-pressed", "true");
+    await expect(page.getByRole("tab", { name: "Make an architecture decision" })).toHaveAttribute("aria-selected", "true");
+    await page.getByRole("tab", { name: "Respond to a Scenario" }).click();
+    await expect(page.getByRole("tab", { name: "Respond to a Scenario" })).toHaveAttribute("aria-selected", "true");
     await expect(page.getByText("DECISION 03")).toBeVisible();
   });
 
@@ -27,8 +27,8 @@ test.describe("public practice surfaces", () => {
 
   test("branded Clerk routes preserve the practice context", async ({ page }) => {
     await page.goto("/sign-in");
-    await expect(page.getByRole("heading", { name: "Sign in to begin your Workspace" })).toBeVisible();
-    await expect(page.getByText("Your Challenge context will be waiting after authentication.")).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Return to your workspace" })).toBeVisible();
+    await expect(page.getByText("Continue designing, testing, and reviewing your systems.")).toBeVisible();
 
     await page.goto("/sign-up");
     await expect(page.getByRole("heading", { name: "Create your practice account" })).toBeVisible();

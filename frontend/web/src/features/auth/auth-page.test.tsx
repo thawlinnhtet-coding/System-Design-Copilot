@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { vi } from "vitest";
 import { AuthPage, AuthStatePage } from "./auth-page";
 
@@ -84,7 +84,7 @@ describe("AuthStatePage", () => {
   it("shows live password guidance only on sign-up", () => {
     render(<AuthPage mode="sign-up" />);
 
-    expect(screen.getByText("Use 8+ characters with a mix of letters, numbers, or symbols.")).toBeInTheDocument();
+    expect(screen.getByText("Use a unique password that you do not reuse elsewhere.")).toBeInTheDocument();
     fireEvent.change(screen.getByPlaceholderText("Create a strong password"), { target: { value: "LongPassword123!" } });
 
     expect(screen.getByRole("progressbar", { name: "Password strength: Strong" })).toHaveAttribute("aria-valuenow", "5");
@@ -109,5 +109,22 @@ describe("AuthStatePage", () => {
     fireEvent.click(screen.getByRole("button", { name: "Google" }));
 
     expect(await screen.findByRole("alert")).toHaveTextContent("Secure authentication is still loading");
+  });
+
+  it("offers a retry without losing the auth form context after a temporary outage", async () => {
+    vi.useFakeTimers();
+    clerk.loaded = false;
+    render(<AuthPage mode="sign-in" />);
+
+    fireEvent.change(screen.getByLabelText("Email address"), { target: { value: "engineer@example.com" } });
+    fireEvent.change(screen.getByPlaceholderText("Enter your password"), { target: { value: "private-value" } });
+    await act(async () => { vi.advanceTimersByTime(8000); });
+
+    expect(screen.getByRole("alert")).toHaveTextContent("Your destination and entered fields are still here.");
+    expect(screen.getByDisplayValue("engineer@example.com")).toBeInTheDocument();
+    expect(screen.getByDisplayValue("private-value")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Try again" })).toBeVisible();
+    expect(screen.getByRole("link", { name: "Back to sign in" })).toHaveAttribute("href", "/sign-in");
+    vi.useRealTimers();
   });
 });
