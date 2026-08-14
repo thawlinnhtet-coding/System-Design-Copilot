@@ -34,7 +34,10 @@ export function WorkspaceShell({ workspaceId }: { workspaceId: string }) {
     let current = true;
     api.getWorkspace(workspaceId)
       .then((value) => {
-        if (current) setWorkspace(value);
+        if (current) {
+          setWorkspace(value);
+          setStage(toStage(value.focusStage));
+        }
       })
       .catch(() => {
         if (current) setError("This Workspace could not be opened.");
@@ -43,6 +46,18 @@ export function WorkspaceShell({ workspaceId }: { workspaceId: string }) {
       current = false;
     };
   }, [api, isLoaded, isSignedIn, workspaceId]);
+
+  async function selectStage(nextStage: Stage) {
+    setStage(nextStage);
+    if (!workspace || workspace.status === "ARCHIVED") return;
+    const panel = nextStage === "clarify" ? "REASONING" : nextStage === "design" ? "CANVAS" : nextStage === "stress" ? "SCENARIOS" : "REVIEW";
+    try {
+      const saved = await api.updateWorkspaceFocus(workspaceId, nextStage.toUpperCase() === "STRESS" ? "STRESS" : nextStage.toUpperCase(), panel, viewportFromWorkspace(workspace));
+      setWorkspace(saved);
+    } catch {
+      setError("The current stage could not be saved. Your work is safe.");
+    }
+  }
 
   if (!isLoaded) return <p className="text-sm text-text-muted">Restoring your session...</p>;
   if (!isSignedIn) {
@@ -54,19 +69,31 @@ export function WorkspaceShell({ workspaceId }: { workspaceId: string }) {
   return <div className="-mx-5 -mt-8 flex min-h-[calc(100vh-4rem)] bg-surface sm:-mx-8 lg:-mx-10 lg:-mt-10">
     <aside aria-label="Workspace stages" className="hidden w-20 shrink-0 border-r border-line bg-canvas px-2 py-4 text-text-on-dark md:block">
       <Link aria-label="Back to Practice" className="mx-auto flex size-10 items-center justify-center rounded-md text-text-on-dark-secondary hover:bg-white/10 hover:text-text-on-dark" href="/practice"><ArrowLeft aria-hidden="true" size={17} /></Link>
-      <div className="mt-8 grid gap-2">{stages.map((item) => <button aria-current={stage === item.id ? "step" : undefined} className={`flex min-h-20 flex-col items-center justify-center gap-1 border px-1 text-[10px] font-semibold transition-colors ${stage === item.id ? "border-signal bg-[#183d38] text-text-on-dark" : "border-transparent text-text-on-dark-secondary hover:border-canvas-line hover:text-text-on-dark"}`} key={item.id} onClick={() => setStage(item.id)} type="button"><span className="font-mono text-[10px]">{item.number}</span><span>{item.label}</span></button>)}</div>
+      <div className="mt-8 grid gap-2">{stages.map((item) => <button aria-current={stage === item.id ? "step" : undefined} className={`flex min-h-20 flex-col items-center justify-center gap-1 border px-1 text-[10px] font-semibold transition-colors ${stage === item.id ? "border-signal bg-[#183d38] text-text-on-dark" : "border-transparent text-text-on-dark-secondary hover:border-canvas-line hover:text-text-on-dark"}`} key={item.id} onClick={() => void selectStage(item.id)} type="button"><span className="font-mono text-[10px]">{item.number}</span><span>{item.label}</span></button>)}</div>
     </aside>
     <section className="flex min-w-0 flex-1 flex-col">
       <header className="flex min-h-14 items-center justify-between gap-4 border-b border-line bg-surface px-5 sm:px-7">
         <div className="min-w-0"><p className="font-mono text-[10px] uppercase tracking-[0.14em] text-text-muted">Workspace</p><h1 className="truncate font-display text-xl font-semibold">{workspace.name}</h1></div>
         <div className="flex items-center gap-1 text-text-muted"><button aria-label="Undo" className="icon-button disabled:cursor-not-allowed disabled:opacity-40" disabled={!canUndo} onClick={undo} type="button"><RotateCcw aria-hidden="true" size={15} /></button><button aria-label="Redo" className="icon-button disabled:cursor-not-allowed disabled:opacity-40" disabled={!canRedo} onClick={redo} type="button"><RotateCw aria-hidden="true" size={15} /></button><span className="mx-2 hidden items-center gap-1 text-xs sm:flex"><Check aria-hidden="true" className="text-success" size={15} />{workspace.saveState ?? "Not started"}</span><button aria-label="Open contextual rail" className="icon-button" type="button"><PanelRight aria-hidden="true" size={16} /></button></div>
       </header>
-      <nav aria-label="Mobile Workspace stages" className="grid grid-cols-4 border-b border-line bg-background md:hidden">{stages.map((item) => <button aria-current={stage === item.id ? "step" : undefined} className={`min-h-12 border-r border-line px-2 text-xs font-semibold last:border-r-0 ${stage === item.id ? "text-signal" : "text-text-muted"}`} key={item.id} onClick={() => setStage(item.id)} type="button"><span className="mr-1 font-mono text-[10px]">{item.number}</span>{item.label}</button>)}</nav>
+      <nav aria-label="Mobile Workspace stages" className="grid grid-cols-4 border-b border-line bg-background md:hidden">{stages.map((item) => <button aria-current={stage === item.id ? "step" : undefined} className={`min-h-12 border-r border-line px-2 text-xs font-semibold last:border-r-0 ${stage === item.id ? "text-signal" : "text-text-muted"}`} key={item.id} onClick={() => void selectStage(item.id)} type="button"><span className="mr-1 font-mono text-[10px]">{item.number}</span>{item.label}</button>)}</nav>
       <main className="min-w-0 flex-1 overflow-auto px-5 py-8 sm:px-8 lg:px-12 lg:py-10">
-        <div className="mx-auto max-w-6xl"><p className="font-mono text-[10px] uppercase tracking-[0.16em] text-signal">Stage {stages.find((item) => item.id === stage)?.number} / {stages.find((item) => item.id === stage)?.label}</p>{stage === "clarify" ? <><h2 className="mt-3 max-w-3xl font-display text-4xl font-semibold tracking-tight">Make the problem explicit.</h2><p className="mt-3 max-w-2xl text-base leading-7 text-text-muted">Write down the needs, assumptions, uncertainties, and decisions that should guide the architecture.</p><div className="mt-10"><WorkspaceReasoning readOnly={workspace.status === "ARCHIVED"} reviewBriefRequired={workspace.reviewBriefRequired === true} workspaceId={workspaceId} /></div></> : stage === "design" ? <><h2 className="mt-3 max-w-3xl font-display text-4xl font-semibold tracking-tight">Shape the architecture.</h2><p className="mt-3 max-w-2xl text-base leading-7 text-text-muted">Place the Components, connect the paths, and keep the structure explainable.</p><div className="mt-8"><ArchitectureCanvas readOnly={workspace.status === "ARCHIVED"} workspaceId={workspaceId} /></div></> : <StagePlaceholder stage={stage} workspace={workspace} />}</div>
+        <div className="mx-auto max-w-6xl"><p className="font-mono text-[10px] uppercase tracking-[0.16em] text-signal">Stage {stages.find((item) => item.id === stage)?.number} / {stages.find((item) => item.id === stage)?.label}</p>{stage === "clarify" ? <><h2 className="mt-3 max-w-3xl font-display text-4xl font-semibold tracking-tight">{workspace.clarifyPrompt ?? "Make the problem explicit."}</h2><p className="mt-3 max-w-2xl text-base leading-7 text-text-muted">{workspace.description ?? "Write down the needs, assumptions, uncertainties, and decisions that should guide the architecture."}</p><p className="mt-5 border-l-2 border-signal pl-4 text-sm font-semibold text-signal">Next action: {workspace.suggestedNextAction ?? "Add your first Requirement or open the blank Canvas."}</p><div className="mt-10"><WorkspaceReasoning readOnly={workspace.status === "ARCHIVED"} reviewBriefRequired={workspace.reviewBriefRequired === true} workspaceId={workspaceId} /></div></> : stage === "design" ? <><h2 className="mt-3 max-w-3xl font-display text-4xl font-semibold tracking-tight">Shape the architecture.</h2><p className="mt-3 max-w-2xl text-base leading-7 text-text-muted">Place the Components, connect the paths, and keep the structure explainable.</p><div className="mt-8"><ArchitectureCanvas readOnly={workspace.status === "ARCHIVED"} workspaceId={workspaceId} /></div></> : <StagePlaceholder stage={stage} workspace={workspace} />}</div>
       </main>
     </section>
   </div>;
+}
+
+function toStage(value: string | undefined): Stage {
+  return value === "DESIGN" || value === "STRESS" || value === "REVIEW" ? value.toLowerCase() as Stage : "clarify";
+}
+
+function viewportFromWorkspace(workspace: WorkspaceSummary) {
+  const viewport = workspace.canvasViewport;
+  if (viewport && typeof viewport.x === "number" && typeof viewport.y === "number" && typeof viewport.zoom === "number") {
+    return { x: viewport.x, y: viewport.y, zoom: viewport.zoom };
+  }
+  return { x: 0, y: 0, zoom: 1 };
 }
 
 function StagePlaceholder({ stage, workspace }: { stage: Exclude<Stage, "clarify">; workspace: WorkspaceSummary }) {

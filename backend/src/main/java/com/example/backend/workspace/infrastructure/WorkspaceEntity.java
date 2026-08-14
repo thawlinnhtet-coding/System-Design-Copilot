@@ -56,6 +56,16 @@ public class WorkspaceEntity {
 	@Column(name = "latest_review_state", nullable = false, length = 32)
 	private String latestReviewState;
 
+	@Column(name = "focus_stage", nullable = false, length = 32)
+	private String focusStage;
+
+	@Column(name = "focus_panel", nullable = false, length = 32)
+	private String focusPanel;
+
+	@JdbcTypeCode(SqlTypes.JSON)
+	@Column(name = "canvas_viewport", columnDefinition = "jsonb")
+	private String canvasViewport;
+
 	@Column(name = "created_at", nullable = false, updatable = false)
 	private Instant createdAt;
 
@@ -86,6 +96,9 @@ public class WorkspaceEntity {
 		this.progressPercent = 0;
 		this.saveState = "NOT_STARTED";
 		this.latestReviewState = "NOT_REQUESTED";
+		this.focusStage = "CLARIFY";
+		this.focusPanel = "REASONING";
+		this.canvasViewport = "{\"x\":0,\"y\":0,\"zoom\":1}";
 		this.createdAt = now;
 		this.updatedAt = now;
 	}
@@ -136,6 +149,25 @@ public class WorkspaceEntity {
 
 	public String getLatestReviewState() {
 		return latestReviewState;
+	}
+
+	public String getFocusStage() {
+		return focusStage;
+	}
+
+	public String getFocusPanel() {
+		return focusPanel;
+	}
+
+	public String getCanvasViewport() {
+		return canvasViewport;
+	}
+
+	public void updateFocus(String focusStage, String focusPanel, String canvasViewport, Instant now) {
+		this.focusStage = focusStage;
+		this.focusPanel = focusPanel;
+		this.canvasViewport = canvasViewport;
+		this.updatedAt = now;
 	}
 
 	public Instant getCreatedAt() {

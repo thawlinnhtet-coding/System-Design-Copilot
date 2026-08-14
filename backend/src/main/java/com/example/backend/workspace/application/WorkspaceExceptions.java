@@ -22,4 +22,10 @@ public final class WorkspaceExceptions {
 			super("The Workspace Type and Source combination is not valid");
 		}
 	}
+
+	public static class InvalidWorkspaceFocusException extends RuntimeException {
+		public InvalidWorkspaceFocusException() {
+			super("The Workspace focus state is invalid");
+		}
+	}
 }

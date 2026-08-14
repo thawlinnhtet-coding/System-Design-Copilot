@@ -114,6 +114,42 @@ class WorkspaceControllerTests {
 	}
 
 	@Test
+	void createsCustomDesignWorkspaceFromOnlyNameAndSystemIdeaWithBlankArchitectureStart() throws Exception {
+		var token = bearerToken("custom_design_entry_" + System.nanoTime());
+		var response = mockMvc.perform(post("/api/v1/workspaces/custom-design")
+				.header("Authorization", token)
+				.contentType(MediaType.APPLICATION_JSON)
+				.content("{\"name\":\"Notification platform\",\"systemIdea\":\"Accept bursty events without losing auditability.\"}"))
+				.andExpect(status().isCreated())
+				.andExpect(jsonPath("$.type").value("CUSTOM_DESIGN"))
+				.andExpect(jsonPath("$.source").value("CUSTOM_DESIGN"))
+				.andExpect(jsonPath("$.description").value("Accept bursty events without losing auditability."))
+				.andExpect(jsonPath("$.focusStage").value("CLARIFY"))
+				.andExpect(jsonPath("$.focusPanel").value("REASONING"))
+				.andExpect(jsonPath("$.clarifyPrompt").value("Make the system needs explicit."))
+				.andExpect(jsonPath("$.suggestedNextAction").value("Add your first Requirement or open the blank Canvas."))
+				.andReturn();
+		var workspaceId = workspaceId(response.getResponse().getContentAsString());
+
+		mockMvc.perform(get("/api/v1/workspaces/{workspaceId}/architecture-document", workspaceId)
+				.header("Authorization", token))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.version").value(0))
+				.andExpect(jsonPath("$.document.components").isEmpty())
+				.andExpect(jsonPath("$.document.connections").isEmpty());
+	}
+
+	@Test
+	void rejectsCustomDesignCreationWithoutNameOrSystemIdea() throws Exception {
+		var token = bearerToken("custom_design_validation_" + System.nanoTime());
+		mockMvc.perform(post("/api/v1/workspaces/custom-design")
+				.header("Authorization", token)
+				.contentType(MediaType.APPLICATION_JSON)
+				.content("{\"name\":\"\",\"systemIdea\":\"\"}"))
+				.andExpect(status().isBadRequest());
+	}
+
+	@Test
 	void doesNotRestoreAnArchivedWorkspacePastTheActiveAllowance() throws Exception {
 		var token = bearerToken("workspace_restore_quota_" + System.nanoTime());
 		var archivedResponse = mockMvc.perform(post("/api/v1/workspaces")

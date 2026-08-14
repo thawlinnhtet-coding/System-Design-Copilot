@@ -590,6 +590,15 @@ export interface components {
             saveState?: string;
             latestReviewState?: string;
             reviewBriefRequired?: boolean;
+            focusStage?: string;
+            focusPanel?: string;
+            canvasViewport?: {
+                x?: number;
+                y?: number;
+                zoom?: number;
+            };
+            clarifyPrompt?: string;
+            suggestedNextAction?: string;
             /** Format: date-time */
             createdAt?: string;
             /** Format: date-time */

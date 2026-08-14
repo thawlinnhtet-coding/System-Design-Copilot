@@ -24,6 +24,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 import java.util.UUID;
+import tools.jackson.databind.JsonNode;
 
 @RestController
 @RequestMapping("/api/v1/workspaces")
@@ -66,6 +67,36 @@ public class WorkspaceController {
 				request.description().trim(),
 				request.type(),
 				request.source()
+		);
+	}
+
+	@PostMapping("/custom-design")
+	@ResponseStatus(HttpStatus.CREATED)
+	@Operation(summary = "Create a blank Custom Design Workspace")
+	public WorkspaceService.WorkspaceSummary createCustomDesign(
+			@AuthenticationPrincipal Jwt jwt,
+			@Valid @RequestBody CreateCustomDesignWorkspaceRequest request
+	) {
+		return workspaceService.createCustomDesign(
+				currentUserService.getOrCreate(jwt.getSubject()).id(),
+				request.name().trim(),
+				request.systemIdea().trim()
+		);
+	}
+
+	@PatchMapping("/{workspaceId}/focus")
+	@Operation(summary = "Save Workspace focus and Canvas viewport")
+	public WorkspaceService.WorkspaceSummary updateFocus(
+			@AuthenticationPrincipal Jwt jwt,
+			@PathVariable UUID workspaceId,
+			@Valid @RequestBody WorkspaceFocusRequest request
+	) {
+		return workspaceService.updateFocus(
+				currentUserService.getOrCreate(jwt.getSubject()).id(),
+				workspaceId,
+				request.stage(),
+				request.panel(),
+				request.canvasViewport()
 		);
 	}
 
@@ -113,6 +144,19 @@ public class WorkspaceController {
 			@NotBlank @Size(max = 2000) String description,
 			@jakarta.validation.constraints.NotNull WorkspaceType type,
 			@jakarta.validation.constraints.NotNull WorkspaceSource source
+	) {
+	}
+
+	public record CreateCustomDesignWorkspaceRequest(
+			@NotBlank @Size(max = 120) String name,
+			@NotBlank @Size(max = 2000) String systemIdea
+	) {
+	}
+
+	public record WorkspaceFocusRequest(
+			@NotBlank String stage,
+			@NotBlank String panel,
+			@jakarta.validation.constraints.NotNull JsonNode canvasViewport
 	) {
 	}
 

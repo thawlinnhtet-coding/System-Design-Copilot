@@ -1,0 +1,3 @@
+ALTER TABLE workspaces ADD COLUMN focus_stage VARCHAR(32) NOT NULL DEFAULT 'CLARIFY';
+ALTER TABLE workspaces ADD COLUMN focus_panel VARCHAR(32) NOT NULL DEFAULT 'REASONING';
+ALTER TABLE workspaces ADD COLUMN canvas_viewport JSONB NOT NULL DEFAULT '{"x":0,"y":0,"zoom":1}';
