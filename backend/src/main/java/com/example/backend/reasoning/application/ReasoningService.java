@@ -26,7 +26,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Service
-public class ReasoningService implements WorkspaceDataCleanup, ReasoningSnapshotProvider {
+public class ReasoningService implements WorkspaceDataCleanup, ReasoningSnapshotProvider, PortableReasoningProvider {
 
 	private static final TypeReference<List<UUID>> UUID_LIST = new TypeReference<>() { };
 	private static final TypeReference<List<String>> STRING_LIST = new TypeReference<>() { };
@@ -73,6 +73,20 @@ public class ReasoningService implements WorkspaceDataCleanup, ReasoningSnapshot
 		} catch (JsonProcessingException exception) {
 			throw new IllegalStateException("Could not snapshot Workspace reasoning", exception);
 		}
+	}
+
+	@Override
+	@Transactional(readOnly = true)
+	public PortableReasoningSnapshot portableSnapshot(UUID userId, UUID workspaceId) {
+		ensureWorkspace(userId, workspaceId);
+		return new PortableReasoningSnapshot(
+				requirementRepository.findAllByWorkspaceIdAndUserIdOrderByOrderIndexAscUpdatedAtAsc(workspaceId, userId).stream()
+						.map(entity -> new PortableRequirement(entity.getKind(), entity.getStatement(), entity.getPriority(), entity.getStatus(), entity.getMeasurableTarget(), entity.getRationale(), entity.getSource())).toList(),
+				assumptionRepository.findAllByWorkspaceIdAndUserIdOrderByOrderIndexAscUpdatedAtAsc(workspaceId, userId).stream()
+						.map(entity -> new PortableAssumption(entity.getCategory(), entity.getQuantitativeValue(), entity.getUnit(), entity.getRationale(), entity.getConfidence(), entity.getStatus(), entity.getSource())).toList(),
+				decisionRepository.findAllByWorkspaceIdAndUserIdOrderByOrderIndexAscUpdatedAtAsc(workspaceId, userId).stream()
+						.map(entity -> new PortableDecision(entity.getTitle(), entity.getChosenOption(), entity.getRationale(), entity.getAlternatives(), entity.getPositiveConsequences(), entity.getRisks(), entity.getStatus(), read(entity.getEvidenceRefs(), STRING_LIST))).toList()
+		);
 	}
 
 	@Transactional

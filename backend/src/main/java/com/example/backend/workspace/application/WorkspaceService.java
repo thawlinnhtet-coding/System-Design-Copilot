@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Service
-public class WorkspaceService implements WorkspaceAccess {
+public class WorkspaceService implements WorkspaceAccess, WorkspaceMetadataProvider {
 
 	private final WorkspaceRepository workspaceRepository;
 	private final EntitlementService entitlementService;
@@ -63,6 +63,13 @@ public class WorkspaceService implements WorkspaceAccess {
 		if (workspace.getStatus() != WorkspaceStatus.ACTIVE) {
 			throw new WorkspaceExceptions.WorkspaceArchivedException();
 		}
+	}
+
+	@Override
+	@Transactional(readOnly = true)
+	public WorkspaceMetadata ownedMetadata(UUID userId, UUID workspaceId) {
+		var workspace = ownedWorkspace(userId, workspaceId);
+		return new WorkspaceMetadata(workspace.getId(), workspace.getName());
 	}
 
 	@Transactional

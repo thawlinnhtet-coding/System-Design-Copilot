@@ -9,7 +9,7 @@ const validPackage = {
     requirements: [],
     assumptions: [],
     decisions: [],
-    architecture: { nodes: [], edges: [], groups: [], viewport: {} },
+    architecture: { schemaVersion: 1, components: [], connections: [], boundaries: [] },
   },
 };
 

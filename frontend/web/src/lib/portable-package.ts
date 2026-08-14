@@ -11,10 +11,10 @@ export type PortablePackage = {
     assumptions: unknown[];
     decisions: unknown[];
     architecture: {
-      nodes: unknown[];
-      edges: unknown[];
-      groups: unknown[];
-      viewport: Record<string, unknown>;
+      schemaVersion: 1;
+      components: unknown[];
+      connections: unknown[];
+      boundaries: unknown[];
     };
   };
 };
@@ -32,7 +32,7 @@ export function validatePortablePackage(value: unknown): { package?: PortablePac
     if (typeof value.workspace.title !== "string" || !value.workspace.title.trim()) errors.push("workspace.title is required.");
     for (const field of ["requirements", "assumptions", "decisions"]) if (!Array.isArray(value.workspace[field])) errors.push(`workspace.${field} must be an array.`);
     if (!isRecord(value.workspace.architecture)) errors.push("workspace.architecture is required.");
-    else for (const field of ["nodes", "edges", "groups"]) if (!Array.isArray(value.workspace.architecture[field])) errors.push(`workspace.architecture.${field} must be an array.`);
+    else for (const field of ["components", "connections", "boundaries"]) if (!Array.isArray(value.workspace.architecture[field])) errors.push(`workspace.architecture.${field} must be an array.`);
   }
   const forbidden = findForbiddenKey(value);
   if (forbidden) errors.push(`The file contains server-owned field "${forbidden}". Remove it before importing.`);

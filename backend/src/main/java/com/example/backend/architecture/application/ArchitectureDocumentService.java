@@ -45,6 +45,11 @@ public class ArchitectureDocumentService {
 		return documents.findById(workspaceId).map(this::response).orElseGet(() -> new DocumentResponse(workspaceId, 0, emptyDocument(), null));
 	}
 
+	/** Validates an imported document without attaching ownership or persisting anything. */
+	public void validateForPortableImport(JsonNode document) {
+		validate(document);
+	}
+
 	@Transactional
 	public DocumentResponse save(UUID userId, UUID workspaceId, long expectedVersion, JsonNode document) {
 		workspaceAccess.requireEditable(userId, workspaceId);

@@ -3,6 +3,7 @@
 import { useAuth } from "@clerk/nextjs";
 import { useMemo } from "react";
 import type { components } from "./generated";
+import type { PortablePackage } from "../portable-package";
 
 const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8080";
 const tokenTemplate = process.env.NEXT_PUBLIC_CLERK_JWT_TEMPLATE ?? "system-design-copilot-api";
@@ -15,6 +16,10 @@ export type WorkspaceType = NonNullable<WorkspaceSummary["type"]>;
 export type WorkspaceSource = NonNullable<WorkspaceSummary["source"]>;
 export type CurrentEntitlements = components["schemas"]["CurrentEntitlements"];
 export type AiConsent = components["schemas"]["AiConsentResponse"];
+export type PortableValidationResponse = {
+  packageNode?: PortablePackage;
+  preview?: { title?: string; requirements?: number; assumptions?: number; decisions?: number; components?: number; connections?: number; bytes?: number };
+};
 export type Requirement = components["schemas"]["RequirementResponse"];
 export type Assumption = components["schemas"]["AssumptionResponse"];
 export type UnresolvedQuestion = components["schemas"]["QuestionResponse"];
@@ -115,6 +120,16 @@ export function useAuthenticatedApiClient() {
       },
       getWorkspace(id: string): Promise<WorkspaceSummary> {
         return json<WorkspaceSummary>(`/api/v1/workspaces/${id}`);
+      },
+      validatePortableImport(packageNode: unknown): Promise<PortableValidationResponse> {
+        return json<PortableValidationResponse>("/api/v1/import-packages/validate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(packageNode),
+        });
+      },
+      exportWorkspace(id: string): Promise<PortableValidationResponse> {
+        return json<PortableValidationResponse>(`/api/v1/workspaces/${id}/portable-export`);
       },
       getChallenge(slug: string): Promise<ChallengeDetail> {
         return json<ChallengeDetail>(`/api/v1/challenges/${encodeURIComponent(slug)}`);

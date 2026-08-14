@@ -5,6 +5,7 @@ import { ArrowLeft, Check, PanelRight, RotateCcw, RotateCw } from "lucide-react"
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useAuthenticatedApiClient, type WorkspaceSummary } from "@/lib/api/authenticated-client";
+import { downloadPortablePackage } from "@/lib/portable-package";
 import { WorkspaceReasoning } from "./workspace-reasoning";
 import { ArchitectureCanvas } from "./architecture-canvas";
 import { useArchitectureEditorStore } from "./architecture-editor-store";
@@ -24,6 +25,7 @@ export function WorkspaceShell({ workspaceId }: { workspaceId: string }) {
   const [workspace, setWorkspace] = useState<WorkspaceSummary | null>(null);
   const [stage, setStage] = useState<Stage>("clarify");
   const [error, setError] = useState<string | null>(null);
+  const [isExporting, setIsExporting] = useState(false);
   const undo = useArchitectureEditorStore((state) => state.undo);
   const redo = useArchitectureEditorStore((state) => state.redo);
   const canUndo = useArchitectureEditorStore((state) => state.workspaceId === workspaceId && state.past.length > 0);
@@ -51,6 +53,20 @@ export function WorkspaceShell({ workspaceId }: { workspaceId: string }) {
   if (error) return <section className="mx-auto max-w-xl border-y border-line py-12"><p className="text-sm text-danger" role="alert">{error}</p><Link className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-signal" href="/practice"><ArrowLeft aria-hidden="true" size={16} />Back to Practice</Link></section>;
   if (!workspace) return <p className="text-sm text-text-muted">Opening Workspace...</p>;
 
+  async function exportWorkspace() {
+    setIsExporting(true);
+    setError(null);
+    try {
+      const result = await api.exportWorkspace(workspaceId);
+      if (!result.packageNode) throw new Error("The server returned no portable package");
+      downloadPortablePackage(result.packageNode, `${workspace?.name ?? "workspace"}.json`);
+    } catch {
+      setError("The portable export could not be prepared. Your Workspace is safe.");
+    } finally {
+      setIsExporting(false);
+    }
+  }
+
   return <div className="-mx-5 -mt-8 flex min-h-[calc(100vh-4rem)] bg-surface sm:-mx-8 lg:-mx-10 lg:-mt-10">
     <aside aria-label="Workspace stages" className="hidden w-20 shrink-0 border-r border-line bg-canvas px-2 py-4 text-text-on-dark md:block">
       <Link aria-label="Back to Practice" className="mx-auto flex size-10 items-center justify-center rounded-md text-text-on-dark-secondary hover:bg-white/10 hover:text-text-on-dark" href="/practice"><ArrowLeft aria-hidden="true" size={17} /></Link>
@@ -59,7 +75,7 @@ export function WorkspaceShell({ workspaceId }: { workspaceId: string }) {
     <section className="flex min-w-0 flex-1 flex-col">
       <header className="flex min-h-14 items-center justify-between gap-4 border-b border-line bg-surface px-5 sm:px-7">
         <div className="min-w-0"><p className="font-mono text-[10px] uppercase tracking-[0.14em] text-text-muted">Workspace</p><h1 className="truncate font-display text-xl font-semibold">{workspace.name}</h1></div>
-        <div className="flex items-center gap-1 text-text-muted"><button aria-label="Undo" className="icon-button disabled:cursor-not-allowed disabled:opacity-40" disabled={!canUndo} onClick={undo} type="button"><RotateCcw aria-hidden="true" size={15} /></button><button aria-label="Redo" className="icon-button disabled:cursor-not-allowed disabled:opacity-40" disabled={!canRedo} onClick={redo} type="button"><RotateCw aria-hidden="true" size={15} /></button><span className="mx-2 hidden items-center gap-1 text-xs sm:flex"><Check aria-hidden="true" className="text-success" size={15} />{workspace.saveState ?? "Not started"}</span><button aria-label="Open contextual rail" className="icon-button" type="button"><PanelRight aria-hidden="true" size={16} /></button></div>
+        <div className="flex items-center gap-1 text-text-muted"><button aria-label="Export portable package" className="hidden text-xs font-semibold text-signal hover:underline sm:inline-flex" disabled={isExporting} onClick={() => void exportWorkspace()} type="button">{isExporting ? "Exporting..." : "Export"}</button><button aria-label="Undo" className="icon-button disabled:cursor-not-allowed disabled:opacity-40" disabled={!canUndo} onClick={undo} type="button"><RotateCcw aria-hidden="true" size={15} /></button><button aria-label="Redo" className="icon-button disabled:cursor-not-allowed disabled:opacity-40" disabled={!canRedo} onClick={redo} type="button"><RotateCw aria-hidden="true" size={15} /></button><span className="mx-2 hidden items-center gap-1 text-xs sm:flex"><Check aria-hidden="true" className="text-success" size={15} />{workspace.saveState ?? "Not started"}</span><button aria-label="Open contextual rail" className="icon-button" type="button"><PanelRight aria-hidden="true" size={16} /></button></div>
       </header>
       <nav aria-label="Mobile Workspace stages" className="grid grid-cols-4 border-b border-line bg-background md:hidden">{stages.map((item) => <button aria-current={stage === item.id ? "step" : undefined} className={`min-h-12 border-r border-line px-2 text-xs font-semibold last:border-r-0 ${stage === item.id ? "text-signal" : "text-text-muted"}`} key={item.id} onClick={() => setStage(item.id)} type="button"><span className="mr-1 font-mono text-[10px]">{item.number}</span>{item.label}</button>)}</nav>
       <main className="min-w-0 flex-1 overflow-auto px-5 py-8 sm:px-8 lg:px-12 lg:py-10">
