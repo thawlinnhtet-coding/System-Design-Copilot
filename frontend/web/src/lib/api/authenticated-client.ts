@@ -8,8 +8,11 @@ const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:808
 const tokenTemplate = process.env.NEXT_PUBLIC_CLERK_JWT_TEMPLATE ?? "system-design-copilot-api";
 type CurrentUserResponse = components["schemas"]["CurrentUserResponse"];
 export type WorkspaceSummary = components["schemas"]["WorkspaceSummary"];
-export type WorkspaceType = components["schemas"]["WorkspaceType"];
-export type WorkspaceSource = components["schemas"]["WorkspaceSource"];
+export type ChallengeDetail = Omit<Required<components["schemas"]["ChallengeDetail"]>, "skillCoverage"> & {
+  skillCoverage: Array<Required<components["schemas"]["SkillCoverage"]>>;
+};
+export type WorkspaceType = NonNullable<WorkspaceSummary["type"]>;
+export type WorkspaceSource = NonNullable<WorkspaceSummary["source"]>;
 export type CurrentEntitlements = components["schemas"]["CurrentEntitlements"];
 export type AiConsent = components["schemas"]["AiConsentResponse"];
 export type Requirement = components["schemas"]["RequirementResponse"];
@@ -112,6 +115,12 @@ export function useAuthenticatedApiClient() {
       },
       getWorkspace(id: string): Promise<WorkspaceSummary> {
         return json<WorkspaceSummary>(`/api/v1/workspaces/${id}`);
+      },
+      getChallenge(slug: string): Promise<ChallengeDetail> {
+        return json<ChallengeDetail>(`/api/v1/challenges/${encodeURIComponent(slug)}`);
+      },
+      startChallenge(slug: string): Promise<WorkspaceSummary> {
+        return json<WorkspaceSummary>(`/api/v1/challenges/${encodeURIComponent(slug)}/workspaces`, { method: "POST" });
       },
       createWorkspace(name: string, description: string, type: WorkspaceType, source: WorkspaceSource): Promise<WorkspaceSummary> {
         return json<WorkspaceSummary>("/api/v1/workspaces", {

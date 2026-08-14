@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { mockPublicChallengeCatalog } from "./support/challenge-api";
 
 test.describe("public practice surfaces", () => {
   test("landing page presents the approved practice loop", async ({ page }) => {
@@ -23,6 +24,14 @@ test.describe("public practice surfaces", () => {
     await page.goto("/progress");
     await expect(page).toHaveURL(/\/$/);
     await expect(page.getByRole("heading", { name: "Design systems. Explain your decisions. Improve with evidence." })).toBeVisible();
+  });
+
+  test("curated Challenge journey opens a detail route", async ({ page }) => {
+    await mockPublicChallengeCatalog(page);
+    await page.goto("/challenges");
+    await expect(page.getByRole("link", { name: "View Challenge" }).first()).toBeVisible();
+    await page.getByRole("link", { name: "View Challenge" }).first().click();
+    await expect(page).toHaveURL(/\/challenges\/url-shortener$/);
   });
 
   test("branded Clerk routes preserve the practice context", async ({ page }) => {

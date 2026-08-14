@@ -29,7 +29,7 @@ describe("BillingOverview", () => {
 
   it("starts the backend checkout flow and explains when the environment is disabled", async () => {
     session.isSignedIn = true;
-    api.getUsage.mockResolvedValue({ plan: "FREE", activeWorkspaces: { used: 0, limit: 10 } });
+    api.getUsage.mockResolvedValue({ plan: "FREE", activeWorkspaces: { used: 0, limit: 10 }, billing: { checkoutAvailable: true, portalAvailable: false } });
     api.startCheckout.mockRejectedValue({ status: 403 });
 
     renderWithProviders(<BillingOverview />);

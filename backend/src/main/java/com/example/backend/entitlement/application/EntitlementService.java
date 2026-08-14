@@ -1,6 +1,7 @@
 package com.example.backend.entitlement.application;
 
 import com.example.backend.billing.application.BillingPlanResolver;
+import com.example.backend.identity.application.CurrentUserService;
 import io.swagger.v3.oas.annotations.media.Schema;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,15 +36,32 @@ public class EntitlementService {
 	}
 
 	@Transactional
+	public CurrentEntitlements currentEntitlements(CurrentUserService.CurrentUser user) {
+		return currentEntitlements(user.id(), user);
+	}
+
 	public CurrentEntitlements currentEntitlements(UUID userId) {
+		return currentEntitlements(userId, null);
+	}
+
+	/** Curated Challenges are available to every authenticated beta User. Keep this policy in the entitlement boundary. */
+	@Transactional(readOnly = true)
+	public void requireCuratedChallengeAccess(UUID userId) {
+		if (!currentEntitlements(userId).curatedChallengeAccess()) {
+			throw new EntitlementRequiredException("curated_challenges");
+		}
+	}
+
+	private CurrentEntitlements currentEntitlements(UUID userId, CurrentUserService.CurrentUser user) {
 		var now = Instant.now(clock);
 		var monthStart = startOfMonth(now);
-		var billingPlan = billingPlanResolver.planFor(userId, now);
+		var billingPlan = user == null ? billingPlanResolver.planFor(userId, now) : billingPlanResolver.planFor(user, now);
 		Integer activeWorkspaceLimit = billingPlan.pro() ? null : properties.free().activeWorkspaces();
 		Integer copilotTurnLimit = billingPlan.pro() ? null : properties.free().copilotTurnsPerMonth();
 		Integer reviewLimit = billingPlan.pro() ? null : properties.free().reviewsPerMonth();
 		return new CurrentEntitlements(
 				billingPlan.pro() ? "PRO" : "FREE",
+				true,
 				new Allowance(userAllowanceStore.activeWorkspaceCount(userId), activeWorkspaceLimit),
 				new Allowance(usageRecordStore.countSince(userId, UsageOperation.COPILOT_TURN, monthStart), copilotTurnLimit),
 				new Allowance(usageRecordStore.countSince(userId, UsageOperation.REVIEW, monthStart), reviewLimit),
@@ -108,6 +126,7 @@ public class EntitlementService {
 
 	public record CurrentEntitlements(
 			String plan,
+			boolean curatedChallengeAccess,
 			Allowance activeWorkspaces,
 			Allowance copilotTurns,
 			Allowance reviews,

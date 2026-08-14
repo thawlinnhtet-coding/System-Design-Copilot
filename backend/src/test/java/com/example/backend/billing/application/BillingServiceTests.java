@@ -68,26 +68,45 @@ class BillingServiceTests {
 	}
 
 	@Test
-	void allowsAnyAuthenticatedTestUserWhenNoSyntheticSubjectIsConfigured() {
+	void rejectsCheckoutWhenNoSyntheticSubjectIsConfigured() {
 		var store = new InMemoryStore();
 		var service = service(store, "");
 		var user = new CurrentUserService.CurrentUser(UUID.randomUUID(), "personal_beta_user");
 
-		assertEquals("cs_test", service.startCheckout(user, "checkout-key").id());
-		assertThrows(InvalidStripeSignatureException.class,
-				() -> service.processWebhook(event("evt_invalid", "customer.subscription.updated", NOW, "active", NOW.plusSeconds(60)), "t=1775995200,v1=bad"));
-		assertEquals(0, store.receiptCount());
+		assertThrows(BillingAccessDeniedException.class, () -> service.startCheckout(user, "checkout-key"));
 	}
 
 	@Test
-	void keepsTestProWhenTheOptionalSyntheticAccountRestrictionIsDisabled() {
+	void exposesCheckoutForAnEligibleTestUserBeforeTheStripeCustomerExists() {
+		var store = new InMemoryStore();
+		var user = new CurrentUserService.CurrentUser(UUID.randomUUID(), "personal_beta_user");
+
+		var plan = service(store, user.clerkSubject()).planFor(user, NOW);
+
+		assertEquals("FREE_TEST_MODE", plan.status());
+		assertTrue(plan.checkoutAvailable());
+		assertFalse(plan.portalAvailable());
+	}
+
+	@Test
+	void allowsEveryAuthenticatedTestUserOnlyWhenTheExplicitLocalSwitchIsEnabled() {
+		var store = new InMemoryStore();
+		var user = new CurrentUserService.CurrentUser(UUID.randomUUID(), "any_test_user");
+
+		var plan = service(store, "", true).planFor(user, NOW);
+
+		assertTrue(plan.checkoutAvailable());
+	}
+
+	@Test
+	void keepsAnExistingTestSubscriptionBlockedWhenSyntheticAccountIsNotConfigured() {
 		var store = new InMemoryStore();
 		var userId = UUID.randomUUID();
 		store.saveCustomer(new BillingProjectionStore.Customer(userId, "synthetic_test_user", "cus_test", NOW, null));
 		var webhook = event("evt_active", "customer.subscription.updated", NOW, "active", NOW.plusSeconds(2_592_000));
 		service(store, "synthetic_test_user").processWebhook(webhook, signedHeader(webhook));
 
-		assertTrue(service(store, "").planFor(userId, NOW).pro());
+		assertFalse(service(store, "").planFor(userId, NOW).pro());
 	}
 
 	@Test
@@ -159,11 +178,19 @@ class BillingServiceTests {
 	}
 
 	private DefaultBillingService service(InMemoryStore store, String syntheticSubject) {
-		return service(store, syntheticSubject, new FakeBillingClient());
+		return service(store, syntheticSubject, new FakeBillingClient(), false);
 	}
 
 	private DefaultBillingService service(InMemoryStore store, String syntheticSubject, BillingClient billingClient) {
-		var properties = new BillingProperties("sk_test_placeholder", WEBHOOK_SECRET, "price_test", syntheticSubject, true,
+		return service(store, syntheticSubject, billingClient, false);
+	}
+
+	private DefaultBillingService service(InMemoryStore store, String syntheticSubject, boolean allowAllTestUsers) {
+		return service(store, syntheticSubject, new FakeBillingClient(), allowAllTestUsers);
+	}
+
+	private DefaultBillingService service(InMemoryStore store, String syntheticSubject, BillingClient billingClient, boolean allowAllTestUsers) {
+		var properties = new BillingProperties("sk_test_placeholder", WEBHOOK_SECRET, "price_test", syntheticSubject, true, allowAllTestUsers,
 				"http://localhost/success", "http://localhost/cancel", "http://localhost/billing", 60, 7, 300);
 		var clock = Clock.fixed(NOW, ZoneOffset.UTC);
 		return new DefaultBillingService(billingClient, store, new StripeSignatureVerifier(properties, clock), properties, clock);

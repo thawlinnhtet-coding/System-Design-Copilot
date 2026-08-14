@@ -12,6 +12,7 @@ public record BillingProperties(
 		String proPriceId,
 		String syntheticClerkSubject,
 		boolean testProEnabled,
+		boolean allowAllTestUsers,
 		String checkoutSuccessUrl,
 		String checkoutCancelUrl,
 		String portalReturnUrl,
@@ -21,12 +22,16 @@ public record BillingProperties(
 ) {
 
 	public boolean allowsSyntheticAccount(String clerkSubject) {
-		if (!testProEnabled || clerkSubject == null || clerkSubject.isBlank()) {
+		if (!testProEnabled || !usesStripeTestMode() || clerkSubject == null || clerkSubject.isBlank()) {
 			return false;
 		}
-		return syntheticClerkSubject == null
-				|| syntheticClerkSubject.isBlank()
-				|| syntheticClerkSubject.equals(clerkSubject);
+		if (allowAllTestUsers) {
+			return true;
+		}
+		if (syntheticClerkSubject == null || syntheticClerkSubject.isBlank()) {
+			return false;
+		}
+		return syntheticClerkSubject.equals(clerkSubject);
 	}
 
 	public boolean usesStripeTestMode() {
