@@ -89,6 +89,16 @@ class BillingServiceTests {
 	}
 
 	@Test
+	void allowsEveryAuthenticatedTestUserOnlyWhenTheExplicitLocalSwitchIsEnabled() {
+		var store = new InMemoryStore();
+		var user = new CurrentUserService.CurrentUser(UUID.randomUUID(), "any_test_user");
+
+		var plan = service(store, "", true).planFor(user, NOW);
+
+		assertTrue(plan.checkoutAvailable());
+	}
+
+	@Test
 	void keepsAnExistingTestSubscriptionBlockedWhenSyntheticAccountIsNotConfigured() {
 		var store = new InMemoryStore();
 		var userId = UUID.randomUUID();
@@ -168,11 +178,19 @@ class BillingServiceTests {
 	}
 
 	private DefaultBillingService service(InMemoryStore store, String syntheticSubject) {
-		return service(store, syntheticSubject, new FakeBillingClient());
+		return service(store, syntheticSubject, new FakeBillingClient(), false);
 	}
 
 	private DefaultBillingService service(InMemoryStore store, String syntheticSubject, BillingClient billingClient) {
-		var properties = new BillingProperties("sk_test_placeholder", WEBHOOK_SECRET, "price_test", syntheticSubject, true,
+		return service(store, syntheticSubject, billingClient, false);
+	}
+
+	private DefaultBillingService service(InMemoryStore store, String syntheticSubject, boolean allowAllTestUsers) {
+		return service(store, syntheticSubject, new FakeBillingClient(), allowAllTestUsers);
+	}
+
+	private DefaultBillingService service(InMemoryStore store, String syntheticSubject, BillingClient billingClient, boolean allowAllTestUsers) {
+		var properties = new BillingProperties("sk_test_placeholder", WEBHOOK_SECRET, "price_test", syntheticSubject, true, allowAllTestUsers,
 				"http://localhost/success", "http://localhost/cancel", "http://localhost/billing", 60, 7, 300);
 		var clock = Clock.fixed(NOW, ZoneOffset.UTC);
 		return new DefaultBillingService(billingClient, store, new StripeSignatureVerifier(properties, clock), properties, clock);
