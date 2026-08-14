@@ -3,11 +3,13 @@
 import { useAuth } from "@clerk/nextjs";
 import Link from "next/link";
 import { useState } from "react";
+import { useEntitlements } from "@/features/account/use-entitlements";
 import { useAuthenticatedApiClient, type ApiRequestError } from "@/lib/api/authenticated-client";
 
 export function PricingAction({ pro = false }: { pro?: boolean }) {
   const { isLoaded, isSignedIn } = useAuth();
   const api = useAuthenticatedApiClient();
+  const entitlements = useEntitlements();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const className = `min-h-11 w-full rounded border px-4 text-[13px] font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${pro ? "border-signal bg-signal text-white hover:brightness-110" : "border-foreground text-foreground hover:bg-surface-alt"}`;
@@ -18,6 +20,22 @@ export function PricingAction({ pro = false }: { pro?: boolean }) {
 
   if (!isLoaded || !isSignedIn) {
     return <Link className={`inline-flex items-center justify-center ${className}`} href="/sign-in">Sign in to upgrade</Link>;
+  }
+
+  if (entitlements.isLoading) {
+    return <button className={className} disabled type="button">Checking upgrade eligibility...</button>;
+  }
+
+  if (entitlements.isError) {
+    return <div className="w-full"><button className={className} disabled type="button">Upgrade unavailable</button><p className="mt-2 text-xs leading-5 text-warning" role="alert">We could not verify your plan. Open Account → Plan &amp; usage to retry.</p></div>;
+  }
+
+  if (entitlements.data?.plan === "PRO") {
+    return <Link className={`inline-flex items-center justify-center ${className}`} href="/account/plan">Manage Pro billing</Link>;
+  }
+
+  if (entitlements.data?.billing?.checkoutAvailable === false) {
+    return <div className="w-full"><button className={className} disabled type="button">Upgrade unavailable in beta</button><p className="mt-2 text-xs leading-5 text-text-muted" role="status">Ordinary personal-beta accounts stay on Free; existing Workspaces and content remain available.</p></div>;
   }
 
   async function startCheckout() {

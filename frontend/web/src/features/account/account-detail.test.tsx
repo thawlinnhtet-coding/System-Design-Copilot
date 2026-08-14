@@ -1,4 +1,4 @@
-import { screen } from "@testing-library/react";
+import { fireEvent, screen, waitFor } from "@testing-library/react";
 import { vi } from "vitest";
 import { renderWithProviders } from "@/test/setup";
 import { AccountDetail } from "./account-detail";
@@ -67,5 +67,50 @@ describe("AccountDetail", () => {
     expect(screen.getByRole("button", { name: /Manage billing/ })).toBeVisible();
     expect(screen.getByText("Manage billing includes payment details, invoices, and cancellation.")).toBeVisible();
     expect(screen.queryByText("FAIR USE")).not.toBeInTheDocument();
+  });
+
+  it("keeps ordinary personal-beta users on Free without offering paid checkout", async () => {
+    api.getUsage.mockResolvedValue({
+      plan: "FREE",
+      activeWorkspaces: { used: 10, limit: 10 },
+      copilotTurns: { used: 50, limit: 50 },
+      reviews: { used: 5, limit: 5 },
+      billing: { status: "FREE_BETA", checkoutAvailable: false, portalAvailable: false },
+    });
+
+    renderWithProviders(<AccountDetail section="plan" />);
+
+    expect(await screen.findByText("Free personal beta")).toBeVisible();
+    expect(screen.getByRole("button", { name: "Upgrade unavailable in beta" })).toBeDisabled();
+    expect(screen.getByText(/ordinary personal-beta accounts cannot activate paid Pro access/i)).toBeVisible();
+  });
+
+  it("shows Pro access through the paid-through date when cancellation is scheduled", async () => {
+    api.getUsage.mockResolvedValue({
+      plan: "PRO",
+      activeWorkspaces: { used: 3, limit: null },
+      copilotTurns: { used: 12, limit: null },
+      reviews: { used: 2, limit: null },
+      renewsAt: "2026-09-10T00:00:00Z",
+      billing: { status: "PRO_CANCELING", checkoutAvailable: false, portalAvailable: true, paidThrough: "2026-09-10T00:00:00Z" },
+    });
+
+    renderWithProviders(<AccountDetail section="plan" />);
+
+    expect(await screen.findByText("Your Pro plan continues through Sep 10, 2026.")).toBeVisible();
+    expect(screen.getByText(/Cancellation scheduled.*access remains available until the paid-through date/)).toBeVisible();
+  });
+
+  it("offers a retry when plan and usage cannot be loaded", async () => {
+    api.getUsage.mockRejectedValueOnce(new Error("offline"));
+
+    renderWithProviders(<AccountDetail section="plan" />);
+
+    expect(await screen.findByRole("alert")).toHaveTextContent("Plan and usage are temporarily unavailable");
+    expect(screen.getByRole("button", { name: "Retry plan and usage" })).toBeVisible();
+
+    api.getUsage.mockResolvedValueOnce({ plan: "FREE", activeWorkspaces: { used: 0, limit: 10 } });
+    fireEvent.click(screen.getByRole("button", { name: "Retry plan and usage" }));
+    await waitFor(() => expect(screen.getByText("Free personal beta")).toBeVisible());
   });
 });

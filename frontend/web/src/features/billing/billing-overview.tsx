@@ -36,6 +36,8 @@ export function BillingOverview() {
 
   const isPro = usage?.plan === "PRO";
   const isLoading = entitlements.isLoading;
+  const checkoutAvailable = usage?.billing?.checkoutAvailable ?? !isPro;
+  const portalAvailable = usage?.billing?.portalAvailable ?? isPro;
 
   async function openPortal() {
     setBusyAction("portal");
@@ -43,7 +45,7 @@ export function BillingOverview() {
     try {
       window.location.assign(await api.openBillingPortal());
     } catch (requestError) {
-      setError(billingError(requestError, "The billing portal is not available right now."));
+      setError(billingError(requestError, "The billing portal is not available right now.", "portal"));
       setBusyAction(null);
     }
   }
@@ -54,7 +56,7 @@ export function BillingOverview() {
     try {
       window.location.assign(await api.startCheckout());
     } catch (requestError) {
-      setError(billingError(requestError, "Checkout is not available right now."));
+      setError(billingError(requestError, "Checkout is not available right now.", "checkout"));
       setBusyAction(null);
     }
   }
@@ -78,15 +80,15 @@ export function BillingOverview() {
           </div>
           <div className="mt-7 flex flex-wrap gap-3">
             {isPro ? (
-              <button className={`${buttonClassName} border border-line text-foreground hover:bg-surface-alt`} disabled={busyAction !== null} onClick={openPortal} type="button">
+              <button className={`${buttonClassName} border border-line text-foreground hover:bg-surface-alt`} disabled={busyAction !== null || !portalAvailable} onClick={openPortal} type="button">
                 {busyAction === "portal" ? <RefreshCw aria-hidden="true" className="animate-spin" size={16} /> : null} Manage billing <ArrowUpRight aria-hidden="true" size={16} />
               </button>
             ) : (
               <div className="flex flex-wrap items-center gap-3">
-                <button className={`${buttonClassName} bg-signal text-text-on-dark hover:brightness-110`} disabled={busyAction !== null} onClick={startCheckout} type="button">
-                  {busyAction === "checkout" ? <RefreshCw aria-hidden="true" className="animate-spin" size={16} /> : null} Upgrade to Pro <ArrowUpRight aria-hidden="true" size={16} />
+                <button className={`${buttonClassName} bg-signal text-text-on-dark hover:brightness-110`} disabled={busyAction !== null || !checkoutAvailable} onClick={startCheckout} type="button">
+                  {busyAction === "checkout" ? <RefreshCw aria-hidden="true" className="animate-spin" size={16} /> : null} {checkoutAvailable ? "Upgrade to Pro" : "Upgrade unavailable in beta"} {checkoutAvailable ? <ArrowUpRight aria-hidden="true" size={16} /> : null}
                 </button>
-                <p className="text-xs text-text-muted">Test mode; eligibility is enforced by the backend.</p>
+                <p className="text-xs text-text-muted">{checkoutAvailable ? "Configured test account only; eligibility is enforced by the backend." : "Ordinary personal-beta accounts stay on Free."}</p>
               </div>
             )}
           </div>
@@ -110,7 +112,7 @@ export function BillingOverview() {
 
       <section className="rounded-lg border border-warning/30 bg-warning/10 p-5 text-sm leading-6 text-foreground">
         <p className="font-semibold">Personal beta billing boundary</p>
-         <p className="mt-1 text-text-muted">Stripe stays in test mode during the public Free beta, so no real payment is collected. Checkout and Pro activation are available to authenticated beta users while enabled; a failed upgrade never hides or deletes your work.</p>
+        <p className="mt-1 text-text-muted">Stripe stays in test mode during the public Free beta. Ordinary beta participants remain on Free; a failed or unavailable upgrade never hides or deletes your work.</p>
       </section>
     </div>
   );
@@ -123,9 +125,9 @@ function Allowance({ label, allowance }: { label: string; allowance?: { used?: n
   return <article className="rounded-lg border border-line bg-surface p-5"><p className="text-sm text-text-muted">{label}</p><p className="mt-3 text-2xl font-semibold">{used}<span className="text-base font-normal text-text-muted">/{limit ?? "∞"}</span></p><div aria-hidden="true" className="mt-4 h-1.5 overflow-hidden rounded-full bg-surface-alt"><div className="h-full rounded-full bg-signal" style={{ width: `${percent}%` }} /></div><p className="mt-2 text-xs text-text-muted">{limit ? `${Math.max(0, limit - used)} remaining` : "No product-level limit"}</p></article>;
 }
 
-function billingError(error: unknown, fallback: string) {
+function billingError(error: unknown, fallback: string, action: "checkout" | "portal") {
   const status = (error as Partial<ApiRequestError>)?.status;
-  if (status === 403) return "Pro Checkout is not enabled for this environment.";
+  if (status === 403) return action === "portal" ? "Billing management is not available for this account." : "Pro Checkout is not enabled for this environment.";
   if (status === 409) return "You already have Pro access. Manage it through the billing portal.";
   if (status === 429) return "Please wait before starting another billing attempt.";
   return fallback;

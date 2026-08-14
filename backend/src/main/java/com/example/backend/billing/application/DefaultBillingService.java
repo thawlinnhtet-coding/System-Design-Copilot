@@ -160,21 +160,26 @@ class DefaultBillingService implements BillingService, BillingPlanResolver {
 	public BillingPlan planFor(UUID userId, Instant now) {
 		var customer = projectionStore.findCustomerByUserId(userId);
 		if (customer.isEmpty() || !properties.allowsSyntheticAccount(customer.get().clerkSubject())) {
-			return new BillingPlan(false, null);
+			return new BillingPlan(false, null, "FREE_BETA", false, false);
 		}
 		var subscription = projectionStore.findSubscriptionByUserId(userId);
 		if (subscription.isEmpty()) {
-			return new BillingPlan(false, null);
+			return new BillingPlan(false, null, "FREE_TEST_MODE", true, false);
 		}
 		var value = subscription.get();
 		return switch (value.status()) {
-			case "active", "trialing" -> new BillingPlan(true, value.currentPeriodEnd());
+			case "active", "trialing" -> new BillingPlan(true, value.currentPeriodEnd(), "PRO_ACTIVE", false, true);
 			case "past_due" -> {
 				var graceEndsAt = value.pastDueAt() == null ? null : value.pastDueAt().plusSeconds(properties.pastDueGraceDays() * 86_400L);
-				yield new BillingPlan(graceEndsAt != null && now.isBefore(graceEndsAt), graceEndsAt);
+				yield new BillingPlan(graceEndsAt != null && now.isBefore(graceEndsAt), graceEndsAt,
+						graceEndsAt != null && now.isBefore(graceEndsAt) ? "PRO_PAST_DUE" : "FREE_PAST_DUE", false,
+						false);
 			}
-			case "canceled" -> new BillingPlan(value.currentPeriodEnd() != null && now.isBefore(value.currentPeriodEnd()), value.currentPeriodEnd());
-			default -> new BillingPlan(false, null);
+			case "canceled" -> {
+				var pro = value.currentPeriodEnd() != null && now.isBefore(value.currentPeriodEnd());
+				yield new BillingPlan(pro, value.currentPeriodEnd(), pro ? "PRO_CANCELING" : "FREE_TEST_MODE", false, pro);
+			}
+			default -> new BillingPlan(false, null, "FREE_TEST_MODE", true, false);
 		};
 	}
 

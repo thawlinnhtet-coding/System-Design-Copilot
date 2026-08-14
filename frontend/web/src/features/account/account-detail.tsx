@@ -3,7 +3,7 @@
 import { SignInButton, useAuth, useClerk, useUser } from "@clerk/nextjs";
 import Link from "next/link";
 import { useState, type ReactNode } from "react";
-import { useAuthenticatedApiClient, type CurrentEntitlements } from "@/lib/api/authenticated-client";
+import { useAuthenticatedApiClient, type ApiRequestError, type CurrentEntitlements } from "@/lib/api/authenticated-client";
 import { AccountSettingsSidebar, type AccountSection } from "./account-navigation";
 import { useEntitlements } from "./use-entitlements";
 
@@ -59,7 +59,7 @@ export function AccountDetail({ section }: { section: Exclude<AccountSection, "o
       <div className="flex min-h-[calc(100vh-64px)] flex-col bg-background lg:flex-row" data-testid="account-detail-plan">
         <AccountSettingsSidebar activeSection="plan" />
         <main className="min-w-0 flex-1 bg-[#f7f5ef] px-5 py-7 sm:px-8 lg:px-[46px] lg:py-[42px]">
-          <PlanDetail usage={entitlements.data ?? null} loaded={entitlements.isSuccess} loadError={entitlements.isError} />
+          <PlanDetail onRetry={() => void entitlements.refetch()} usage={entitlements.data ?? null} loaded={entitlements.isSuccess} loadError={entitlements.isError} />
         </main>
       </div>
     );
@@ -119,35 +119,43 @@ function SettingsRow({ label, detail, action, onAction }: { label: string; detai
   return <div className="flex flex-col gap-3 border-t border-[#edf0eb] pt-4 first:border-t-0 first:pt-0 sm:flex-row sm:items-center sm:justify-between"><div className="flex max-w-[720px] flex-col gap-1"><p className="text-sm font-semibold text-[#2a3431]">{label}</p><p className="text-[13px] leading-[1.4] text-[#66716c]">{detail}</p></div><button className="inline-flex h-8 shrink-0 items-center justify-center rounded-[4px] bg-signal px-3 text-[13px] font-semibold text-white hover:brightness-110" onClick={onAction} type="button">{action}</button></div>;
 }
 
-function PlanDetail({ usage, loaded, loadError }: { usage: CurrentEntitlements | null; loaded: boolean; loadError: boolean }) {
+function PlanDetail({ usage, loaded, loadError, onRetry }: { usage: CurrentEntitlements | null; loaded: boolean; loadError: boolean; onRetry: () => void }) {
   const api = useAuthenticatedApiClient();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const isPro = usage?.plan === "PRO";
+  const billingStatus = usage?.billing?.status ?? (isPro ? "PRO_ACTIVE" : "FREE_TEST_MODE");
+  const checkoutAvailable = usage?.billing?.checkoutAvailable ?? !isPro;
+  const portalAvailable = usage?.billing?.portalAvailable ?? isPro;
+  const isCanceling = billingStatus === "PRO_CANCELING";
+  const paidThrough = usage?.billing?.paidThrough ?? usage?.renewsAt;
   const action = async () => {
+    if (!checkoutAvailable && !portalAvailable) return;
     setBusy(true);
     setError(null);
     try {
       window.location.assign(isPro ? await api.openBillingPortal() : await api.startCheckout());
-    } catch {
-      setError(isPro ? "Billing is temporarily unavailable." : "Secure checkout is not available right now.");
+    } catch (requestError) {
+      setError(planActionError(requestError, isPro));
       setBusy(false);
     }
   };
 
-  if (!loaded) return <p className="text-sm text-text-muted">Loading plan and usage...</p>;
-  if (loadError) return <p className="text-sm text-warning" role="alert">Plan and usage are temporarily unavailable. Try again shortly.</p>;
+  if (loadError) {
+    return <div className="flex max-w-[560px] flex-col gap-3" data-testid="plan-load-error"><p className="text-sm text-warning" role="alert">Plan and usage are temporarily unavailable. Your existing Workspaces remain available. Try again shortly.</p><button className="inline-flex h-10 w-fit items-center justify-center border border-line px-4 text-xs font-medium text-foreground hover:bg-surface-alt" onClick={onRetry} type="button">Retry plan and usage</button></div>;
+  }
+  if (!loaded) return <p className="text-sm text-text-muted" role="status">Loading plan and usage...</p>;
 
   return (
     <div className="flex flex-col gap-5">
       <p className="font-mono text-[11px] leading-[1.3] text-signal">ACCOUNT / PLAN &amp; USAGE</p>
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="flex flex-col gap-1.5">
-          <h1 className="font-display text-[38px] font-medium leading-[1.08] tracking-[-0.035em]">{isPro ? "Your Pro plan." : "Plan and usage"}</h1>
-          <p className="text-sm leading-[1.4] text-text-muted">{isPro ? "Full practice access with usage safeguards." : "Bounded allowances for the personal beta."}</p>
+          <h1 className="font-display text-[38px] font-medium leading-[1.08] tracking-[-0.035em]">{isCanceling ? `Your Pro plan continues through ${formatRenewal(paidThrough)}.` : isPro ? "Your Pro plan." : "Plan and usage"}</h1>
+          <p className="text-sm leading-[1.4] text-text-muted">{isCanceling ? "Cancellation scheduled; your paid access remains available until the paid-through date." : isPro ? "Full practice access with usage safeguards." : "Bounded allowances for the personal beta."}</p>
         </div>
-        <span className="rounded-[3px] bg-signal px-2.5 py-[7px] font-mono text-[10px] leading-none text-white">{isPro ? "PRO · ACTIVE" : "FREE · PERSONAL BETA"}</span>
+        <span className="rounded-[3px] bg-signal px-2.5 py-[7px] font-mono text-[10px] leading-none text-white">{isCanceling ? "PRO · PAID THROUGH" : isPro ? "PRO · ACTIVE" : "FREE · PERSONAL BETA"}</span>
       </div>
       <div className="h-px bg-line" />
 
@@ -155,9 +163,9 @@ function PlanDetail({ usage, loaded, loadError }: { usage: CurrentEntitlements |
         <div className="flex flex-col gap-[7px]">
           <p className="font-mono text-[10px] leading-none text-text-on-dark-secondary">CURRENT PLAN</p>
           <h2 className="font-display text-2xl font-medium leading-none text-text-on-dark">{isPro ? "System Design Copilot Pro" : "Free personal beta"}</h2>
-          <p className="text-[13px] leading-none text-text-on-dark-secondary">{isPro ? `$20 / month · Renews ${formatRenewal(usage?.renewsAt)}` : "No billing cycle · Upgrade anytime"}</p>
+          <p className="text-[13px] leading-none text-text-on-dark-secondary">{isCanceling ? `Access through ${formatRenewal(paidThrough)}` : isPro ? `$20 / month · Renews ${formatRenewal(usage?.renewsAt)}` : "No billing cycle · Upgrade anytime"}</p>
         </div>
-        <button className="inline-flex h-11 items-center justify-center bg-signal px-4 text-[13px] font-medium text-white disabled:opacity-60" data-testid="plan-action" disabled={busy} onClick={action} type="button">{isPro ? "Manage billing →" : "Upgrade to Pro →"}</button>
+        <button className="inline-flex h-11 items-center justify-center bg-signal px-4 text-[13px] font-medium text-white disabled:cursor-not-allowed disabled:opacity-60" data-testid="plan-action" disabled={busy || (isPro ? !portalAvailable : !checkoutAvailable)} onClick={action} type="button">{isPro ? "Manage billing →" : checkoutAvailable ? "Upgrade to Pro →" : "Upgrade unavailable in beta"}</button>
       </section>
 
       {error ? <p className="text-xs text-warning" role="alert">{error}</p> : null}
@@ -172,7 +180,7 @@ function PlanDetail({ usage, loaded, loadError }: { usage: CurrentEntitlements |
         </div>
       </section>
 
-      <p className="text-[11px] leading-[1.4] text-text-muted">{isPro ? "Manage billing includes payment details, invoices, and cancellation." : "Upgrade opens secure checkout. Existing content is preserved and Free allowances remain until the plan changes."}</p>
+      <p className="text-[11px] leading-[1.4] text-text-muted">{isCanceling ? "Your owned Workspaces remain available after the paid-through date; Free limits apply after downgrade." : isPro ? "Manage billing includes payment details, invoices, and cancellation." : checkoutAvailable ? "Upgrade opens secure test-mode Checkout. Existing content is preserved and Free allowances remain until the plan changes." : "Ordinary personal-beta accounts cannot activate paid Pro access. Your existing Workspaces remain available, and quotas reset at the start of the next UTC month."}</p>
     </div>
   );
 }
@@ -240,4 +248,12 @@ function PrivacyDetail() {
 function formatRenewal(value: string | undefined) {
   if (!value) return "next billing date unavailable";
   return new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", year: "numeric" }).format(new Date(value));
+}
+
+function planActionError(error: unknown, isPro: boolean) {
+  const status = (error as Partial<ApiRequestError>)?.status;
+  if (status === 403) return isPro ? "Billing management is not available for this account." : "Paid Pro access is not available to this account during the personal beta.";
+  if (status === 409) return "You already have Pro access. Manage it through the billing portal.";
+  if (status === 429) return "Please wait before starting another billing attempt.";
+  return isPro ? "Billing is temporarily unavailable." : "Secure checkout is not available right now.";
 }
