@@ -349,6 +349,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/me/ai-consent": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read the current AI Processing Consent and bounded context policy */
+        get: operations["getAiConsent"];
+        /** Grant AI Processing Consent for the presented policy version */
+        put: operations["grantAiConsent"];
+        /** Withdraw AI Processing Consent */
+        delete: operations["withdrawAiConsent"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/health": {
         parameters: {
             query?: never;
@@ -562,6 +580,24 @@ export interface components {
             reviews?: components["schemas"]["Allowance"];
             /** Format: date-time */
             renewsAt?: string;
+        };
+        GrantConsentRequest: {
+            policyVersion: string;
+        };
+        PolicyResponse: {
+            currentVersion?: string;
+            includedCategories?: string[];
+            excludedCategories?: string[];
+            providerRouting?: string;
+            revocable?: boolean;
+            priorTransmissionNotice?: string;
+        };
+        AiConsentResponse: {
+            granted?: boolean;
+            policyVersion?: string;
+            /** Format: date-time */
+            changedAt?: string;
+            policy?: components["schemas"]["PolicyResponse"];
         };
         HealthResponse: {
             status?: string;
@@ -1200,6 +1236,70 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["CurrentEntitlements"];
+                };
+            };
+        };
+    };
+    getAiConsent: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["AiConsentResponse"];
+                };
+            };
+        };
+    };
+    grantAiConsent: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GrantConsentRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["AiConsentResponse"];
+                };
+            };
+        };
+    };
+    withdrawAiConsent: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["AiConsentResponse"];
                 };
             };
         };

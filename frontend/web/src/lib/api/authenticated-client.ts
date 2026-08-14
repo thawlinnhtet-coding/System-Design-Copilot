@@ -11,6 +11,7 @@ export type WorkspaceSummary = components["schemas"]["WorkspaceSummary"];
 export type WorkspaceType = components["schemas"]["WorkspaceType"];
 export type WorkspaceSource = components["schemas"]["WorkspaceSource"];
 export type CurrentEntitlements = components["schemas"]["CurrentEntitlements"];
+export type AiConsent = components["schemas"]["AiConsentResponse"];
 export type Requirement = components["schemas"]["RequirementResponse"];
 export type Assumption = components["schemas"]["AssumptionResponse"];
 export type UnresolvedQuestion = components["schemas"]["QuestionResponse"];
@@ -231,6 +232,19 @@ export function useAuthenticatedApiClient() {
       },
       getUsage(): Promise<CurrentEntitlements> {
         return json<CurrentEntitlements>("/api/v1/me/usage");
+      },
+      getAiConsent(): Promise<AiConsent> {
+        return json<AiConsent>("/api/v1/me/ai-consent");
+      },
+      grantAiConsent(policyVersion: string): Promise<AiConsent> {
+        return json<AiConsent>("/api/v1/me/ai-consent", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ policyVersion }),
+        });
+      },
+      withdrawAiConsent(): Promise<AiConsent> {
+        return json<AiConsent>("/api/v1/me/ai-consent", { method: "DELETE" });
       },
       async reconcileCompletedCheckout(sessionId: string): Promise<void> {
         const response = await request(`/api/v1/billing/checkout/complete?session_id=${encodeURIComponent(sessionId)}`, { method: "POST" });

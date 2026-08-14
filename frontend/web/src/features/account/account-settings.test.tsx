@@ -10,7 +10,7 @@ const user = vi.hoisted(() => ({
   lastName: "Htet",
   primaryEmailAddress: { emailAddress: "thaw@example.com" },
 }));
-const api = vi.hoisted(() => ({ getUsage: vi.fn() }));
+const api = vi.hoisted(() => ({ getUsage: vi.fn(), getAiConsent: vi.fn() }));
 
 vi.mock("@clerk/nextjs", () => ({
   SignInButton: ({ children }: { children: React.ReactNode }) => <>{children}</>,
@@ -28,6 +28,8 @@ describe("AccountSettings", () => {
     session.isLoaded = true;
     session.isSignedIn = true;
     api.getUsage.mockReset();
+    api.getAiConsent.mockReset();
+    api.getAiConsent.mockResolvedValue({ granted: true });
   });
 
   it("renders the approved account settings overview for a signed-in user", async () => {

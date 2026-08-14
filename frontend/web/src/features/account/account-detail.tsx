@@ -1,6 +1,7 @@
 "use client";
 
 import { SignInButton, useAuth, useClerk, useUser } from "@clerk/nextjs";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { useState, type ReactNode } from "react";
 import { useAuthenticatedApiClient, type CurrentEntitlements } from "@/lib/api/authenticated-client";
@@ -200,17 +201,44 @@ function reviewValue(allowance: { used?: number; limit?: number | null } | undef
 }
 
 function AiDetail() {
-  const [consentGranted, setConsentGranted] = useState(true);
+  const api = useAuthenticatedApiClient();
+  const queryClient = useQueryClient();
+  const consent = useQuery({ queryKey: ["ai-consent"], queryFn: api.getAiConsent });
+  const mutation = useMutation({
+    mutationFn: (grant: boolean) => grant
+      ? api.grantAiConsent(consent.data?.policy?.currentVersion ?? consent.data?.policyVersion ?? "")
+      : api.withdrawAiConsent(),
+    onSuccess: (next) => queryClient.setQueryData(["ai-consent"], next),
+  });
+
+  if (consent.isPending) return <p className="text-sm text-text-muted">Loading AI processing policy...</p>;
+  if (consent.isError || !consent.data) return <p className="text-sm text-warning" role="alert">AI processing policy is temporarily unavailable. Try again shortly.</p>;
+
+  const consentGranted = consent.data.granted === true;
+  const policy = consent.data.policy;
 
   return (
     <div className="flex max-w-[1120px] flex-col gap-4" data-testid="ai-processing-card">
       <SettingsSection title="AI processing consent">
-        <SettingsRow label="Consent scope" detail="Review the Workspace categories sent to an AI provider for each operation." action="Review exact scope" onAction={() => undefined} />
-        <SettingsRow label="Provider privacy routing" detail="Choose the approved provider-routing policy for future processing." action="View details" onAction={() => undefined} />
-        <SettingsRow label="Revocation control" detail={consentGranted ? "Consent is granted. Revoking blocks future AI operations; prior transmissions cannot be retracted." : "Future AI processing is blocked until you grant consent again."} action={consentGranted ? "Revoke consent" : "Grant consent"} onAction={() => setConsentGranted((value) => !value)} />
+        <div className="flex flex-col gap-2 text-[13px] leading-[1.5] text-[#66716c]">
+          <p>AI guidance is advisory. Before a Copilot or Review operation, only bounded context from the current Workspace is sent for processing.</p>
+          <p>There is no cross-Workspace context picker. Credentials, tokens, passwords, account data, billing, usage, identity data, unrelated Workspaces, and raw provider payloads stay excluded.</p>
+        </div>
+        <div className="grid gap-4 border-t border-[#edf0eb] pt-4 md:grid-cols-2">
+          <PolicyList title="Included categories" values={policy?.includedCategories ?? []} />
+          <PolicyList title="Excluded categories" values={policy?.excludedCategories ?? []} />
+        </div>
+        <SettingsRow label="Provider privacy routing" detail={policy?.providerRouting ?? "Approved non-retaining routing with provider fallback disabled."} action="Policy shown above" onAction={() => undefined} />
+        <SettingsRow label="Revocation control" detail={consentGranted ? "Consent is granted. Revoking blocks future AI operations; prior transmissions cannot be retracted." : "Future AI processing is blocked until you grant consent again."} action={mutation.isPending ? "Saving..." : consentGranted ? "Revoke consent" : "Grant consent"} onAction={() => mutation.mutate(!consentGranted)} />
+        {mutation.isError ? <p className="text-xs text-warning" role="alert">The consent change could not be saved. Try again.</p> : null}
+        <p className="border-t border-[#edf0eb] pt-4 text-[12px] leading-[1.5] text-[#66716c]">The personal beta stops new AI operations when the USD 0.10 UTC daily budget is reached. {policy?.priorTransmissionNotice ?? "Context already sent to a provider cannot be retracted."}</p>
       </SettingsSection>
     </div>
   );
+}
+
+function PolicyList({ title, values }: { title: string; values: string[] }) {
+  return <div><p className="font-mono text-[10px] text-text-muted">{title.toUpperCase()}</p><ul className="mt-2 flex list-disc flex-col gap-1 pl-4 text-[12px] leading-[1.45] text-[#66716c]">{values.map((value) => <li key={value}>{value}</li>)}</ul></div>;
 }
 
 function DataDetail() {
