@@ -12,10 +12,13 @@ import com.example.backend.workspace.infrastructure.WorkspaceType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.context.annotation.Lazy;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 
 import java.time.Clock;
 import java.time.Instant;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Service
@@ -25,6 +28,7 @@ public class WorkspaceService implements WorkspaceAccess, WorkspaceMetadataProvi
 	private final EntitlementService entitlementService;
 	private final WorkspaceDataCleanup workspaceDataCleanup;
 	private final Clock clock;
+	private final ObjectMapper objectMapper = new ObjectMapper();
 
 	public WorkspaceService(
 		WorkspaceRepository workspaceRepository,
@@ -84,6 +88,11 @@ public class WorkspaceService implements WorkspaceAccess, WorkspaceMetadataProvi
 	}
 
 	@Transactional
+	public WorkspaceSummary createCustomDesign(UUID userId, String name, String systemIdea) {
+		return create(userId, name, systemIdea, WorkspaceType.CUSTOM_DESIGN, WorkspaceSource.CUSTOM_DESIGN);
+	}
+
+	@Transactional
 	public WorkspaceSummary createChallenge(UUID userId, String name, String description, UUID challengeVersionId, String challengeSnapshot) {
 		entitlementService.registerActiveWorkspace(userId);
 		var workspace = workspaceRepository.save(new WorkspaceEntity(
@@ -95,6 +104,31 @@ public class WorkspaceService implements WorkspaceAccess, WorkspaceMetadataProvi
 	public WorkspaceSummary rename(UUID userId, UUID workspaceId, String name) {
 		var workspace = ownedWorkspace(userId, workspaceId);
 		workspace.rename(name, now());
+		return summary(workspace);
+	}
+
+	@Transactional
+	public WorkspaceSummary updateFocus(UUID userId, UUID workspaceId, String focusStage, String focusPanel, JsonNode canvasViewport) {
+		var workspace = ownedWorkspace(userId, workspaceId);
+		if (workspace.getStatus() != WorkspaceStatus.ACTIVE) {
+			throw new WorkspaceExceptions.WorkspaceArchivedException();
+		}
+		if (!Set.of("CLARIFY", "DESIGN", "STRESS", "REVIEW").contains(focusStage)
+				|| !Set.of("REASONING", "CANVAS", "SCENARIOS", "REVIEW").contains(focusPanel)) {
+			throw new WorkspaceExceptions.InvalidWorkspaceFocusException();
+		}
+		if (canvasViewport == null || !canvasViewport.isObject()
+				|| canvasViewport.size() != 3
+				|| !canvasViewport.path("x").isNumber()
+				|| !canvasViewport.path("y").isNumber()
+				|| !canvasViewport.path("zoom").isNumber()
+				|| Math.abs(canvasViewport.path("x").asDouble()) > 100_000
+				|| Math.abs(canvasViewport.path("y").asDouble()) > 100_000
+				|| canvasViewport.path("zoom").asDouble() < 0.1
+				|| canvasViewport.path("zoom").asDouble() > 4.0) {
+			throw new WorkspaceExceptions.InvalidWorkspaceFocusException();
+		}
+		workspace.updateFocus(focusStage, focusPanel, objectMapper.writeValueAsString(canvasViewport), now());
 		return summary(workspace);
 	}
 
@@ -150,6 +184,11 @@ public class WorkspaceService implements WorkspaceAccess, WorkspaceMetadataProvi
 				workspace.getSaveState(),
 				workspace.getLatestReviewState(),
 				reviewBriefRequired(workspace.getSource()),
+				workspace.getFocusStage(),
+				workspace.getFocusPanel(),
+				read(workspace.getCanvasViewport()),
+				workspace.getType() == WorkspaceType.CUSTOM_DESIGN ? "Make the system needs explicit." : null,
+				workspace.getType() == WorkspaceType.CUSTOM_DESIGN ? "Add your first Requirement or open the blank Canvas." : null,
 				workspace.getCreatedAt(),
 				workspace.getUpdatedAt()
 		);
@@ -181,10 +220,23 @@ public class WorkspaceService implements WorkspaceAccess, WorkspaceMetadataProvi
 			int progressPercent,
 			String saveState,
 			String latestReviewState,
-			boolean reviewBriefRequired,
-			Instant createdAt,
+		boolean reviewBriefRequired,
+		String focusStage,
+		String focusPanel,
+		JsonNode canvasViewport,
+		String clarifyPrompt,
+		String suggestedNextAction,
+		Instant createdAt,
 			Instant updatedAt
 	) {
+	}
+
+	private JsonNode read(String value) {
+		try {
+			return objectMapper.readTree(value);
+		} catch (RuntimeException exception) {
+			throw new IllegalStateException("Stored Workspace focus state is invalid", exception);
+		}
 	}
 
 }

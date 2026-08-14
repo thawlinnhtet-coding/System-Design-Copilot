@@ -140,6 +140,20 @@ export function useAuthenticatedApiClient() {
           body: JSON.stringify({ name, description, type, source }),
         });
       },
+      createCustomDesignWorkspace(name: string, systemIdea: string): Promise<WorkspaceSummary> {
+        return json<WorkspaceSummary>("/api/v1/workspaces/custom-design", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name, systemIdea }),
+        });
+      },
+      updateWorkspaceFocus(id: string, stage: string, panel: string, canvasViewport: { x: number; y: number; zoom: number }): Promise<WorkspaceSummary> {
+        return json<WorkspaceSummary>(`/api/v1/workspaces/${id}/focus`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ stage, panel, canvasViewport }),
+        });
+      },
       renameWorkspace(id: string, name: string): Promise<WorkspaceSummary> {
         return json<WorkspaceSummary>(`/api/v1/workspaces/${id}`, {
           method: "PATCH",

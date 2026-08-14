@@ -24,7 +24,7 @@ export function PracticeHome() {
   const queryClient = useQueryClient();
   const [creating, setCreating] = useState(false);
   const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
+  const [systemIdea, setSystemIdea] = useState("");
   const [error, setError] = useState<string | null>(null);
   const result = useQuery({
     queryKey,
@@ -54,11 +54,11 @@ export function PracticeHome() {
 
   async function create(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!name.trim() || !description.trim()) return;
+    if (!name.trim() || !systemIdea.trim()) return;
 
     setError(null);
     try {
-      const workspace = await api.createWorkspace(name.trim(), description.trim(), "CUSTOM_DESIGN", "CUSTOM_DESIGN");
+      const workspace = await api.createCustomDesignWorkspace(name.trim(), systemIdea.trim());
       await queryClient.invalidateQueries({ queryKey });
       if (workspace.id) router.push(`/workspace/${workspace.id}`);
     } catch (caught) {
@@ -82,9 +82,9 @@ export function PracticeHome() {
       ) : null}
       {creating ? (
         <CreateWorkspace
-          description={description}
+          systemIdea={systemIdea}
           name={name}
-          onDescription={setDescription}
+          onSystemIdea={setSystemIdea}
           onName={setName}
           onSubmit={create}
         />
@@ -219,12 +219,12 @@ function RecentWorkspaces({ workspaces }: { workspaces: WorkspaceSummary[] }) {
   );
 }
 
-function CreateWorkspace({ description, name, onDescription, onName, onSubmit }: {
-  description: string;
+function CreateWorkspace({ name, onName, onSubmit, onSystemIdea, systemIdea }: {
   name: string;
-  onDescription: (value: string) => void;
+  onSystemIdea: (value: string) => void;
   onName: (value: string) => void;
   onSubmit: (event: FormEvent<HTMLFormElement>) => void;
+  systemIdea: string;
 }) {
   return (
     <div className="flex flex-col gap-7">
@@ -249,7 +249,7 @@ function CreateWorkspace({ description, name, onDescription, onName, onSubmit }:
             </label>
             <label className="grid gap-[5px]">
               <span className="font-mono text-[10px] text-text-muted">WHAT ARE YOU DESIGNING?</span>
-              <input className="field h-[42px]" maxLength={5000} onChange={(event) => onDescription(event.target.value)} placeholder="Describe the product, users, and decision." required value={description} />
+              <textarea className="field min-h-24 py-3" maxLength={2000} onChange={(event) => onSystemIdea(event.target.value)} placeholder="Describe the product, users, and decision." required value={systemIdea} />
             </label>
           </div>
           <button className={`${button} mt-auto w-fit border-signal bg-signal font-semibold text-text-on-dark`} type="submit">

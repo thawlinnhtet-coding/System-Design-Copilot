@@ -7,6 +7,7 @@ const session = vi.hoisted(() => ({ isLoaded: true, isSignedIn: false }));
 const api = vi.hoisted(() => ({
   getWorkspaces: vi.fn(),
   createWorkspace: vi.fn(),
+  createCustomDesignWorkspace: vi.fn(),
   renameWorkspace: vi.fn(),
   archiveWorkspace: vi.fn(),
   restoreWorkspace: vi.fn(),
@@ -50,7 +51,7 @@ describe("PracticeHome", () => {
   it("creates a custom workspace through the backend", async () => {
     session.isSignedIn = true;
     api.getWorkspaces.mockResolvedValue([]);
-    api.createWorkspace.mockResolvedValue({ id: "workspace-2" });
+    api.createCustomDesignWorkspace.mockResolvedValue({ id: "workspace-2" });
     renderWithProviders(<PracticeHome />);
     await screen.findByRole("button", { name: "Start custom design" });
     fireEvent.click(screen.getByRole("button", { name: "Start custom design" }));
@@ -58,7 +59,7 @@ describe("PracticeHome", () => {
     fireEvent.change(screen.getByLabelText("SYSTEM NAME"), { target: { value: "Orders" } });
     fireEvent.change(screen.getByLabelText("WHAT ARE YOU DESIGNING?"), { target: { value: "A reliable ordering system" } });
     fireEvent.click(screen.getByRole("button", { name: "Create blank Workspace \u2192" }));
-		await waitFor(() => expect(api.createWorkspace).toHaveBeenCalledWith("Orders", "A reliable ordering system", "CUSTOM_DESIGN", "CUSTOM_DESIGN"));
+		await waitFor(() => expect(api.createCustomDesignWorkspace).toHaveBeenCalledWith("Orders", "A reliable ordering system"));
     expect(router.push).toHaveBeenCalledWith("/workspace/workspace-2");
   });
 });
