@@ -1,9 +1,10 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, screen, waitFor } from "@testing-library/react";
 import { vi } from "vitest";
+import { renderWithProviders } from "@/test/setup";
 import { PricingAction } from "./pricing-action";
 
 const session = vi.hoisted(() => ({ isLoaded: true, isSignedIn: true }));
-const api = vi.hoisted(() => ({ startCheckout: vi.fn() }));
+const api = vi.hoisted(() => ({ getUsage: vi.fn(), startCheckout: vi.fn() }));
 
 vi.mock("@clerk/nextjs", () => ({
   useAuth: () => session,
@@ -14,12 +15,15 @@ vi.mock("@/lib/api/authenticated-client", () => ({
 }));
 
 describe("PricingAction", () => {
-  beforeEach(() => vi.clearAllMocks());
+  beforeEach(() => {
+    vi.clearAllMocks();
+    api.getUsage.mockResolvedValue({ plan: "FREE", billing: { checkoutAvailable: true } });
+  });
 
   it("routes signed-out users to the custom sign-in page", () => {
     session.isSignedIn = false;
 
-    render(<PricingAction pro />);
+    renderWithProviders(<PricingAction pro />);
 
     expect(screen.getByRole("link", { name: "Sign in to upgrade" })).toHaveAttribute("href", "/sign-in");
   });
@@ -28,8 +32,8 @@ describe("PricingAction", () => {
     session.isSignedIn = true;
     api.startCheckout.mockRejectedValue({ status: 403 });
 
-    render(<PricingAction pro />);
-    fireEvent.click(screen.getByRole("button", { name: "Upgrade to Pro" }));
+    renderWithProviders(<PricingAction pro />);
+    fireEvent.click(await screen.findByRole("button", { name: "Upgrade to Pro" }));
 
     await waitFor(() => expect(api.startCheckout).toHaveBeenCalledTimes(1));
 	  expect(await screen.findByRole("alert")).toHaveTextContent("Pro Checkout is not enabled for this environment");
@@ -39,9 +43,20 @@ describe("PricingAction", () => {
     session.isSignedIn = true;
     api.startCheckout.mockRejectedValue({ status: 409 });
 
-    render(<PricingAction pro />);
-    fireEvent.click(screen.getByRole("button", { name: "Upgrade to Pro" }));
+    renderWithProviders(<PricingAction pro />);
+    fireEvent.click(await screen.findByRole("button", { name: "Upgrade to Pro" }));
 
     expect(await screen.findByRole("alert")).toHaveTextContent("already have Pro access");
+  });
+
+  it("does not present paid checkout to ordinary personal-beta users", async () => {
+    session.isSignedIn = true;
+    api.getUsage.mockResolvedValue({ plan: "FREE", billing: { status: "FREE_BETA", checkoutAvailable: false } });
+
+    renderWithProviders(<PricingAction pro />);
+
+    expect(await screen.findByRole("button", { name: "Upgrade unavailable in beta" })).toBeDisabled();
+    expect(screen.getByRole("status")).toHaveTextContent("Ordinary personal-beta accounts stay on Free");
+    expect(api.startCheckout).not.toHaveBeenCalled();
   });
 });

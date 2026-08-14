@@ -133,7 +133,10 @@ class CurrentUserControllerTests {
 				.andExpect(jsonPath("$.copilotTurns.limit").value(50))
 				.andExpect(jsonPath("$.reviews.used").value(0))
 				.andExpect(jsonPath("$.reviews.limit").value(5))
-				.andExpect(jsonPath("$.renewsAt").exists());
+				.andExpect(jsonPath("$.renewsAt").exists())
+				.andExpect(jsonPath("$.billing.status").value("FREE_BETA"))
+				.andExpect(jsonPath("$.billing.checkoutAvailable").value(false))
+				.andExpect(jsonPath("$.billing.portalAvailable").value(false));
 	}
 
 	@Test

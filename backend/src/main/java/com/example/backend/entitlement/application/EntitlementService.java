@@ -47,7 +47,13 @@ public class EntitlementService {
 				new Allowance(userAllowanceStore.activeWorkspaceCount(userId), activeWorkspaceLimit),
 				new Allowance(usageRecordStore.countSince(userId, UsageOperation.COPILOT_TURN, monthStart), copilotTurnLimit),
 				new Allowance(usageRecordStore.countSince(userId, UsageOperation.REVIEW, monthStart), reviewLimit),
-				billingPlan.pro() && billingPlan.paidThrough() != null ? billingPlan.paidThrough() : nextMonthStart(now)
+				billingPlan.pro() && billingPlan.paidThrough() != null ? billingPlan.paidThrough() : nextMonthStart(now),
+				new BillingState(
+						billingPlan.status(),
+						billingPlan.checkoutAvailable(),
+						billingPlan.portalAvailable(),
+						billingPlan.pro() ? billingPlan.paidThrough() : null
+				)
 		);
 	}
 
@@ -105,7 +111,16 @@ public class EntitlementService {
 			Allowance activeWorkspaces,
 			Allowance copilotTurns,
 			Allowance reviews,
-			Instant renewsAt
+			Instant renewsAt,
+			BillingState billing
+	) {
+	}
+
+	public record BillingState(
+			String status,
+			boolean checkoutAvailable,
+			boolean portalAvailable,
+			Instant paidThrough
 	) {
 	}
 

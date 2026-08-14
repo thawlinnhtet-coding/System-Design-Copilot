@@ -580,6 +580,14 @@ export interface components {
             reviews?: components["schemas"]["Allowance"];
             /** Format: date-time */
             renewsAt?: string;
+            billing?: components["schemas"]["BillingState"];
+        };
+        BillingState: {
+            status?: string;
+            checkoutAvailable?: boolean;
+            portalAvailable?: boolean;
+            /** Format: date-time */
+            paidThrough?: string | null;
         };
         GrantConsentRequest: {
             policyVersion: string;

@@ -129,6 +129,22 @@ class BillingServiceTests {
 	}
 
 	@Test
+	void exposesCancellationAsProUntilThePaidThroughDate() {
+		var store = new InMemoryStore();
+		var userId = UUID.randomUUID();
+		var paidThrough = NOW.plusSeconds(2_592_000);
+		store.saveCustomer(new BillingProjectionStore.Customer(userId, "synthetic_test_user", "cus_test", NOW, null));
+		store.saveSubscription(new BillingProjectionStore.Subscription(userId, "sub_test", "cus_test", "canceled", paidThrough, null, NOW, "evt_canceled", NOW));
+
+		var plan = service(store, "synthetic_test_user").planFor(userId, NOW);
+
+		assertTrue(plan.pro());
+		assertEquals("PRO_CANCELING", plan.status());
+		assertEquals(paidThrough, plan.paidThrough());
+		assertTrue(plan.portalAvailable());
+	}
+
+	@Test
 	void projectsProFromAVerifiedCompletedCheckoutWhenTheSubscriptionEventIsDelayed() {
 		var store = new InMemoryStore();
 		var userId = UUID.randomUUID();
