@@ -1,10 +1,11 @@
 "use client";
 
-import { ArrowUpDown, ChevronDown, ChevronRight, CreditCard, LockKeyhole, LogOut, Menu, ShieldCheck, UserRound, Workflow, X } from "lucide-react";
+import { ArrowUpDown, ChevronDown, ChevronRight, CreditCard, LockKeyhole, LogOut, Menu, ShieldCheck, UserRound, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { SignOutButton, useAuth, useUser } from "@clerk/nextjs";
+import { BrandMark } from "@/components/brand/brand-mark";
 import { planBadge, planLabel, type UsageLoadState } from "@/features/account/plan-label";
 import { useEntitlements } from "@/features/account/use-entitlements";
 
@@ -26,7 +27,7 @@ export function AppShell({ children, fullBleed = false, compactHeader = false }:
       <header className={`relative z-30 box-border border-b border-[#34403c] bg-chrome-850 text-text-on-dark ${compactHeader ? "h-[64px]" : "h-[72px]"}`}>
         <div className="mx-auto flex h-full w-full items-center justify-between px-5 sm:px-8 lg:px-12">
           <Link href="/practice" aria-label="Go to Practice" className="rounded-[3px] focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-focus">
-            <ProductLogo />
+            <BrandMark tone="chrome" />
           </Link>
 
           <nav aria-label="Primary navigation" className="hidden items-center gap-8 md:flex">
@@ -38,6 +39,7 @@ export function AppShell({ children, fullBleed = false, compactHeader = false }:
           </nav>
 
           <div className="flex items-center gap-3">
+            <span className="hidden font-mono text-[10px] font-semibold tracking-[0.12em] text-warning lg:inline">PERSONAL BETA</span>
             {isLoaded && isSignedIn ? <AccountMenu isOpen={isAccountOpen} onToggle={() => setIsAccountOpen((open) => !open)} /> : null}
             <button aria-controls="mobile-navigation" aria-expanded={isMenuOpen} aria-label={isMenuOpen ? "Close navigation menu" : "Open navigation menu"} className="inline-flex size-11 items-center justify-center rounded-[3px] border border-white/15 text-text-on-dark md:hidden" onClick={() => setIsMenuOpen((open) => !open)} type="button">
               {isMenuOpen ? <X aria-hidden="true" size={18} /> : <Menu aria-hidden="true" size={18} />}
@@ -63,18 +65,6 @@ export function AppShell({ children, fullBleed = false, compactHeader = false }:
 
       <main className={fullBleed ? compactHeader ? "min-h-[calc(100vh-64px)]" : "min-h-[calc(100vh-72px)]" : compactHeader ? "min-h-[calc(100vh-64px)] px-5 pb-24 pt-8 sm:px-8 lg:px-10 lg:pb-12 lg:pt-10" : "min-h-[calc(100vh-72px)] px-5 pb-24 pt-8 sm:px-8 lg:px-10 lg:pb-12 lg:pt-10"}>{children}</main>
     </div>
-  );
-}
-
-function ProductLogo() {
-  return (
-    <span className="inline-flex items-center gap-3" aria-label="System Design Copilot">
-      <Workflow aria-hidden="true" className="text-signal" size={34} strokeWidth={1.35} />
-      <span className="flex flex-col gap-px">
-        <span className="font-display text-[17px] font-semibold leading-none text-text-on-dark">System Design</span>
-        <span className="font-mono text-[9px] font-semibold leading-[1.3] tracking-[0.16em] text-text-on-dark-secondary">COPILOT</span>
-      </span>
-    </span>
   );
 }
 

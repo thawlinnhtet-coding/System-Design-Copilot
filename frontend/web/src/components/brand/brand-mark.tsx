@@ -1,8 +1,9 @@
 type BrandMarkProps = {
   compact?: boolean;
+  tone?: "paper" | "chrome";
 };
 
-export function BrandMark({ compact = false }: BrandMarkProps) {
+export function BrandMark({ compact = false, tone = "paper" }: BrandMarkProps) {
   return (
     <span className="inline-flex items-center gap-2" aria-label="System Design Copilot">
       <img
@@ -14,7 +15,9 @@ export function BrandMark({ compact = false }: BrandMarkProps) {
         width="29"
       />
       {!compact ? (
-        <span className="whitespace-nowrap font-display text-[20px] font-semibold leading-none tracking-[-0.04em]">System Design Copilot</span>
+        <span className={`whitespace-nowrap font-display text-[20px] font-semibold leading-none tracking-[-0.04em] ${tone === "chrome" ? "text-text-on-dark" : "text-foreground"}`}>
+          System Design Copilot
+        </span>
       ) : null}
     </span>
   );
