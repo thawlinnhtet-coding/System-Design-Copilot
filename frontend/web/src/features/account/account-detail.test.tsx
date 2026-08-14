@@ -1,11 +1,11 @@
-import { screen } from "@testing-library/react";
+import { fireEvent, screen, waitFor } from "@testing-library/react";
 import { vi } from "vitest";
 import { renderWithProviders } from "@/test/setup";
 import { AccountDetail } from "./account-detail";
 
 const session = vi.hoisted(() => ({ isLoaded: true, isSignedIn: true }));
 const user = vi.hoisted(() => ({ fullName: "Thaw Linn Htet", primaryEmailAddress: { emailAddress: "thaw@example.com" } }));
-const api = vi.hoisted(() => ({ getUsage: vi.fn(), startCheckout: vi.fn(), openBillingPortal: vi.fn() }));
+const api = vi.hoisted(() => ({ getUsage: vi.fn(), getAiConsent: vi.fn(), grantAiConsent: vi.fn(), withdrawAiConsent: vi.fn(), startCheckout: vi.fn(), openBillingPortal: vi.fn() }));
 
 vi.mock("@clerk/nextjs", () => ({
   SignInButton: ({ children }: { children: React.ReactNode }) => <>{children}</>,
@@ -24,6 +24,9 @@ describe("AccountDetail", () => {
     session.isLoaded = true;
     session.isSignedIn = true;
     api.getUsage.mockReset();
+    api.getAiConsent.mockReset();
+    api.grantAiConsent.mockReset();
+    api.withdrawAiConsent.mockReset();
   });
 
   it("renders the separate Profile & security detail state", () => {
@@ -67,5 +70,29 @@ describe("AccountDetail", () => {
     expect(screen.getByRole("button", { name: /Manage billing/ })).toBeVisible();
     expect(screen.getByText("Manage billing includes payment details, invoices, and cancellation.")).toBeVisible();
     expect(screen.queryByText("FAIR USE")).not.toBeInTheDocument();
+  });
+
+  it("shows the bounded consent policy and lets the user grant consent", async () => {
+    const policy = {
+      currentVersion: "2026-08-01",
+      includedCategories: ["Current Workspace Requirements and Architecture Document"],
+      excludedCategories: ["Credentials, tokens, passwords, and authentication metadata"],
+      providerRouting: "OpenRouter routes only to providers marked data_collection=deny with provider fallback disabled.",
+      revocable: true,
+      priorTransmissionNotice: "Context already sent to a provider cannot be retracted.",
+    };
+    api.getAiConsent.mockResolvedValue({ granted: false, policy });
+    api.grantAiConsent.mockResolvedValue({ granted: true, policy });
+
+    renderWithProviders(<AccountDetail section="ai" />);
+
+    expect(await screen.findByText("Current Workspace Requirements and Architecture Document")).toBeVisible();
+    expect(screen.getByText("Credentials, tokens, passwords, and authentication metadata")).toBeVisible();
+    expect(screen.getByText(/There is no cross-Workspace context picker/)).toBeVisible();
+
+    fireEvent.click(screen.getByRole("button", { name: "Grant consent" }));
+
+    await waitFor(() => expect(api.grantAiConsent).toHaveBeenCalledWith("2026-08-01"));
+    expect(await screen.findByRole("button", { name: "Revoke consent" })).toBeVisible();
   });
 });

@@ -1,8 +1,10 @@
 "use client";
 
 import { SignInButton, useAuth, useSession, useUser } from "@clerk/nextjs";
+import { useQuery } from "@tanstack/react-query";
 import { ArrowUpDown, CreditCard, LockKeyhole, ShieldCheck, UserRound } from "lucide-react";
 import Link from "next/link";
+import { useAuthenticatedApiClient } from "@/lib/api/authenticated-client";
 import { AccountSettingsSidebar } from "./account-navigation";
 import { planLabel, type UsageLoadState } from "./plan-label";
 import { useEntitlements } from "./use-entitlements";
@@ -12,6 +14,8 @@ export function AccountSettings() {
   const { user } = useUser();
   const { session } = useSession();
   const entitlements = useEntitlements();
+  const api = useAuthenticatedApiClient();
+  const aiConsent = useQuery({ queryKey: ["ai-consent"], queryFn: api.getAiConsent, enabled: isLoaded && isSignedIn });
   const usage = entitlements.data ?? null;
   const usageState: UsageLoadState = entitlements.isError ? "error" : entitlements.isSuccess ? "ready" : "loading";
 
@@ -43,6 +47,8 @@ export function AccountSettings() {
       ? `Renews ${formatDate(usage.renewsAt)} · ${activeWorkspaces}`
       : `${activeWorkspaces} · ${copilotTurns}`;
 
+  const consentLabel = aiConsent.isError ? "Consent unavailable" : aiConsent.data?.granted ? "Consent granted" : aiConsent.isPending ? "Consent loading" : "Consent needed";
+
   return (
     <div className="flex min-h-[calc(100vh-64px)] flex-col bg-background lg:flex-row" data-testid="account-settings-overview">
       <div className="hidden lg:block">
@@ -52,7 +58,7 @@ export function AccountSettings() {
       <section className="min-w-0 flex-1 px-5 py-8 sm:px-8 lg:px-14 lg:py-[38px]">
         <div className="mx-auto max-w-[1120px]">
           <div className="lg:hidden">
-            <MobileAccountNavigation plan={plan} activeWorkspaces={activeWorkspaces} session={session} />
+            <MobileAccountNavigation plan={plan} activeWorkspaces={activeWorkspaces} session={session} consentLabel={consentLabel} />
           </div>
 
           <div className="hidden flex-col gap-[22px] lg:flex">
@@ -73,7 +79,7 @@ export function AccountSettings() {
 
             <div className="grid gap-11 lg:grid-cols-3">
               <SummarySection label="PLAN & USAGE" value={plan} detail={planDetail} action="View all usage boundaries →" href="/account/plan" />
-              <SummarySection label="AI PROCESSING" value="Consent granted" detail="Review or revoke consent →" href="/account/ai" />
+              <SummarySection label="AI PROCESSING" value={consentLabel} detail="Review or revoke consent →" href="/account/ai" />
               <SummarySection label="PORTABLE DATA" value="Import or export" detail="Versioned JSON includes portable design content only. Identity, billing, usage, and Reviews remain excluded." href="/account/data" />
             </div>
 
@@ -132,11 +138,11 @@ function SummarySection({ label, value, detail, action, href }: { label: string;
   );
 }
 
-function MobileAccountNavigation({ plan, activeWorkspaces, session }: { plan: string; activeWorkspaces: string; session: ReturnType<typeof useSession>["session"] }) {
+function MobileAccountNavigation({ plan, activeWorkspaces, session, consentLabel }: { plan: string; activeWorkspaces: string; session: ReturnType<typeof useSession>["session"]; consentLabel: string }) {
   const rows = [
     { icon: UserRound, label: "Profile & security", detail: session ? "Current browser active" : "Session unavailable", href: "/account/profile" },
     { icon: CreditCard, label: "Plan & usage", detail: `${plan} · ${activeWorkspaces}`, href: "/account/plan" },
-    { icon: ShieldCheck, label: "AI processing", detail: "Consent granted", href: "/account/ai" },
+    { icon: ShieldCheck, label: "AI processing", detail: consentLabel, href: "/account/ai" },
     { icon: ArrowUpDown, label: "Import & export", detail: "Portable design data", href: "/account/data" },
     { icon: LockKeyhole, label: "Privacy & deletion", detail: "Recent authentication required", href: "/account/privacy" },
   ];
