@@ -4,7 +4,7 @@
 
 **Blocked by:** 06 - Workspace Reasoning; 07 - Architecture Document Contract; 19 - Workspace Types And Sources.
 
-**Status:** ready-for-agent
+**Status:** complete
 
 **UI delivery:** Implement this ticket's user-facing desktop and mobile states from `ui_design`; keep backend ownership and validation authoritative, and add or update a Playwright journey for the completed flow.
 
@@ -15,3 +15,9 @@
 - [ ] A valid Import Package produces portable Workspace starting content for the owning creation flow without deciding Workspace Type or Review behavior.
 - [ ] Export provides a portable-content preview before downloading only Requirements, Assumptions, Decisions, and Architecture Document content.
 - [ ] Export explicitly excludes identity, billing, Usage Records, provider metadata, and Reviews.
+
+## Comments
+
+- Implemented and merged into `main` in commits `bd8466c` and `1535474`.
+- Frontend typecheck and 55 frontend tests passed; the full backend Maven test suite passed.
+- The implementation review recorded follow-up hardening for the final import-to-Workspace handoff, generated contract workflow, rate limiting, ownership coverage, and the Playwright journey.

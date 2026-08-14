@@ -4,7 +4,7 @@
 
 **Blocked by:** 05 - Custom Workspace Lifecycle; 06 - Workspace Reasoning; 07 - Architecture Document Contract; 08 - Architecture Canvas; 19 - Workspace Types And Sources.
 
-**Status:** ready-for-agent
+**Status:** complete
 
 **UI delivery:** Implement this ticket's user-facing desktop and mobile states from `ui_design`; keep backend ownership and validation authoritative, and add or update a Playwright journey for the completed flow.
 
@@ -16,3 +16,9 @@
 - [ ] The User can progressively add Requirements, Assumptions, estimates, Decisions, Components, Connections, and Scenarios.
 - [ ] The flow exposes Copilot and Review as later Workspace stages without implementing their processing behavior; those behaviors belong to tickets 12, 14, and 15.
 - [ ] Resume restores the last saved focus, panel, and Canvas viewport when available.
+
+## Comments
+
+- Implemented and merged into `main` in commit `1535474`.
+- Frontend typecheck and 55 frontend tests passed; the full backend Maven test suite passed.
+- The implementation review recorded follow-up hardening for the Copilot/Review journey and Playwright coverage.
