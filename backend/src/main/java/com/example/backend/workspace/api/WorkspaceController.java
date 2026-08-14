@@ -2,6 +2,8 @@ package com.example.backend.workspace.api;
 
 import com.example.backend.identity.application.CurrentUserService;
 import com.example.backend.workspace.application.WorkspaceService;
+import com.example.backend.workspace.infrastructure.WorkspaceSource;
+import com.example.backend.workspace.infrastructure.WorkspaceType;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
@@ -61,7 +63,9 @@ public class WorkspaceController {
 		return workspaceService.create(
 				currentUserService.getOrCreate(jwt.getSubject()).id(),
 				request.name().trim(),
-				request.description().trim()
+				request.description().trim(),
+				request.type(),
+				request.source()
 		);
 	}
 
@@ -106,7 +110,9 @@ public class WorkspaceController {
 
 	public record CreateWorkspaceRequest(
 			@NotBlank @Size(max = 120) String name,
-			@NotBlank @Size(max = 2000) String description
+			@NotBlank @Size(max = 2000) String description,
+			@jakarta.validation.constraints.NotNull WorkspaceType type,
+			@jakarta.validation.constraints.NotNull WorkspaceSource source
 	) {
 	}
 

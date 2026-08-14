@@ -38,9 +38,10 @@ describe("PracticeHome", () => {
 
   it("renders owned workspaces with their real destination and lifecycle actions", async () => {
     session.isSignedIn = true;
-    api.getWorkspaces.mockResolvedValue([{ id: "workspace-1", name: "Reliable notification platform", status: "ACTIVE", source: "CUSTOM", progressPercent: 38 }]);
-    renderWithProviders(<PracticeHome />);
-    expect(await screen.findByRole("link", { name: "Continue Clarify" })).toHaveAttribute("href", "/workspace/workspace-1");
+		api.getWorkspaces.mockResolvedValue([{ id: "workspace-1", name: "Reliable notification platform", status: "ACTIVE", type: "CUSTOM_DESIGN", source: "CUSTOM_DESIGN", progressPercent: 38 }]);
+		renderWithProviders(<PracticeHome />);
+		expect(await screen.findByRole("link", { name: "Continue Clarify" })).toHaveAttribute("href", "/workspace/workspace-1");
+		expect(screen.getByText("CUSTOM DESIGN · CUSTOM DESIGN")).toBeVisible();
     expect(screen.getByText("RECENT WORKSPACES")).toBeVisible();
     expect(screen.getByRole("link", { name: "Manage all →" })).toHaveAttribute("href", "/practice/workspaces");
     expect(screen.getByText("What delivery guarantee do downstream consumers actually need?")).toBeVisible();
@@ -57,7 +58,7 @@ describe("PracticeHome", () => {
     fireEvent.change(screen.getByLabelText("SYSTEM NAME"), { target: { value: "Orders" } });
     fireEvent.change(screen.getByLabelText("WHAT ARE YOU DESIGNING?"), { target: { value: "A reliable ordering system" } });
     fireEvent.click(screen.getByRole("button", { name: "Create blank Workspace \u2192" }));
-    await waitFor(() => expect(api.createWorkspace).toHaveBeenCalledWith("Orders", "A reliable ordering system"));
+		await waitFor(() => expect(api.createWorkspace).toHaveBeenCalledWith("Orders", "A reliable ordering system", "CUSTOM_DESIGN", "CUSTOM_DESIGN"));
     expect(router.push).toHaveBeenCalledWith("/workspace/workspace-2");
   });
 });

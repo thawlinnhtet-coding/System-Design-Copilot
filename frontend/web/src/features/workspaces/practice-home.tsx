@@ -58,7 +58,7 @@ export function PracticeHome() {
 
     setError(null);
     try {
-      const workspace = await api.createWorkspace(name.trim(), description.trim());
+      const workspace = await api.createWorkspace(name.trim(), description.trim(), "CUSTOM_DESIGN", "CUSTOM_DESIGN");
       await queryClient.invalidateQueries({ queryKey });
       if (workspace.id) router.push(`/workspace/${workspace.id}`);
     } catch (caught) {
@@ -128,6 +128,7 @@ function ResumeWorkspace({ workspace }: { workspace: WorkspaceSummary }) {
         <p className="font-mono text-[11px] leading-[1.3] text-text-muted">
           CONTINUE WORKSPACE {"\u00b7"} {workspace.saveState?.replaceAll("_", " ") ?? "SAVED"}
         </p>
+        <p className="font-mono text-[11px] leading-[1.3] text-signal">{workspaceMetadata(workspace)}</p>
         <h2 className="font-display text-[28px] font-medium leading-[1.3] tracking-[-0.03em]">
           {workspace.name ?? "Untitled Workspace"}
         </h2>
@@ -152,6 +153,10 @@ function ResumeWorkspace({ workspace }: { workspace: WorkspaceSummary }) {
       </aside>
     </section>
   );
+}
+
+function workspaceMetadata(workspace: WorkspaceSummary) {
+  return `${workspace.type?.replaceAll("_", " ") ?? "WORKSPACE"} · ${workspace.source?.replaceAll("_", " ") ?? "UNKNOWN SOURCE"}`;
 }
 
 function StarterChallenge() {

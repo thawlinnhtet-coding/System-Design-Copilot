@@ -3,9 +3,12 @@ package com.example.backend.workspace.application;
 import com.example.backend.entitlement.application.EntitlementService;
 import com.example.backend.identity.application.CurrentUserService;
 import com.example.backend.workspace.application.WorkspaceExceptions.WorkspaceNotFoundException;
+import com.example.backend.workspace.application.WorkspaceExceptions.InvalidWorkspaceTypeSourceException;
 import com.example.backend.workspace.infrastructure.WorkspaceEntity;
 import com.example.backend.workspace.infrastructure.WorkspaceRepository;
 import com.example.backend.workspace.infrastructure.WorkspaceStatus;
+import com.example.backend.workspace.infrastructure.WorkspaceSource;
+import com.example.backend.workspace.infrastructure.WorkspaceType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.context.annotation.Lazy;
@@ -63,9 +66,10 @@ public class WorkspaceService implements WorkspaceAccess {
 	}
 
 	@Transactional
-	public WorkspaceSummary create(UUID userId, String name, String description) {
+	public WorkspaceSummary create(UUID userId, String name, String description, WorkspaceType type, WorkspaceSource source) {
+		validateTypeAndSource(type, source);
 		entitlementService.registerActiveWorkspace(userId);
-		var workspace = workspaceRepository.save(new WorkspaceEntity(userId, name, description, now()));
+		var workspace = workspaceRepository.save(new WorkspaceEntity(userId, name, description, type, source, now()));
 		return summary(workspace);
 	}
 
@@ -120,6 +124,7 @@ public class WorkspaceService implements WorkspaceAccess {
 				workspace.getId(),
 				workspace.getName(),
 				workspace.getDescription(),
+				workspace.getType(),
 				workspace.getSource(),
 				workspace.getStatus().name(),
 				workspace.getProgressPercent(),
@@ -131,15 +136,27 @@ public class WorkspaceService implements WorkspaceAccess {
 		);
 	}
 
-	private boolean reviewBriefRequired(String source) {
-		return "IMPORT_PACKAGE".equals(source) || "MANUAL_RECREATION".equals(source);
+	private boolean reviewBriefRequired(WorkspaceSource source) {
+		return source == WorkspaceSource.IMPORT_PACKAGE || source == WorkspaceSource.MANUAL_RECREATION;
+	}
+
+	private void validateTypeAndSource(WorkspaceType type, WorkspaceSource source) {
+		var valid = switch (type) {
+			case CHALLENGE -> source == WorkspaceSource.CURATED_CHALLENGE;
+			case CUSTOM_DESIGN -> source == WorkspaceSource.CUSTOM_DESIGN;
+			case ARCHITECTURE_REVIEW -> source == WorkspaceSource.IMPORT_PACKAGE || source == WorkspaceSource.MANUAL_RECREATION;
+		};
+		if (!valid) {
+			throw new InvalidWorkspaceTypeSourceException();
+		}
 	}
 
 	public record WorkspaceSummary(
 			UUID id,
 			String name,
 			String description,
-			String source,
+			WorkspaceType type,
+			WorkspaceSource source,
 			String status,
 			int progressPercent,
 			String saveState,

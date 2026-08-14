@@ -26,8 +26,13 @@ public class WorkspaceEntity {
 	@Column(nullable = false, length = 2000)
 	private String description;
 
+	@Enumerated(EnumType.STRING)
+	@Column(name = "workspace_type", nullable = false, length = 32, updatable = false)
+	private WorkspaceType type;
+
+	@Enumerated(EnumType.STRING)
 	@Column(nullable = false, length = 32, updatable = false)
-	private String source;
+	private WorkspaceSource source;
 
 	@Enumerated(EnumType.STRING)
 	@Column(nullable = false, length = 32)
@@ -51,12 +56,13 @@ public class WorkspaceEntity {
 	protected WorkspaceEntity() {
 	}
 
-	public WorkspaceEntity(UUID userId, String name, String description, Instant now) {
+	public WorkspaceEntity(UUID userId, String name, String description, WorkspaceType type, WorkspaceSource source, Instant now) {
 		this.id = UUID.randomUUID();
 		this.userId = userId;
 		this.name = name;
 		this.description = description;
-		this.source = "CUSTOM";
+		this.type = type;
+		this.source = source;
 		this.status = WorkspaceStatus.ACTIVE;
 		this.progressPercent = 0;
 		this.saveState = "NOT_STARTED";
@@ -81,7 +87,11 @@ public class WorkspaceEntity {
 		return description;
 	}
 
-	public String getSource() {
+	public WorkspaceType getType() {
+		return type;
+	}
+
+	public WorkspaceSource getSource() {
 		return source;
 	}
 

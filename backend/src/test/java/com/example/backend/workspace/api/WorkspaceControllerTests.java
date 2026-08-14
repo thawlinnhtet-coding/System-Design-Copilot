@@ -60,10 +60,11 @@ class WorkspaceControllerTests {
 				.header("Authorization", token)
 				.contentType(MediaType.APPLICATION_JSON)
 				.content("""
-						{"name":"Checkout platform","description":"Practice the payment flow"}
+						{"name":"Checkout platform","description":"Practice the payment flow","type":"CUSTOM_DESIGN","source":"CUSTOM_DESIGN"}
 						"""))
 				.andExpect(status().isCreated())
-				.andExpect(jsonPath("$.source").value("CUSTOM"))
+				.andExpect(jsonPath("$.type").value("CUSTOM_DESIGN"))
+				.andExpect(jsonPath("$.source").value("CUSTOM_DESIGN"))
 				.andExpect(jsonPath("$.status").value("ACTIVE"))
 				.andExpect(jsonPath("$.progressPercent").value(0))
 				.andExpect(jsonPath("$.saveState").value("NOT_STARTED"))
@@ -118,7 +119,7 @@ class WorkspaceControllerTests {
 		var archivedResponse = mockMvc.perform(post("/api/v1/workspaces")
 				.header("Authorization", token)
 				.contentType(MediaType.APPLICATION_JSON)
-				.content("{\"name\":\"Archived design\",\"description\":\"Restore later\"}"))
+				.content("{\"name\":\"Archived design\",\"description\":\"Restore later\",\"type\":\"CUSTOM_DESIGN\",\"source\":\"CUSTOM_DESIGN\"}"))
 				.andExpect(status().isCreated())
 				.andReturn();
 		var archivedId = workspaceId(archivedResponse.getResponse().getContentAsString());
@@ -128,7 +129,7 @@ class WorkspaceControllerTests {
 		mockMvc.perform(post("/api/v1/workspaces")
 				.header("Authorization", token)
 				.contentType(MediaType.APPLICATION_JSON)
-				.content("{\"name\":\"Active design\",\"description\":\"Uses the allowance\"}"))
+				.content("{\"name\":\"Active design\",\"description\":\"Uses the allowance\",\"type\":\"CUSTOM_DESIGN\",\"source\":\"CUSTOM_DESIGN\"}"))
 				.andExpect(status().isCreated());
 
 		mockMvc.perform(post("/api/v1/workspaces/{workspaceId}/restore", archivedId).header("Authorization", token))
@@ -148,7 +149,7 @@ class WorkspaceControllerTests {
 		var response = mockMvc.perform(post("/api/v1/workspaces")
 				.header("Authorization", ownerToken)
 				.contentType(MediaType.APPLICATION_JSON)
-				.content("{\"name\":\"Private design\",\"description\":\"Not for another user\"}"))
+				.content("{\"name\":\"Private design\",\"description\":\"Not for another user\",\"type\":\"CUSTOM_DESIGN\",\"source\":\"CUSTOM_DESIGN\"}"))
 				.andExpect(status().isCreated())
 				.andReturn();
 		var workspaceId = workspaceId(response.getResponse().getContentAsString());
@@ -179,12 +180,64 @@ class WorkspaceControllerTests {
 	}
 
 	@Test
+	void createsEveryFixedWorkspaceTypeWithItsProvenanceSource() throws Exception {
+		var challenge = createWorkspace("Challenge", "CHALLENGE", "CURATED_CHALLENGE");
+		var custom = createWorkspace("Custom", "CUSTOM_DESIGN", "CUSTOM_DESIGN");
+		var imported = createWorkspace("Imported review", "ARCHITECTURE_REVIEW", "IMPORT_PACKAGE");
+		var manual = createWorkspace("Manual review", "ARCHITECTURE_REVIEW", "MANUAL_RECREATION");
+
+		assertWorkspaceMetadata(challenge, "CHALLENGE", "CURATED_CHALLENGE");
+		assertWorkspaceMetadata(custom, "CUSTOM_DESIGN", "CUSTOM_DESIGN");
+		assertWorkspaceMetadata(imported, "ARCHITECTURE_REVIEW", "IMPORT_PACKAGE");
+		assertWorkspaceMetadata(manual, "ARCHITECTURE_REVIEW", "MANUAL_RECREATION");
+	}
+
+	@Test
+	void rejectsWorkspaceTypeAndSourceCombinationsThatCannotBeResumedSafely() throws Exception {
+		mockMvc.perform(post("/api/v1/workspaces")
+				.header("Authorization", bearerToken("workspace_type_validation_" + System.nanoTime()))
+				.contentType(MediaType.APPLICATION_JSON)
+				.content("{\"name\":\"Invalid\",\"description\":\"Invalid entry\",\"type\":\"CHALLENGE\",\"source\":\"IMPORT_PACKAGE\"}"))
+				.andExpect(status().isBadRequest())
+				.andExpect(jsonPath("$.code").value("invalid_workspace_type_source"));
+	}
+
+	@Test
+	void keepsAChallengeAttemptAndALaterIndependentAttemptAsSeparateWorkspaces() throws Exception {
+		var token = bearerToken("workspace_challenge_attempts_" + System.nanoTime());
+		var first = mockMvc.perform(post("/api/v1/workspaces")
+				.header("Authorization", token)
+				.contentType(MediaType.APPLICATION_JSON)
+				.content("{\"name\":\"URL shortener\",\"description\":\"First attempt\",\"type\":\"CHALLENGE\",\"source\":\"CURATED_CHALLENGE\"}"))
+			.andExpect(status().isCreated())
+			.andReturn();
+		var firstId = workspaceId(first.getResponse().getContentAsString());
+
+		mockMvc.perform(post("/api/v1/workspaces/{workspaceId}/archive", firstId).header("Authorization", token))
+				.andExpect(status().isOk());
+
+		var second = mockMvc.perform(post("/api/v1/workspaces")
+				.header("Authorization", token)
+				.contentType(MediaType.APPLICATION_JSON)
+				.content("{\"name\":\"URL shortener\",\"description\":\"Second attempt\",\"type\":\"CHALLENGE\",\"source\":\"CURATED_CHALLENGE\"}"))
+			.andExpect(status().isCreated())
+			.andReturn();
+		var secondId = workspaceId(second.getResponse().getContentAsString());
+
+		org.assertj.core.api.Assertions.assertThat(secondId).isNotEqualTo(firstId);
+		mockMvc.perform(get("/api/v1/workspaces").header("Authorization", token))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$[?(@.id == '%s')].status".formatted(firstId)).value(org.hamcrest.Matchers.contains("ARCHIVED")))
+				.andExpect(jsonPath("$[?(@.id == '%s')].description".formatted(secondId)).value(org.hamcrest.Matchers.contains("Second attempt")));
+	}
+
+	@Test
 	void createsEditsListsAndDeletesOwnedWorkspaceReasoning() throws Exception {
 		var token = bearerToken("workspace_reasoning_" + System.nanoTime());
 		var workspaceResponse = mockMvc.perform(post("/api/v1/workspaces")
 				.header("Authorization", token)
 				.contentType(MediaType.APPLICATION_JSON)
-				.content("{\"name\":\"News feed\",\"description\":\"Practice the feed trade-offs\"}"))
+				.content("{\"name\":\"News feed\",\"description\":\"Practice the feed trade-offs\",\"type\":\"CUSTOM_DESIGN\",\"source\":\"CUSTOM_DESIGN\"}"))
 				.andExpect(status().isCreated())
 				.andExpect(jsonPath("$.reviewBriefRequired").value(false))
 				.andReturn();
@@ -273,7 +326,7 @@ class WorkspaceControllerTests {
 		var response = mockMvc.perform(post("/api/v1/workspaces")
 				.header("Authorization", ownerToken)
 				.contentType(MediaType.APPLICATION_JSON)
-				.content("{\"name\":\"Private reasoning\",\"description\":\"Do not leak this\"}"))
+				.content("{\"name\":\"Private reasoning\",\"description\":\"Do not leak this\",\"type\":\"CUSTOM_DESIGN\",\"source\":\"CUSTOM_DESIGN\"}"))
 				.andExpect(status().isCreated())
 				.andReturn();
 		var workspaceId = workspaceId(response.getResponse().getContentAsString());
@@ -289,7 +342,7 @@ class WorkspaceControllerTests {
 		var response = mockMvc.perform(post("/api/v1/workspaces")
 				.header("Authorization", token)
 				.contentType(MediaType.APPLICATION_JSON)
-				.content("{\"name\":\"Archived reasoning\",\"description\":\"Read-only context\"}"))
+				.content("{\"name\":\"Archived reasoning\",\"description\":\"Read-only context\",\"type\":\"CUSTOM_DESIGN\",\"source\":\"CUSTOM_DESIGN\"}"))
 				.andExpect(status().isCreated())
 				.andReturn();
 		var workspaceId = workspaceId(response.getResponse().getContentAsString());
@@ -312,7 +365,7 @@ class WorkspaceControllerTests {
 		var created = mockMvc.perform(post("/api/v1/workspaces")
 				.header("Authorization", token)
 				.contentType(MediaType.APPLICATION_JSON)
-				.content("{\"name\":\"Orders\",\"description\":\"Document contract\"}"))
+				.content("{\"name\":\"Orders\",\"description\":\"Document contract\",\"type\":\"CUSTOM_DESIGN\",\"source\":\"CUSTOM_DESIGN\"}"))
 				.andExpect(status().isCreated()).andReturn();
 		var id = workspaceId(created.getResponse().getContentAsString());
 		var document = """
@@ -344,7 +397,7 @@ class WorkspaceControllerTests {
 	void rejectsArchitectureDocumentsWithUnsupportedSchemasCredentialsOrInvalidConnections() throws Exception {
 		var token = bearerToken("architecture_validation_" + System.nanoTime());
 		var response = mockMvc.perform(post("/api/v1/workspaces").header("Authorization", token).contentType(MediaType.APPLICATION_JSON)
-				.content("{\"name\":\"Validation\",\"description\":\"Keep documents safe\"}")).andReturn();
+				.content("{\"name\":\"Validation\",\"description\":\"Keep documents safe\",\"type\":\"CUSTOM_DESIGN\",\"source\":\"CUSTOM_DESIGN\"}")).andReturn();
 		var id = workspaceId(response.getResponse().getContentAsString());
 		var invalid = """
 				{"schemaVersion":2,"components":[{"id":"api","type":"SERVICE","label":"API","category":"COMPUTE","properties":{"secret":"never"}}],"connections":[{"id":"self","fromComponentId":"api","toComponentId":"api","intent":"REQUEST_RESPONSE"}]}
@@ -359,7 +412,7 @@ class WorkspaceControllerTests {
 		var owner = bearerToken("architecture_owner_" + System.nanoTime());
 		var other = bearerToken("architecture_other_" + System.nanoTime());
 		var created = mockMvc.perform(post("/api/v1/workspaces").header("Authorization", owner).contentType(MediaType.APPLICATION_JSON)
-				.content("{\"name\":\"Private\",\"description\":\"Protected document\"}")).andReturn();
+				.content("{\"name\":\"Private\",\"description\":\"Protected document\",\"type\":\"CUSTOM_DESIGN\",\"source\":\"CUSTOM_DESIGN\"}")).andReturn();
 		var id = workspaceId(created.getResponse().getContentAsString());
 		var document = "{\"schemaVersion\":1,\"components\":[{\"id\":\"api\",\"type\":\"SERVICE\",\"label\":\"API\",\"category\":\"COMPUTE\",\"properties\":{\"runtime\":\"JAVA\"}}],\"connections\":[]}";
 		mockMvc.perform(put("/api/v1/workspaces/{workspaceId}/architecture-document", id).header("Authorization", other).contentType(MediaType.APPLICATION_JSON)
@@ -373,7 +426,7 @@ class WorkspaceControllerTests {
 	void acceptsCustomComponentsAndNestedBoundaries() throws Exception {
 		var token = bearerToken("architecture_boundaries_" + System.nanoTime());
 		var created = mockMvc.perform(post("/api/v1/workspaces").header("Authorization", token).contentType(MediaType.APPLICATION_JSON)
-				.content("{\"name\":\"Boundaries\",\"description\":\"Custom components\"}")).andReturn();
+				.content("{\"name\":\"Boundaries\",\"description\":\"Custom components\",\"type\":\"CUSTOM_DESIGN\",\"source\":\"CUSTOM_DESIGN\"}")).andReturn();
 		var id = workspaceId(created.getResponse().getContentAsString());
 		var document = """
 				{"schemaVersion":1,"components":[{"id":"vendor","type":"CUSTOM_COMPONENT","label":"Fraud Provider","category":"CUSTOM","properties":{"semanticIcon":"service","provider":"Acme"}}],"connections":[],"boundaries":[{"id":"region","label":"Primary region","type":"REGION","componentIds":["vendor"]},{"id":"trust","label":"Trusted network","type":"TRUST","parentBoundaryId":"region","componentIds":[]}]}
@@ -387,6 +440,22 @@ class WorkspaceControllerTests {
 	private UUID workspaceId(String response) throws Exception {
 		JsonNode root = objectMapper.readTree(response);
 		return UUID.fromString(root.path("id").asText());
+	}
+
+	private String createWorkspace(String name, String type, String source) throws Exception {
+		var response = mockMvc.perform(post("/api/v1/workspaces")
+				.header("Authorization", bearerToken("workspace_types_" + name + "_" + System.nanoTime()))
+				.contentType(MediaType.APPLICATION_JSON)
+				.content("{\"name\":\"%s\",\"description\":\"Workspace entry\",\"type\":\"%s\",\"source\":\"%s\"}".formatted(name, type, source)))
+				.andExpect(status().isCreated())
+				.andReturn();
+		return response.getResponse().getContentAsString();
+	}
+
+	private void assertWorkspaceMetadata(String response, String type, String source) throws Exception {
+		var root = objectMapper.readTree(response);
+		org.assertj.core.api.Assertions.assertThat(root.path("type").asText()).isEqualTo(type);
+		org.assertj.core.api.Assertions.assertThat(root.path("source").asText()).isEqualTo(source);
 	}
 
 	private static String bearerToken(String subject) throws Exception {
