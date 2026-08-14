@@ -1,6 +1,6 @@
-import Link from "next/link";
-import { ArrowRight, BookOpen } from "lucide-react";
+import { BookOpen } from "lucide-react";
 import { AppShell } from "@/components/navigation/app-shell";
+import { ChallengeCatalog } from "@/features/challenges/challenge-catalog";
 
 export default function ChallengesPage() {
   return (
@@ -12,19 +12,10 @@ export default function ChallengesPage() {
           Start with a problem, not a reference architecture. Each Challenge becomes a private Workspace you can resume.
         </p>
 
-        <div className="mt-10 rounded-lg border border-line bg-surface p-6 sm:p-8">
-          <div className="flex size-11 items-center justify-center rounded-md bg-signal-soft text-signal">
-            <BookOpen aria-hidden="true" size={20} />
-          </div>
-          <h2 className="mt-6 font-display text-2xl font-semibold">The starter library is next.</h2>
-          <p className="mt-3 max-w-xl text-sm leading-6 text-text-muted">
-            URL shortener, news feed, and ticket-booking Challenges are being connected to the Workspace flow. Your Practice Home is ready for custom Workspaces now.
-          </p>
-          <Link className="mt-6 inline-flex min-h-11 items-center gap-2 rounded-md bg-signal px-4 text-sm font-semibold text-text-on-dark transition-colors hover:brightness-110" href="/practice">
-            Return to Practice
-            <ArrowRight aria-hidden="true" size={16} />
-          </Link>
+        <div className="mt-10 flex size-11 items-center justify-center rounded-md bg-signal-soft text-signal">
+          <BookOpen aria-hidden="true" size={20} />
         </div>
+        <ChallengeCatalog />
       </section>
     </AppShell>
   );

@@ -386,13 +386,18 @@ export interface components {
         CreateWorkspaceRequest: {
             name: string;
             description: string;
+            type: components["schemas"]["WorkspaceType"];
+            source: components["schemas"]["WorkspaceSource"];
         };
+        WorkspaceType: "CHALLENGE" | "CUSTOM_DESIGN" | "ARCHITECTURE_REVIEW";
+        WorkspaceSource: "CURATED_CHALLENGE" | "CUSTOM_DESIGN" | "IMPORT_PACKAGE" | "MANUAL_RECREATION";
         WorkspaceSummary: {
             /** Format: uuid */
             id?: string;
             name?: string;
             description?: string;
-            source?: string;
+            type?: components["schemas"]["WorkspaceType"];
+            source?: components["schemas"]["WorkspaceSource"];
             status?: string;
             /** Format: int32 */
             progressPercent?: number;

@@ -16,4 +16,10 @@ public final class WorkspaceExceptions {
 			super("Restore the Workspace before editing its reasoning");
 		}
 	}
+
+	public static class InvalidWorkspaceTypeSourceException extends RuntimeException {
+		public InvalidWorkspaceTypeSourceException() {
+			super("The Workspace Type and Source combination is not valid");
+		}
+	}
 }

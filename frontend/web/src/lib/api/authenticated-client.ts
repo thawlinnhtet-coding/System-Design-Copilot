@@ -8,6 +8,8 @@ const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:808
 const tokenTemplate = process.env.NEXT_PUBLIC_CLERK_JWT_TEMPLATE ?? "system-design-copilot-api";
 type CurrentUserResponse = components["schemas"]["CurrentUserResponse"];
 export type WorkspaceSummary = components["schemas"]["WorkspaceSummary"];
+export type WorkspaceType = components["schemas"]["WorkspaceType"];
+export type WorkspaceSource = components["schemas"]["WorkspaceSource"];
 export type CurrentEntitlements = components["schemas"]["CurrentEntitlements"];
 export type Requirement = components["schemas"]["RequirementResponse"];
 export type Assumption = components["schemas"]["AssumptionResponse"];
@@ -110,11 +112,11 @@ export function useAuthenticatedApiClient() {
       getWorkspace(id: string): Promise<WorkspaceSummary> {
         return json<WorkspaceSummary>(`/api/v1/workspaces/${id}`);
       },
-      createWorkspace(name: string, description: string): Promise<WorkspaceSummary> {
+      createWorkspace(name: string, description: string, type: WorkspaceType, source: WorkspaceSource): Promise<WorkspaceSummary> {
         return json<WorkspaceSummary>("/api/v1/workspaces", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ name, description }),
+          body: JSON.stringify({ name, description, type, source }),
         });
       },
       renameWorkspace(id: string, name: string): Promise<WorkspaceSummary> {
