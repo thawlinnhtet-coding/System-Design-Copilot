@@ -4,7 +4,7 @@
 
 **Blocked by:** 03 - Free Plan And Usage Policy.
 
-**Status:** ready-for-agent
+**Status:** in-progress
 
 - [ ] AI Processing Consent and its policy version are durable and withdrawal blocks new AI operations.
 - [ ] First-use consent explains bounded Workspace context, provider privacy routing, revocability for future operations, and that already-sent context cannot be retracted.
@@ -16,3 +16,7 @@
 - [ ] User-authored Workspace text is framed as untrusted data and cannot override system instructions or directly mutate product state.
 - [ ] Fixed Copilot and Review profiles use non-retaining provider routing with fallback disabled.
 - [ ] Accepted output and safe model/provider/prompt/token/latency/cost metadata are persisted without full private prompts in operational logs.
+
+## Comments
+
+2026-08-14: The `ticket-11-ai-consent` worktree implements and verifies durable consent, policy-version validation, withdrawal enforcement at the consent service boundary, bounded policy disclosure, fixed Copilot/Review profiles, non-retaining provider routing with fallback disabled, and untrusted-workspace-data framing. Remaining work before this ticket is complete: connect all Copilot/Review operations to the authorization boundary, implement observable UTC daily-budget/provider-failure/no-provider outcomes, and persist accepted-result/provider metadata without private prompts in operational logs. Backend `mvn verify` passes for the current scope.
