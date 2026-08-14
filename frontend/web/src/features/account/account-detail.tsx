@@ -127,8 +127,8 @@ function PlanDetail({ usage, loaded, loadError, onRetry }: { usage: CurrentEntit
 
   const isPro = usage?.plan === "PRO";
   const billingStatus = usage?.billing?.status ?? (isPro ? "PRO_ACTIVE" : "FREE_TEST_MODE");
-  const checkoutAvailable = usage?.billing?.checkoutAvailable ?? !isPro;
-  const portalAvailable = usage?.billing?.portalAvailable ?? isPro;
+  const checkoutAvailable = usage?.billing?.checkoutAvailable ?? false;
+  const portalAvailable = usage?.billing?.portalAvailable ?? false;
   const isCanceling = billingStatus === "PRO_CANCELING";
   const paidThrough = usage?.billing?.paidThrough ?? usage?.renewsAt;
   const action = async () => {

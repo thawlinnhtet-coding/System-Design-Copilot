@@ -21,12 +21,10 @@ public record BillingProperties(
 ) {
 
 	public boolean allowsSyntheticAccount(String clerkSubject) {
-		if (!testProEnabled || clerkSubject == null || clerkSubject.isBlank()) {
+		if (!testProEnabled || clerkSubject == null || clerkSubject.isBlank() || syntheticClerkSubject == null || syntheticClerkSubject.isBlank()) {
 			return false;
 		}
-		return syntheticClerkSubject == null
-				|| syntheticClerkSubject.isBlank()
-				|| syntheticClerkSubject.equals(clerkSubject);
+		return syntheticClerkSubject.equals(clerkSubject);
 	}
 
 	public boolean usesStripeTestMode() {

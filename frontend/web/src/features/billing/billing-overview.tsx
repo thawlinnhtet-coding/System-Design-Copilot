@@ -36,8 +36,8 @@ export function BillingOverview() {
 
   const isPro = usage?.plan === "PRO";
   const isLoading = entitlements.isLoading;
-  const checkoutAvailable = usage?.billing?.checkoutAvailable ?? !isPro;
-  const portalAvailable = usage?.billing?.portalAvailable ?? isPro;
+  const checkoutAvailable = usage?.billing?.checkoutAvailable ?? false;
+  const portalAvailable = usage?.billing?.portalAvailable ?? false;
 
   async function openPortal() {
     setBusyAction("portal");

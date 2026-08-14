@@ -68,15 +68,12 @@ class BillingServiceTests {
 	}
 
 	@Test
-	void allowsAnyAuthenticatedTestUserWhenNoSyntheticSubjectIsConfigured() {
+	void rejectsCheckoutWhenNoSyntheticSubjectIsConfigured() {
 		var store = new InMemoryStore();
 		var service = service(store, "");
 		var user = new CurrentUserService.CurrentUser(UUID.randomUUID(), "personal_beta_user");
 
-		assertEquals("cs_test", service.startCheckout(user, "checkout-key").id());
-		assertThrows(InvalidStripeSignatureException.class,
-				() -> service.processWebhook(event("evt_invalid", "customer.subscription.updated", NOW, "active", NOW.plusSeconds(60)), "t=1775995200,v1=bad"));
-		assertEquals(0, store.receiptCount());
+		assertThrows(BillingAccessDeniedException.class, () -> service.startCheckout(user, "checkout-key"));
 	}
 
 	@Test
@@ -84,7 +81,7 @@ class BillingServiceTests {
 		var store = new InMemoryStore();
 		var user = new CurrentUserService.CurrentUser(UUID.randomUUID(), "personal_beta_user");
 
-		var plan = service(store, "").planFor(user, NOW);
+		var plan = service(store, user.clerkSubject()).planFor(user, NOW);
 
 		assertEquals("FREE_TEST_MODE", plan.status());
 		assertTrue(plan.checkoutAvailable());
@@ -92,14 +89,14 @@ class BillingServiceTests {
 	}
 
 	@Test
-	void keepsTestProWhenTheOptionalSyntheticAccountRestrictionIsDisabled() {
+	void keepsAnExistingTestSubscriptionBlockedWhenSyntheticAccountIsNotConfigured() {
 		var store = new InMemoryStore();
 		var userId = UUID.randomUUID();
 		store.saveCustomer(new BillingProjectionStore.Customer(userId, "synthetic_test_user", "cus_test", NOW, null));
 		var webhook = event("evt_active", "customer.subscription.updated", NOW, "active", NOW.plusSeconds(2_592_000));
 		service(store, "synthetic_test_user").processWebhook(webhook, signedHeader(webhook));
 
-		assertTrue(service(store, "").planFor(userId, NOW).pro());
+		assertFalse(service(store, "").planFor(userId, NOW).pro());
 	}
 
 	@Test
