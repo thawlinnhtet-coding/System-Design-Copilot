@@ -25,7 +25,7 @@ public class EntitlementsController {
 	@GetMapping
 	public EntitlementService.CurrentEntitlements currentEntitlements(@AuthenticationPrincipal Jwt jwt) {
 		var user = currentUserService.getOrCreate(jwt.getSubject());
-		return entitlementService.currentEntitlements(user.id());
+		return entitlementService.currentEntitlements(user);
 	}
 
 }

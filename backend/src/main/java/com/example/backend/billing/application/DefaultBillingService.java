@@ -45,7 +45,7 @@ class DefaultBillingService implements BillingService, BillingPlanResolver {
 		if (!properties.allowsSyntheticAccount(user.clerkSubject())) {
 			throw new BillingAccessDeniedException();
 		}
-		if (planFor(user.id(), Instant.now(clock)).pro()) {
+		if (planFor(user, Instant.now(clock)).pro()) {
 			throw new BillingAlreadyActiveException();
 		}
 
@@ -66,7 +66,7 @@ class DefaultBillingService implements BillingService, BillingPlanResolver {
 		if (!properties.usesStripeTestMode()) {
 			throw new StripeTestModeRequiredException();
 		}
-		if (!properties.allowsSyntheticAccount(user.clerkSubject()) || !planFor(user.id(), Instant.now(clock)).pro()) {
+		if (!properties.allowsSyntheticAccount(user.clerkSubject()) || !planFor(user, Instant.now(clock)).pro()) {
 			throw new BillingAccessDeniedException();
 		}
 		var customer = projectionStore.findCustomerByUserId(user.id()).orElseThrow(BillingAccessDeniedException::new);
@@ -162,9 +162,26 @@ class DefaultBillingService implements BillingService, BillingPlanResolver {
 		if (customer.isEmpty() || !properties.allowsSyntheticAccount(customer.get().clerkSubject())) {
 			return new BillingPlan(false, null, "FREE_BETA", false, false);
 		}
+		return planForCustomer(userId, now);
+	}
+
+	@Override
+	@Transactional(readOnly = true)
+	public BillingPlan planFor(CurrentUserService.CurrentUser user, Instant now) {
+		var customer = projectionStore.findCustomerByUserId(user.id());
+		if (customer.isPresent() && !properties.allowsSyntheticAccount(customer.get().clerkSubject())) {
+			return new BillingPlan(false, null, "FREE_BETA", false, false);
+		}
+		if (customer.isEmpty() && (!properties.usesStripeTestMode() || !properties.allowsSyntheticAccount(user.clerkSubject()))) {
+			return new BillingPlan(false, null, "FREE_BETA", false, false);
+		}
+		return planForCustomer(user.id(), now);
+	}
+
+	private BillingPlan planForCustomer(UUID userId, Instant now) {
 		var subscription = projectionStore.findSubscriptionByUserId(userId);
 		if (subscription.isEmpty()) {
-			return new BillingPlan(false, null, "FREE_TEST_MODE", true, false);
+			return new BillingPlan(false, null, "FREE_TEST_MODE", properties.usesStripeTestMode(), false);
 		}
 		var value = subscription.get();
 		return switch (value.status()) {
@@ -179,7 +196,7 @@ class DefaultBillingService implements BillingService, BillingPlanResolver {
 				var pro = value.currentPeriodEnd() != null && now.isBefore(value.currentPeriodEnd());
 				yield new BillingPlan(pro, value.currentPeriodEnd(), pro ? "PRO_CANCELING" : "FREE_TEST_MODE", false, pro);
 			}
-			default -> new BillingPlan(false, null, "FREE_TEST_MODE", true, false);
+			default -> new BillingPlan(false, null, "FREE_TEST_MODE", properties.usesStripeTestMode(), false);
 		};
 	}
 

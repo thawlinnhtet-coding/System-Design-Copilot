@@ -80,6 +80,18 @@ class BillingServiceTests {
 	}
 
 	@Test
+	void exposesCheckoutForAnEligibleTestUserBeforeTheStripeCustomerExists() {
+		var store = new InMemoryStore();
+		var user = new CurrentUserService.CurrentUser(UUID.randomUUID(), "personal_beta_user");
+
+		var plan = service(store, "").planFor(user, NOW);
+
+		assertEquals("FREE_TEST_MODE", plan.status());
+		assertTrue(plan.checkoutAvailable());
+		assertFalse(plan.portalAvailable());
+	}
+
+	@Test
 	void keepsTestProWhenTheOptionalSyntheticAccountRestrictionIsDisabled() {
 		var store = new InMemoryStore();
 		var userId = UUID.randomUUID();
