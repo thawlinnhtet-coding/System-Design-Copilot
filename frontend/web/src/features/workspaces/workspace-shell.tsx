@@ -2,6 +2,7 @@
 
 import { SignInButton, useAuth } from "@clerk/nextjs";
 import { ArrowLeft, Check, PanelRight, RotateCcw, RotateCw } from "lucide-react";
+import type { Viewport } from "@xyflow/react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useAuthenticatedApiClient, type WorkspaceSummary } from "@/lib/api/authenticated-client";
@@ -59,6 +60,17 @@ export function WorkspaceShell({ workspaceId }: { workspaceId: string }) {
     }
   }
 
+  async function saveViewport(nextViewport: Viewport) {
+    if (!workspace || workspace.status === "ARCHIVED") return;
+    const panel = stage === "clarify" ? "REASONING" : stage === "design" ? "CANVAS" : stage === "stress" ? "SCENARIOS" : "REVIEW";
+    try {
+      const saved = await api.updateWorkspaceFocus(workspaceId, stage === "stress" ? "STRESS" : stage.toUpperCase(), panel, nextViewport);
+      setWorkspace(saved);
+    } catch {
+      setError("The Canvas position could not be saved. Your architecture is safe.");
+    }
+  }
+
   if (!isLoaded) return <p className="text-sm text-text-muted">Restoring your session...</p>;
   if (!isSignedIn) {
     return <section className="mx-auto max-w-xl border-y border-line py-12 text-center"><p className="font-mono text-xs uppercase tracking-[0.18em] text-signal">Private Workspace</p><h1 className="mt-3 font-display text-3xl font-semibold">Sign in to continue.</h1><SignInButton fallbackRedirectUrl={`/workspace/${workspaceId}`} mode="modal"><button className="mt-6 inline-flex min-h-11 rounded-md bg-signal px-4 text-sm font-semibold text-text-on-dark" type="button">Sign in</button></SignInButton></section>;
@@ -78,7 +90,7 @@ export function WorkspaceShell({ workspaceId }: { workspaceId: string }) {
       </header>
       <nav aria-label="Mobile Workspace stages" className="grid grid-cols-4 border-b border-line bg-background md:hidden">{stages.map((item) => <button aria-current={stage === item.id ? "step" : undefined} className={`min-h-12 border-r border-line px-2 text-xs font-semibold last:border-r-0 ${stage === item.id ? "text-signal" : "text-text-muted"}`} key={item.id} onClick={() => void selectStage(item.id)} type="button"><span className="mr-1 font-mono text-[10px]">{item.number}</span>{item.label}</button>)}</nav>
       <main className="min-w-0 flex-1 overflow-auto px-5 py-8 sm:px-8 lg:px-12 lg:py-10">
-        <div className="mx-auto max-w-6xl"><p className="font-mono text-[10px] uppercase tracking-[0.16em] text-signal">Stage {stages.find((item) => item.id === stage)?.number} / {stages.find((item) => item.id === stage)?.label}</p>{stage === "clarify" ? <><h2 className="mt-3 max-w-3xl font-display text-4xl font-semibold tracking-tight">{workspace.clarifyPrompt ?? "Make the problem explicit."}</h2><p className="mt-3 max-w-2xl text-base leading-7 text-text-muted">{workspace.description ?? "Write down the needs, assumptions, uncertainties, and decisions that should guide the architecture."}</p><p className="mt-5 border-l-2 border-signal pl-4 text-sm font-semibold text-signal">Next action: {workspace.suggestedNextAction ?? "Add your first Requirement or open the blank Canvas."}</p><div className="mt-10"><WorkspaceReasoning readOnly={workspace.status === "ARCHIVED"} reviewBriefRequired={workspace.reviewBriefRequired === true} workspaceId={workspaceId} /></div></> : stage === "design" ? <><h2 className="mt-3 max-w-3xl font-display text-4xl font-semibold tracking-tight">Shape the architecture.</h2><p className="mt-3 max-w-2xl text-base leading-7 text-text-muted">Place the Components, connect the paths, and keep the structure explainable.</p><div className="mt-8"><ArchitectureCanvas readOnly={workspace.status === "ARCHIVED"} workspaceId={workspaceId} /></div></> : <StagePlaceholder stage={stage} workspace={workspace} />}</div>
+        <div className="mx-auto max-w-6xl"><p className="font-mono text-[10px] uppercase tracking-[0.16em] text-signal">Stage {stages.find((item) => item.id === stage)?.number} / {stages.find((item) => item.id === stage)?.label}</p>{stage === "clarify" ? <><h2 className="mt-3 max-w-3xl font-display text-4xl font-semibold tracking-tight">{workspace.clarifyPrompt ?? "Make the problem explicit."}</h2><p className="mt-3 max-w-2xl text-base leading-7 text-text-muted">{workspace.description ?? "Write down the needs, assumptions, uncertainties, and decisions that should guide the architecture."}</p><p className="mt-5 border-l-2 border-signal pl-4 text-sm font-semibold text-signal">Next action: {workspace.suggestedNextAction ?? "Add your first Requirement or open the blank Canvas."}</p><div className="mt-4 flex flex-wrap gap-3"><button className="inline-flex min-h-10 items-center border border-signal bg-signal px-4 text-sm font-semibold text-text-on-dark" onClick={() => void selectStage("design")} type="button">Open blank Canvas</button><span className="inline-flex min-h-10 items-center border border-line px-4 text-sm text-text-muted">You can skip the first Requirement.</span></div><div className="mt-10"><WorkspaceReasoning readOnly={workspace.status === "ARCHIVED"} reviewBriefRequired={workspace.reviewBriefRequired === true} workspaceId={workspaceId} /></div></> : stage === "design" ? <><h2 className="mt-3 max-w-3xl font-display text-4xl font-semibold tracking-tight">Shape the architecture.</h2><p className="mt-3 max-w-2xl text-base leading-7 text-text-muted">Place the Components, connect the paths, and keep the structure explainable.</p><div className="mt-8"><ArchitectureCanvas onViewportChange={(nextViewport) => void saveViewport(nextViewport)} readOnly={workspace.status === "ARCHIVED"} viewport={viewportFromWorkspace(workspace)} workspaceId={workspaceId} /></div></> : <StagePlaceholder stage={stage} workspace={workspace} />}</div>
       </main>
     </section>
   </div>;

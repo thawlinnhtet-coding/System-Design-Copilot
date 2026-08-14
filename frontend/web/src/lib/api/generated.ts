@@ -489,6 +489,22 @@ export interface paths {
     };
 }
 export type webhooks = Record<string, never>;
+
+export interface paths {
+    "/api/v1/workspaces/custom-design": {
+        post: {
+            requestBody: { content: { "application/json": { name: string; systemIdea: string } } };
+            responses: { 201: { content: { "*/*": components["schemas"]["WorkspaceSummary"] } } };
+        };
+    };
+    "/api/v1/workspaces/{workspaceId}/focus": {
+        patch: {
+            parameters: { path: { workspaceId: string } };
+            requestBody: { content: { "application/json": { stage: string; panel: string; canvasViewport: components["schemas"]["JsonNode"] } } };
+            responses: { 200: { content: { "*/*": components["schemas"]["WorkspaceSummary"] } } };
+        };
+    };
+}
 export interface components {
     schemas: {
         ReviewBriefRequest: {

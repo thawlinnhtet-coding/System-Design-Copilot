@@ -111,9 +111,14 @@ public class WorkspaceService implements WorkspaceAccess {
 			throw new WorkspaceExceptions.InvalidWorkspaceFocusException();
 		}
 		if (canvasViewport == null || !canvasViewport.isObject()
+				|| canvasViewport.size() != 3
 				|| !canvasViewport.path("x").isNumber()
 				|| !canvasViewport.path("y").isNumber()
-				|| !canvasViewport.path("zoom").isNumber()) {
+				|| !canvasViewport.path("zoom").isNumber()
+				|| Math.abs(canvasViewport.path("x").asDouble()) > 100_000
+				|| Math.abs(canvasViewport.path("y").asDouble()) > 100_000
+				|| canvasViewport.path("zoom").asDouble() < 0.1
+				|| canvasViewport.path("zoom").asDouble() > 4.0) {
 			throw new WorkspaceExceptions.InvalidWorkspaceFocusException();
 		}
 		workspace.updateFocus(focusStage, focusPanel, objectMapper.writeValueAsString(canvasViewport), now());
