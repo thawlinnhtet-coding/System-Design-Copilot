@@ -516,6 +516,12 @@ export interface paths {
             responses: { 200: { content: { "*/*": PortableImportResponse } } };
         };
     };
+    "/api/v1/import-packages": {
+        post: {
+            requestBody: { content: { "application/json": { name: string; systemDescription: string; reviewGoal: string; packageNode: components["schemas"]["JsonNode"] } } };
+            responses: { 201: { content: { "*/*": components["schemas"]["WorkspaceSummary"] } } };
+        };
+    };
     "/api/v1/workspaces/custom-design": {
         post: {
             requestBody: { content: { "application/json": { name: string; systemIdea: string } } };

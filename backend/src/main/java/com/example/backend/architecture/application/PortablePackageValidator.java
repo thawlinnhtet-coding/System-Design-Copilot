@@ -84,6 +84,25 @@ public final class PortablePackageValidator {
 				continue;
 			}
 			checkAllowedKeys(values.get(i), allowedKeys, path, errors);
+			validateRecordFields(values.get(i), field, path, errors);
+		}
+	}
+
+	private void validateRecordFields(JsonNode value, String field, String path, List<ValidationError> errors) {
+		var required = switch (field) {
+			case "requirements" -> List.of("kind", "statement", "priority", "status");
+			case "assumptions" -> List.of("category", "confidence", "status");
+			case "decisions" -> List.of("title", "chosenOption", "rationale", "status");
+			default -> List.<String>of();
+		};
+		for (var key : required) {
+			if (!value.path(key).isTextual() || value.path(key).asText().isBlank()) {
+				errors.add(new ValidationError(path + "/" + key, "This field is required for a portable " + field.substring(0, field.length() - 1) + ".", "Provide a non-empty value."));
+			}
+		}
+		if ("decisions".equals(field)) {
+			var refs = value.path("evidenceRefs");
+			if (!refs.isMissingNode() && (!refs.isArray() || refs.size() > 20)) errors.add(new ValidationError(path + "/evidenceRefs", "Evidence references must be an array with at most 20 entries.", "Remove extra references."));
 		}
 	}
 

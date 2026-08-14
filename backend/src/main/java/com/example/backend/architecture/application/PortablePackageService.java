@@ -3,6 +3,8 @@ package com.example.backend.architecture.application;
 import com.example.backend.reasoning.application.PortableReasoningProvider;
 import com.example.backend.workspace.application.WorkspaceAccess;
 import com.example.backend.workspace.application.WorkspaceMetadataProvider;
+import com.example.backend.workspace.application.WorkspaceService;
+import com.example.backend.reasoning.application.ReasoningService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tools.jackson.databind.JsonNode;
@@ -24,23 +26,33 @@ public class PortablePackageService {
 	private final WorkspaceAccess workspaceAccess;
 	private final WorkspaceMetadataProvider workspaceMetadata;
 	private final PortableReasoningProvider reasoning;
+	private final ReasoningService reasoningService;
+	private final WorkspaceService workspaceService;
+	private final PortablePackageRateLimiter rateLimiter;
 
 	public PortablePackageService(
 			PortablePackageValidator validator,
 			ArchitectureDocumentService architectureDocuments,
 			WorkspaceAccess workspaceAccess,
 			WorkspaceMetadataProvider workspaceMetadata,
-			PortableReasoningProvider reasoning
+			PortableReasoningProvider reasoning,
+			ReasoningService reasoningService,
+			WorkspaceService workspaceService,
+			PortablePackageRateLimiter rateLimiter
 	) {
 		this.validator = validator;
 		this.documentService = architectureDocuments;
 		this.workspaceAccess = workspaceAccess;
 		this.workspaceMetadata = workspaceMetadata;
 		this.reasoning = reasoning;
+		this.reasoningService = reasoningService;
+		this.workspaceService = workspaceService;
+		this.rateLimiter = rateLimiter;
 	}
 
 	@Transactional(readOnly = true)
 	public ImportResponse validateImport(UUID userId, JsonNode packageNode) {
+		rateLimiter.check(userId);
 		var result = validator.validate(packageNode);
 		if (result.valid()) {
 			try {
@@ -52,6 +64,37 @@ public class PortablePackageService {
 			return response(result.packageNode());
 		}
 		throw new InvalidPortablePackageException(result.errors());
+	}
+
+	@Transactional
+	public WorkspaceService.WorkspaceSummary importPackage(UUID userId, String name, String systemDescription, String reviewGoal, JsonNode packageNode) {
+		rateLimiter.check(userId);
+		var result = validator.validate(packageNode);
+		if (!result.valid()) throw new InvalidPortablePackageException(result.errors());
+		try {
+			documentService.validateForPortableImport(packageNode.path("workspace").path("architecture"));
+		} catch (ArchitectureDocumentService.InvalidArchitectureDocumentException exception) {
+			throw new InvalidPortablePackageException(List.of(new PortablePackageValidator.ValidationError(
+					"/workspace/architecture", exception.getMessage(), "Correct the Architecture Document and validate the package again.")));
+		}
+
+		var workspace = workspaceService.create(userId, name, systemDescription,
+				com.example.backend.workspace.infrastructure.WorkspaceType.ARCHITECTURE_REVIEW,
+				com.example.backend.workspace.infrastructure.WorkspaceSource.IMPORT_PACKAGE);
+		var workspaceId = workspace.id();
+		var content = packageNode.path("workspace");
+		for (var value : content.path("requirements")) reasoningService.createRequirement(userId, workspaceId, new ReasoningService.RequirementInput(
+				value.path("kind").asText(), value.path("statement").asText(), value.path("priority").asText(), value.path("status").asText(),
+				optionalText(value, "measurableTarget"), optionalText(value, "rationale"), optionalText(value, "source"), null));
+		for (var value : content.path("assumptions")) reasoningService.createAssumption(userId, workspaceId, new ReasoningService.AssumptionInput(
+				value.path("category").asText(), optionalText(value, "quantitativeValue"), optionalText(value, "unit"), optionalText(value, "rationale"),
+				value.path("confidence").asText(), value.path("status").asText(), optionalText(value, "source"), List.of(), null));
+		for (var value : content.path("decisions")) reasoningService.createDecision(userId, workspaceId, new ReasoningService.DecisionInput(
+				value.path("title").asText(), value.path("chosenOption").asText(), value.path("rationale").asText(), optionalText(value, "alternatives"),
+				optionalText(value, "positiveConsequences"), optionalText(value, "risks"), value.path("status").asText(), textList(value.path("evidenceRefs")), null));
+		documentService.save(userId, workspaceId, 0, content.path("architecture"));
+		reasoningService.saveReviewBrief(userId, workspaceId, new ReasoningService.ReviewBriefInput(systemDescription, reviewGoal));
+		return workspaceService.get(userId, workspaceId);
 	}
 
 	@Transactional(readOnly = true)
@@ -114,6 +157,8 @@ public class PortablePackageService {
 	}
 
 	private void put(ObjectNode node, String name, String value) { if (value != null) node.put(name, value); }
+	private String optionalText(JsonNode node, String name) { return node.path(name).isMissingNode() || node.path(name).isNull() ? null : node.path(name).asText(); }
+	private List<String> textList(JsonNode node) { var values = new java.util.ArrayList<String>(); if (node.isArray()) for (var value : node) values.add(value.asText()); return values; }
 	private ImportResponse response(JsonNode packageNode) {
 		var workspace = packageNode.path("workspace");
 		var architecture = workspace.path("architecture");

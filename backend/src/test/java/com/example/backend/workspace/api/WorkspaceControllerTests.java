@@ -150,6 +150,46 @@ class WorkspaceControllerTests {
 	}
 
 	@Test
+	void importsPortablePackageIntoAnOwnedArchitectureReviewWorkspace() throws Exception {
+		var token = bearerToken("portable_import_" + System.nanoTime());
+		var response = mockMvc.perform(post("/api/v1/import-packages")
+				.header("Authorization", token)
+				.contentType(MediaType.APPLICATION_JSON)
+				.content("""
+						{"name":"Imported orders","systemDescription":"An order intake service","reviewGoal":"Check durability and scale","packageNode":{"format":"system-design-copilot","schemaVersion":1,"workspace":{"title":"Imported orders","requirements":[{"kind":"FUNCTIONAL","statement":"Accept orders","priority":"MUST","status":"OPEN"}],"assumptions":[],"decisions":[],"architecture":{"schemaVersion":1,"components":[{"id":"api","type":"SERVICE","label":"Orders API","category":"COMPUTE","properties":{"runtime":"JAVA"}}],"connections":[],"boundaries":[]}}}}
+						"""))
+				.andExpect(status().isCreated())
+				.andExpect(jsonPath("$.type").value("ARCHITECTURE_REVIEW"))
+				.andExpect(jsonPath("$.source").value("IMPORT_PACKAGE"))
+				.andExpect(jsonPath("$.reviewBriefRequired").value(true))
+				.andReturn();
+		var workspaceId = workspaceId(response.getResponse().getContentAsString());
+
+		mockMvc.perform(get("/api/v1/workspaces/{workspaceId}/architecture-document", workspaceId).header("Authorization", token))
+				.andExpect(status().isOk()).andExpect(jsonPath("$.version").value(1))
+				.andExpect(jsonPath("$.document.components[0].id").value("api"));
+		mockMvc.perform(get("/api/v1/workspaces/{workspaceId}/reasoning", workspaceId).header("Authorization", token))
+				.andExpect(status().isOk()).andExpect(jsonPath("$.requirements[0].statement").value("Accept orders"))
+				.andExpect(jsonPath("$.reviewBrief.reviewGoal").value("Check durability and scale"));
+	}
+
+	@Test
+	void onlyTheOwnerCanExportPortableWorkspaceContent() throws Exception {
+		var owner = bearerToken("portable_export_owner_" + System.nanoTime());
+		var other = bearerToken("portable_export_other_" + System.nanoTime());
+		var response = mockMvc.perform(post("/api/v1/workspaces/custom-design")
+				.header("Authorization", owner).contentType(MediaType.APPLICATION_JSON)
+				.content("{\"name\":\"Private export\",\"systemIdea\":\"Keep export private\"}"))
+				.andExpect(status().isCreated()).andReturn();
+		var workspaceId = workspaceId(response.getResponse().getContentAsString());
+
+		mockMvc.perform(get("/api/v1/workspaces/{workspaceId}/portable-export", workspaceId).header("Authorization", other))
+				.andExpect(status().isNotFound()).andExpect(jsonPath("$.code").value("workspace_not_found"));
+		mockMvc.perform(get("/api/v1/workspaces/{workspaceId}/portable-export", workspaceId).header("Authorization", owner))
+				.andExpect(status().isOk()).andExpect(jsonPath("$.packageNode.workspace.title").value("Private export"));
+	}
+
+	@Test
 	void doesNotRestoreAnArchivedWorkspacePastTheActiveAllowance() throws Exception {
 		var token = bearerToken("workspace_restore_quota_" + System.nanoTime());
 		var archivedResponse = mockMvc.perform(post("/api/v1/workspaces")

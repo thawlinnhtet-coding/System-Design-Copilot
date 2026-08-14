@@ -124,6 +124,13 @@ export function useAuthenticatedApiClient() {
           body: JSON.stringify(packageNode),
         });
       },
+      importPortablePackage(name: string, systemDescription: string, reviewGoal: string, packageNode: unknown): Promise<WorkspaceSummary> {
+        return json<WorkspaceSummary>("/api/v1/import-packages", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name, systemDescription, reviewGoal, packageNode }),
+        });
+      },
       exportWorkspace(id: string): Promise<PortableValidationResponse> {
         return json<PortableValidationResponse>(`/api/v1/workspaces/${id}/portable-export`);
       },
