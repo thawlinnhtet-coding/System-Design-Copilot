@@ -21,6 +21,43 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/workspaces/{workspaceId}/architecture-document": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get an owned Architecture Document */
+        get: operations["get"];
+        /** Save an Architecture Document with optimistic concurrency */
+        put: operations["save"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/ai-consent": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read the current AI Processing Consent and bounded context policy */
+        get: operations["get_1"];
+        /** Grant AI Processing Consent for the presented policy version */
+        put: operations["grant"];
+        post?: never;
+        /** Withdraw AI Processing Consent */
+        delete: operations["withdraw"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/workspaces": {
         parameters: {
             query?: never;
@@ -141,6 +178,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/workspaces/{workspaceId}/architecture-revisions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create an immutable Architecture Revision */
+        post: operations["createRevision"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/webhooks/stripe": {
         parameters: {
             query?: never;
@@ -152,6 +206,23 @@ export interface paths {
         put?: never;
         /** Receive a signed Stripe webhook */
         post: operations["stripeWebhook"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/challenges/{slug}/workspaces": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Start an independent private Workspace from a published Challenge Version */
+        post: operations["start"];
         delete?: never;
         options?: never;
         head?: never;
@@ -217,7 +288,7 @@ export interface paths {
             cookie?: never;
         };
         /** Get an owned Workspace */
-        get: operations["get"];
+        get: operations["get_2"];
         put?: never;
         post?: never;
         /** Permanently delete an owned Workspace */
@@ -308,7 +379,24 @@ export interface paths {
             cookie?: never;
         };
         /** Get Workspace reasoning records */
-        get: operations["get_1"];
+        get: operations["get_3"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/workspaces/{workspaceId}/architecture-revisions/{revisionId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get an immutable Architecture Revision */
+        get: operations["getRevision"];
         put?: never;
         post?: never;
         delete?: never;
@@ -349,24 +437,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/me/ai-consent": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Read the current AI Processing Consent and bounded context policy */
-        get: operations["getAiConsent"];
-        /** Grant AI Processing Consent for the presented policy version */
-        put: operations["grantAiConsent"];
-        /** Withdraw AI Processing Consent */
-        delete: operations["withdrawAiConsent"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/v1/health": {
         parameters: {
             query?: never;
@@ -375,6 +445,40 @@ export interface paths {
             cookie?: never;
         };
         get: operations["health"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/challenges": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List published Challenge catalog metadata */
+        get: operations["catalog"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/challenges/{slug}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get the entitled published Challenge Version detail */
+        get: operations["detail"];
         put?: never;
         post?: never;
         delete?: never;
@@ -401,21 +505,85 @@ export interface components {
             /** Format: date-time */
             updatedAt?: string;
         };
+        JsonNode: {
+            empty?: boolean;
+            array?: boolean;
+            null?: boolean;
+            object?: boolean;
+            float?: boolean;
+            string?: boolean;
+            int?: boolean;
+            /** @deprecated */
+            textual?: boolean;
+            pojo?: boolean;
+            double?: boolean;
+            boolean?: boolean;
+            binary?: boolean;
+            short?: boolean;
+            long?: boolean;
+            container?: boolean;
+            floatingPointNumber?: boolean;
+            /** @enum {string} */
+            nodeType?: "ARRAY" | "BINARY" | "BOOLEAN" | "MISSING" | "NULL" | "NUMBER" | "OBJECT" | "POJO" | "STRING";
+            integralNumber?: boolean;
+            missingNode?: boolean;
+            valueNode?: boolean;
+            bigInteger?: boolean;
+            bigDecimal?: boolean;
+            number?: boolean;
+            embeddedValue?: boolean;
+        };
+        SaveArchitectureDocumentRequest: {
+            /** Format: int64 */
+            expectedVersion?: number;
+            document: components["schemas"]["JsonNode"];
+        };
+        DocumentResponse: {
+            /** Format: uuid */
+            workspaceId?: string;
+            /** Format: int64 */
+            version?: number;
+            document?: components["schemas"]["JsonNode"];
+            /** Format: date-time */
+            updatedAt?: string;
+        };
+        GrantConsentRequest: {
+            policyVersion: string;
+        };
+        AiConsentResponse: {
+            granted?: boolean;
+            policyVersion?: string;
+            /** Format: date-time */
+            changedAt?: string;
+            policy?: components["schemas"]["PolicyResponse"];
+        };
+        PolicyResponse: {
+            currentVersion?: string;
+            includedCategories?: string[];
+            excludedCategories?: string[];
+            providerRouting?: string;
+            revocable?: boolean;
+            priorTransmissionNotice?: string;
+        };
         CreateWorkspaceRequest: {
             name: string;
             description: string;
-            type: components["schemas"]["WorkspaceType"];
-            source: components["schemas"]["WorkspaceSource"];
+            /** @enum {string} */
+            type: "CHALLENGE" | "CUSTOM_DESIGN" | "ARCHITECTURE_REVIEW";
+            /** @enum {string} */
+            source: "CURATED_CHALLENGE" | "CUSTOM_DESIGN" | "IMPORT_PACKAGE" | "MANUAL_RECREATION";
         };
-        WorkspaceType: "CHALLENGE" | "CUSTOM_DESIGN" | "ARCHITECTURE_REVIEW";
-        WorkspaceSource: "CURATED_CHALLENGE" | "CUSTOM_DESIGN" | "IMPORT_PACKAGE" | "MANUAL_RECREATION";
         WorkspaceSummary: {
             /** Format: uuid */
             id?: string;
             name?: string;
             description?: string;
-            type?: components["schemas"]["WorkspaceType"];
-            source?: components["schemas"]["WorkspaceSource"];
+            /** @enum {string} */
+            type?: "CHALLENGE" | "CUSTOM_DESIGN" | "ARCHITECTURE_REVIEW";
+            /** @enum {string} */
+            source?: "CURATED_CHALLENGE" | "CUSTOM_DESIGN" | "IMPORT_PACKAGE" | "MANUAL_RECREATION";
+            /** Format: uuid */
+            challengeVersionId?: string;
             status?: string;
             /** Format: int32 */
             progressPercent?: number;
@@ -545,6 +713,18 @@ export interface components {
             /** Format: date-time */
             updatedAt?: string;
         };
+        RevisionResponse: {
+            /** Format: uuid */
+            id?: string;
+            /** Format: uuid */
+            workspaceId?: string;
+            /** Format: int64 */
+            documentVersion?: number;
+            document?: components["schemas"]["JsonNode"];
+            reasoningContext?: components["schemas"]["JsonNode"];
+            /** Format: date-time */
+            createdAt?: string;
+        };
         PortalSession: {
             url?: string;
         };
@@ -573,8 +753,16 @@ export interface components {
             /** Format: int32 */
             limit?: number | null;
         };
+        BillingState: {
+            status?: string;
+            checkoutAvailable?: boolean;
+            portalAvailable?: boolean;
+            /** Format: date-time */
+            paidThrough?: string;
+        };
         CurrentEntitlements: {
             plan?: string;
+            curatedChallengeAccess?: boolean;
             activeWorkspaces?: components["schemas"]["Allowance"];
             copilotTurns?: components["schemas"]["Allowance"];
             reviews?: components["schemas"]["Allowance"];
@@ -582,35 +770,55 @@ export interface components {
             renewsAt?: string;
             billing?: components["schemas"]["BillingState"];
         };
-        BillingState: {
-            status?: string;
-            checkoutAvailable?: boolean;
-            portalAvailable?: boolean;
-            /** Format: date-time */
-            paidThrough?: string | null;
-        };
-        GrantConsentRequest: {
-            policyVersion: string;
-        };
-        PolicyResponse: {
-            currentVersion?: string;
-            includedCategories?: string[];
-            excludedCategories?: string[];
-            providerRouting?: string;
-            revocable?: boolean;
-            priorTransmissionNotice?: string;
-        };
-        AiConsentResponse: {
-            granted?: boolean;
-            policyVersion?: string;
-            /** Format: date-time */
-            changedAt?: string;
-            policy?: components["schemas"]["PolicyResponse"];
-        };
         HealthResponse: {
             status?: string;
             service?: string;
             version?: string;
+        };
+        ChallengeSummary: {
+            slug?: string;
+            topic?: string;
+            /** Format: uuid */
+            versionId?: string;
+            title?: string;
+            description?: string;
+            difficulty?: string;
+            /** Format: int32 */
+            estimatedMinutes?: number;
+            skillFocus?: string;
+        };
+        ChallengeAttempt: {
+            /** Format: uuid */
+            id?: string;
+            name?: string;
+            status?: string;
+            /** Format: date-time */
+            updatedAt?: string;
+        };
+        ChallengeDetail: {
+            slug?: string;
+            topic?: string;
+            /** Format: uuid */
+            versionId?: string;
+            /** Format: int32 */
+            version?: number;
+            title?: string;
+            description?: string;
+            problemStatement?: string;
+            difficulty?: string;
+            /** Format: int32 */
+            estimatedMinutes?: number;
+            topicPacks?: string[];
+            initialConstraints?: string[];
+            skillCoverage?: components["schemas"]["SkillCoverage"][];
+            scenarioPreview?: string[];
+            attempts?: components["schemas"]["ChallengeAttempt"][];
+        };
+        SkillCoverage: {
+            name?: string;
+            level?: string;
+            primary?: boolean;
+            reviewDimension?: string;
         };
     };
     responses: never;
@@ -643,6 +851,118 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["ReviewBriefResponse"];
+                };
+            };
+        };
+    };
+    get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["DocumentResponse"];
+                };
+            };
+        };
+    };
+    save: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SaveArchitectureDocumentRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["DocumentResponse"];
+                };
+            };
+        };
+    };
+    get_1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AiConsentResponse"];
+                };
+            };
+        };
+    };
+    grant: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GrantConsentRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AiConsentResponse"];
+                };
+            };
+        };
+    };
+    withdraw: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AiConsentResponse"];
                 };
             };
         };
@@ -839,6 +1159,28 @@ export interface operations {
             };
         };
     };
+    createRevision: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["RevisionResponse"];
+                };
+            };
+        };
+    };
     stripeWebhook: {
         parameters: {
             query?: never;
@@ -860,6 +1202,28 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    start: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["WorkspaceSummary"];
+                };
             };
         };
     };
@@ -926,7 +1290,7 @@ export interface operations {
             };
         };
     };
-    get: {
+    get_2: {
         parameters: {
             query?: never;
             header?: never;
@@ -1186,7 +1550,7 @@ export interface operations {
             };
         };
     };
-    get_1: {
+    get_3: {
         parameters: {
             query?: never;
             header?: never;
@@ -1204,6 +1568,29 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["ReasoningResponse"];
+                };
+            };
+        };
+    };
+    getRevision: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: string;
+                revisionId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["RevisionResponse"];
                 };
             };
         };
@@ -1248,70 +1635,6 @@ export interface operations {
             };
         };
     };
-    getAiConsent: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["AiConsentResponse"];
-                };
-            };
-        };
-    };
-    grantAiConsent: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["GrantConsentRequest"];
-            };
-        };
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["AiConsentResponse"];
-                };
-            };
-        };
-    };
-    withdrawAiConsent: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["AiConsentResponse"];
-                };
-            };
-        };
-    };
     health: {
         parameters: {
             query?: never;
@@ -1328,6 +1651,48 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["HealthResponse"];
+                };
+            };
+        };
+    };
+    catalog: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ChallengeSummary"][];
+                };
+            };
+        };
+    };
+    detail: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ChallengeDetail"];
                 };
             };
         };

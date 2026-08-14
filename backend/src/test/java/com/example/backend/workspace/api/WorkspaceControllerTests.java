@@ -181,12 +181,10 @@ class WorkspaceControllerTests {
 
 	@Test
 	void createsEveryFixedWorkspaceTypeWithItsProvenanceSource() throws Exception {
-		var challenge = createWorkspace("Challenge", "CHALLENGE", "CURATED_CHALLENGE");
 		var custom = createWorkspace("Custom", "CUSTOM_DESIGN", "CUSTOM_DESIGN");
 		var imported = createWorkspace("Imported review", "ARCHITECTURE_REVIEW", "IMPORT_PACKAGE");
 		var manual = createWorkspace("Manual review", "ARCHITECTURE_REVIEW", "MANUAL_RECREATION");
 
-		assertWorkspaceMetadata(challenge, "CHALLENGE", "CURATED_CHALLENGE");
 		assertWorkspaceMetadata(custom, "CUSTOM_DESIGN", "CUSTOM_DESIGN");
 		assertWorkspaceMetadata(imported, "ARCHITECTURE_REVIEW", "IMPORT_PACKAGE");
 		assertWorkspaceMetadata(manual, "ARCHITECTURE_REVIEW", "MANUAL_RECREATION");
@@ -203,32 +201,14 @@ class WorkspaceControllerTests {
 	}
 
 	@Test
-	void keepsAChallengeAttemptAndALaterIndependentAttemptAsSeparateWorkspaces() throws Exception {
+	void rejectsDirectChallengeWorkspaceCreationWithoutAVersionSnapshot() throws Exception {
 		var token = bearerToken("workspace_challenge_attempts_" + System.nanoTime());
-		var first = mockMvc.perform(post("/api/v1/workspaces")
+		mockMvc.perform(post("/api/v1/workspaces")
 				.header("Authorization", token)
 				.contentType(MediaType.APPLICATION_JSON)
-				.content("{\"name\":\"URL shortener\",\"description\":\"First attempt\",\"type\":\"CHALLENGE\",\"source\":\"CURATED_CHALLENGE\"}"))
-			.andExpect(status().isCreated())
-			.andReturn();
-		var firstId = workspaceId(first.getResponse().getContentAsString());
-
-		mockMvc.perform(post("/api/v1/workspaces/{workspaceId}/archive", firstId).header("Authorization", token))
-				.andExpect(status().isOk());
-
-		var second = mockMvc.perform(post("/api/v1/workspaces")
-				.header("Authorization", token)
-				.contentType(MediaType.APPLICATION_JSON)
-				.content("{\"name\":\"URL shortener\",\"description\":\"Second attempt\",\"type\":\"CHALLENGE\",\"source\":\"CURATED_CHALLENGE\"}"))
-			.andExpect(status().isCreated())
-			.andReturn();
-		var secondId = workspaceId(second.getResponse().getContentAsString());
-
-		org.assertj.core.api.Assertions.assertThat(secondId).isNotEqualTo(firstId);
-		mockMvc.perform(get("/api/v1/workspaces").header("Authorization", token))
-				.andExpect(status().isOk())
-				.andExpect(jsonPath("$[?(@.id == '%s')].status".formatted(firstId)).value(org.hamcrest.Matchers.contains("ARCHIVED")))
-				.andExpect(jsonPath("$[?(@.id == '%s')].description".formatted(secondId)).value(org.hamcrest.Matchers.contains("Second attempt")));
+				.content("{\"name\":\"URL shortener\",\"description\":\"Direct attempt\",\"type\":\"CHALLENGE\",\"source\":\"CURATED_CHALLENGE\"}"))
+			.andExpect(status().isBadRequest())
+			.andExpect(jsonPath("$.code").value("invalid_workspace_type_source"));
 	}
 
 	@Test

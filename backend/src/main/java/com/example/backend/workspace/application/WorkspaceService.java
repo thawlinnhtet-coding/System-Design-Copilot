@@ -68,8 +68,19 @@ public class WorkspaceService implements WorkspaceAccess {
 	@Transactional
 	public WorkspaceSummary create(UUID userId, String name, String description, WorkspaceType type, WorkspaceSource source) {
 		validateTypeAndSource(type, source);
+		if (type == WorkspaceType.CHALLENGE) {
+			throw new InvalidWorkspaceTypeSourceException();
+		}
 		entitlementService.registerActiveWorkspace(userId);
 		var workspace = workspaceRepository.save(new WorkspaceEntity(userId, name, description, type, source, now()));
+		return summary(workspace);
+	}
+
+	@Transactional
+	public WorkspaceSummary createChallenge(UUID userId, String name, String description, UUID challengeVersionId, String challengeSnapshot) {
+		entitlementService.registerActiveWorkspace(userId);
+		var workspace = workspaceRepository.save(new WorkspaceEntity(
+				userId, name, description, WorkspaceType.CHALLENGE, WorkspaceSource.CURATED_CHALLENGE, challengeVersionId, challengeSnapshot, now()));
 		return summary(workspace);
 	}
 
@@ -126,6 +137,7 @@ public class WorkspaceService implements WorkspaceAccess {
 				workspace.getDescription(),
 				workspace.getType(),
 				workspace.getSource(),
+				workspace.getChallengeVersionId(),
 				workspace.getStatus().name(),
 				workspace.getProgressPercent(),
 				workspace.getSaveState(),
@@ -157,6 +169,7 @@ public class WorkspaceService implements WorkspaceAccess {
 			String description,
 			WorkspaceType type,
 			WorkspaceSource source,
+			UUID challengeVersionId,
 			String status,
 			int progressPercent,
 			String saveState,

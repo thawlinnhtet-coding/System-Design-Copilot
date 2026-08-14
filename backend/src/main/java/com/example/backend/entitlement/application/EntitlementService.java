@@ -44,6 +44,14 @@ public class EntitlementService {
 		return currentEntitlements(userId, null);
 	}
 
+	/** Curated Challenges are available to every authenticated beta User. Keep this policy in the entitlement boundary. */
+	@Transactional(readOnly = true)
+	public void requireCuratedChallengeAccess(UUID userId) {
+		if (!currentEntitlements(userId).curatedChallengeAccess()) {
+			throw new EntitlementRequiredException("curated_challenges");
+		}
+	}
+
 	private CurrentEntitlements currentEntitlements(UUID userId, CurrentUserService.CurrentUser user) {
 		var now = Instant.now(clock);
 		var monthStart = startOfMonth(now);
@@ -53,6 +61,7 @@ public class EntitlementService {
 		Integer reviewLimit = billingPlan.pro() ? null : properties.free().reviewsPerMonth();
 		return new CurrentEntitlements(
 				billingPlan.pro() ? "PRO" : "FREE",
+				true,
 				new Allowance(userAllowanceStore.activeWorkspaceCount(userId), activeWorkspaceLimit),
 				new Allowance(usageRecordStore.countSince(userId, UsageOperation.COPILOT_TURN, monthStart), copilotTurnLimit),
 				new Allowance(usageRecordStore.countSince(userId, UsageOperation.REVIEW, monthStart), reviewLimit),
@@ -117,6 +126,7 @@ public class EntitlementService {
 
 	public record CurrentEntitlements(
 			String plan,
+			boolean curatedChallengeAccess,
 			Allowance activeWorkspaces,
 			Allowance copilotTurns,
 			Allowance reviews,

@@ -6,6 +6,8 @@ import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -34,6 +36,13 @@ public class WorkspaceEntity {
 	@Column(nullable = false, length = 32, updatable = false)
 	private WorkspaceSource source;
 
+	@Column(name = "challenge_version_id", updatable = false)
+	private UUID challengeVersionId;
+
+	@JdbcTypeCode(SqlTypes.JSON)
+	@Column(name = "challenge_snapshot", columnDefinition = "jsonb", updatable = false)
+	private String challengeSnapshot;
+
 	@Enumerated(EnumType.STRING)
 	@Column(nullable = false, length = 32)
 	private WorkspaceStatus status;
@@ -57,12 +66,22 @@ public class WorkspaceEntity {
 	}
 
 	public WorkspaceEntity(UUID userId, String name, String description, WorkspaceType type, WorkspaceSource source, Instant now) {
+		this(userId, name, description, type, source, null, null, now);
+	}
+
+	public WorkspaceEntity(UUID userId, String name, String description, WorkspaceType type, WorkspaceSource source, UUID challengeVersionId, Instant now) {
+		this(userId, name, description, type, source, challengeVersionId, null, now);
+	}
+
+	public WorkspaceEntity(UUID userId, String name, String description, WorkspaceType type, WorkspaceSource source, UUID challengeVersionId, String challengeSnapshot, Instant now) {
 		this.id = UUID.randomUUID();
 		this.userId = userId;
 		this.name = name;
 		this.description = description;
 		this.type = type;
 		this.source = source;
+		this.challengeVersionId = challengeVersionId;
+		this.challengeSnapshot = challengeSnapshot;
 		this.status = WorkspaceStatus.ACTIVE;
 		this.progressPercent = 0;
 		this.saveState = "NOT_STARTED";
@@ -93,6 +112,14 @@ public class WorkspaceEntity {
 
 	public WorkspaceSource getSource() {
 		return source;
+	}
+
+	public UUID getChallengeVersionId() {
+		return challengeVersionId;
+	}
+
+	public String getChallengeSnapshot() {
+		return challengeSnapshot;
 	}
 
 	public WorkspaceStatus getStatus() {
