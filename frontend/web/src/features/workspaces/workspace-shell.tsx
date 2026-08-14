@@ -5,7 +5,7 @@ import { ArrowLeft, Check, PanelRight, RotateCcw, RotateCw } from "lucide-react"
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useAuthenticatedApiClient, type WorkspaceSummary } from "@/lib/api/authenticated-client";
-import { downloadPortablePackage } from "@/lib/portable-package";
+import { downloadPortablePackage, type PortablePackage } from "@/lib/portable-package";
 import { WorkspaceReasoning } from "./workspace-reasoning";
 import { ArchitectureCanvas } from "./architecture-canvas";
 import { useArchitectureEditorStore } from "./architecture-editor-store";
@@ -26,6 +26,7 @@ export function WorkspaceShell({ workspaceId }: { workspaceId: string }) {
   const [stage, setStage] = useState<Stage>("clarify");
   const [error, setError] = useState<string | null>(null);
   const [isExporting, setIsExporting] = useState(false);
+  const [exportPackage, setExportPackage] = useState<Awaited<ReturnType<typeof api.exportWorkspace>> | null>(null);
   const undo = useArchitectureEditorStore((state) => state.undo);
   const redo = useArchitectureEditorStore((state) => state.redo);
   const canUndo = useArchitectureEditorStore((state) => state.workspaceId === workspaceId && state.past.length > 0);
@@ -59,7 +60,7 @@ export function WorkspaceShell({ workspaceId }: { workspaceId: string }) {
     try {
       const result = await api.exportWorkspace(workspaceId);
       if (!result.packageNode) throw new Error("The server returned no portable package");
-      downloadPortablePackage(result.packageNode, `${workspace?.name ?? "workspace"}.json`);
+      setExportPackage(result);
     } catch {
       setError("The portable export could not be prepared. Your Workspace is safe.");
     } finally {
@@ -75,8 +76,9 @@ export function WorkspaceShell({ workspaceId }: { workspaceId: string }) {
     <section className="flex min-w-0 flex-1 flex-col">
       <header className="flex min-h-14 items-center justify-between gap-4 border-b border-line bg-surface px-5 sm:px-7">
         <div className="min-w-0"><p className="font-mono text-[10px] uppercase tracking-[0.14em] text-text-muted">Workspace</p><h1 className="truncate font-display text-xl font-semibold">{workspace.name}</h1></div>
-        <div className="flex items-center gap-1 text-text-muted"><button aria-label="Export portable package" className="hidden text-xs font-semibold text-signal hover:underline sm:inline-flex" disabled={isExporting} onClick={() => void exportWorkspace()} type="button">{isExporting ? "Exporting..." : "Export"}</button><button aria-label="Undo" className="icon-button disabled:cursor-not-allowed disabled:opacity-40" disabled={!canUndo} onClick={undo} type="button"><RotateCcw aria-hidden="true" size={15} /></button><button aria-label="Redo" className="icon-button disabled:cursor-not-allowed disabled:opacity-40" disabled={!canRedo} onClick={redo} type="button"><RotateCw aria-hidden="true" size={15} /></button><span className="mx-2 hidden items-center gap-1 text-xs sm:flex"><Check aria-hidden="true" className="text-success" size={15} />{workspace.saveState ?? "Not started"}</span><button aria-label="Open contextual rail" className="icon-button" type="button"><PanelRight aria-hidden="true" size={16} /></button></div>
+        <div className="flex items-center gap-1 text-text-muted"><button aria-label="Export portable package" className="text-xs font-semibold text-signal hover:underline" disabled={isExporting} onClick={() => void exportWorkspace()} type="button">{isExporting ? "Exporting..." : "Export"}</button><button aria-label="Undo" className="icon-button disabled:cursor-not-allowed disabled:opacity-40" disabled={!canUndo} onClick={undo} type="button"><RotateCcw aria-hidden="true" size={15} /></button><button aria-label="Redo" className="icon-button disabled:cursor-not-allowed disabled:opacity-40" disabled={!canRedo} onClick={redo} type="button"><RotateCw aria-hidden="true" size={15} /></button><span className="mx-2 hidden items-center gap-1 text-xs sm:flex"><Check aria-hidden="true" className="text-success" size={15} />{workspace.saveState ?? "Not started"}</span><button aria-label="Open contextual rail" className="icon-button" type="button"><PanelRight aria-hidden="true" size={16} /></button></div>
       </header>
+      {exportPackage?.packageNode ? <section aria-label="Portable export preview" className="border-b border-line bg-background px-5 py-4 sm:px-7"><div className="flex flex-wrap items-center justify-between gap-4"><div><p className="font-mono text-[10px] uppercase tracking-[0.14em] text-text-muted">PORTABLE EXPORT PREVIEW</p><p className="mt-1 text-sm text-foreground">{exportPackage.preview?.title ?? workspace.name} · {exportPackage.preview?.requirements ?? 0} Requirements · {exportPackage.preview?.assumptions ?? 0} Assumptions · {exportPackage.preview?.decisions ?? 0} Decisions · {exportPackage.preview?.components ?? 0} Components</p><p className="mt-1 text-xs text-text-muted">Identity, billing, usage, provider metadata, and Reviews are excluded.</p></div><div className="flex gap-2"><button className="border border-line px-3 py-2 text-xs text-text-muted" onClick={() => setExportPackage(null)} type="button">Cancel</button><button className="bg-signal px-3 py-2 text-xs font-semibold text-text-on-dark" onClick={() => { downloadPortablePackage(exportPackage.packageNode as unknown as PortablePackage, `${workspace.name ?? "workspace"}.json`); setExportPackage(null); }} type="button">Download JSON</button></div></div></section> : null}
       <nav aria-label="Mobile Workspace stages" className="grid grid-cols-4 border-b border-line bg-background md:hidden">{stages.map((item) => <button aria-current={stage === item.id ? "step" : undefined} className={`min-h-12 border-r border-line px-2 text-xs font-semibold last:border-r-0 ${stage === item.id ? "text-signal" : "text-text-muted"}`} key={item.id} onClick={() => setStage(item.id)} type="button"><span className="mr-1 font-mono text-[10px]">{item.number}</span>{item.label}</button>)}</nav>
       <main className="min-w-0 flex-1 overflow-auto px-5 py-8 sm:px-8 lg:px-12 lg:py-10">
         <div className="mx-auto max-w-6xl"><p className="font-mono text-[10px] uppercase tracking-[0.16em] text-signal">Stage {stages.find((item) => item.id === stage)?.number} / {stages.find((item) => item.id === stage)?.label}</p>{stage === "clarify" ? <><h2 className="mt-3 max-w-3xl font-display text-4xl font-semibold tracking-tight">Make the problem explicit.</h2><p className="mt-3 max-w-2xl text-base leading-7 text-text-muted">Write down the needs, assumptions, uncertainties, and decisions that should guide the architecture.</p><div className="mt-10"><WorkspaceReasoning readOnly={workspace.status === "ARCHIVED"} reviewBriefRequired={workspace.reviewBriefRequired === true} workspaceId={workspaceId} /></div></> : stage === "design" ? <><h2 className="mt-3 max-w-3xl font-display text-4xl font-semibold tracking-tight">Shape the architecture.</h2><p className="mt-3 max-w-2xl text-base leading-7 text-text-muted">Place the Components, connect the paths, and keep the structure explainable.</p><div className="mt-8"><ArchitectureCanvas readOnly={workspace.status === "ARCHIVED"} workspaceId={workspaceId} /></div></> : <StagePlaceholder stage={stage} workspace={workspace} />}</div>

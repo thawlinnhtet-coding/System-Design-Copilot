@@ -489,6 +489,34 @@ export interface paths {
     };
 }
 export type webhooks = Record<string, never>;
+
+export type PortableImportResponse = {
+    packageNode?: components["schemas"]["JsonNode"];
+    preview?: {
+        title?: string;
+        requirements?: number;
+        assumptions?: number;
+        decisions?: number;
+        components?: number;
+        connections?: number;
+        bytes?: number;
+    };
+};
+
+export interface paths {
+    "/api/v1/import-packages/validate": {
+        post: {
+            requestBody: { content: { "application/json": components["schemas"]["JsonNode"] } };
+            responses: { 200: { content: { "*/*": PortableImportResponse } } };
+        };
+    };
+    "/api/v1/workspaces/{workspaceId}/portable-export": {
+        get: {
+            parameters: { path: { workspaceId: string } };
+            responses: { 200: { content: { "*/*": PortableImportResponse } } };
+        };
+    };
+}
 export interface components {
     schemas: {
         ReviewBriefRequest: {

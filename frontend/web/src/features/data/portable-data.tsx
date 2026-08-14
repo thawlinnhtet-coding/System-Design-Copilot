@@ -29,9 +29,10 @@ export function PortableData() {
       const result = validatePortablePackage(parsed);
       setErrors(result.errors);
       if (result.package) {
+        setSelectedPackage(result.package);
+        await new Promise((resolve) => window.setTimeout(resolve, 0));
         try {
           const serverResult = await api.validatePortableImport(result.package);
-          setSelectedPackage(result.package);
           setServerValidated(true);
           if (serverResult.preview?.bytes && serverResult.preview.bytes > portablePackageMaxBytes) setErrors(["The server rejected this package because it exceeds the import limit."]);
         } catch (caught) {
