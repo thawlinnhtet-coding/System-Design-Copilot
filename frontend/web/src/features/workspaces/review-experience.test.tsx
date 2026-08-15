@@ -1,6 +1,10 @@
 import { fireEvent, screen } from "@testing-library/react";
+import { vi } from "vitest";
 import { renderWithProviders } from "@/test/setup";
 import { ReviewExperience, type ReviewExperienceView } from "./review-experience";
+
+const api = vi.hoisted(() => ({ getReviews: vi.fn() }));
+vi.mock("@/lib/api/authenticated-client", async (importOriginal) => ({ ...(await importOriginal<typeof import("@/lib/api/authenticated-client")>()), useAuthenticatedApiClient: () => api }));
 
 const completed: ReviewExperienceView = {
   id: "review-2", state: "COMPLETED", revision: { id: "revision-2", documentVersion: 4 },
@@ -15,7 +19,7 @@ describe("ReviewExperience", () => {
   it("keeps the Review request unavailable until the processing adapter exists", () => {
     renderWithProviders(<ReviewExperience />);
     expect(screen.getByLabelText("Review processing unavailable")).toBeVisible();
-    expect(screen.getByRole("button", { name: "Review processing is being connected" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Open a Workspace to request Review" })).toBeDisabled();
   });
 
   it("renders evidence-grounded completed feedback without a composite score", () => {
@@ -26,7 +30,7 @@ describe("ReviewExperience", () => {
     expect(screen.getByText("Seven supporting dimensions")).toBeVisible();
     expect(screen.queryByText(/overall score/i)).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Inspect data-store-1" }));
-    fireEvent.click(screen.getByRole("button", { name: "Carry into reasoning" }));
+    fireEvent.click(screen.getByRole("button", { name: "Copy to carry into reasoning" }));
     expect(inspect).toHaveBeenCalledWith(completed.findings?.[0]);
     expect(carry).toHaveBeenCalledWith(completed.findings?.[0]);
   });

@@ -148,7 +148,7 @@ function StagePlaceholder({ stage, workspace }: { stage: Exclude<Stage, "clarify
 		return <ScenarioPanel readOnly={workspace.status === "ARCHIVED"} workspaceId={workspace.id ?? ""} />;
 	}
 	if (stage === "review") {
-		return <ReviewExperience />;
+		return <ReviewExperience readOnly={workspace.status === "ARCHIVED"} workspaceId={workspace.id ?? ""} />;
 	}
 	const content = {
     design: { title: "Shape the architecture.", description: "The blank Architecture Canvas will become the primary design surface after the reasoning contract is in place.", action: "Open Canvas" },

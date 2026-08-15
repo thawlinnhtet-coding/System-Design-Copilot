@@ -127,6 +127,41 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/workspaces/{workspaceId}/reviews": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List immutable Review checkpoints for a Workspace */
+        get: operations["history"];
+        put?: never;
+        /** Request an asynchronous Review of an immutable Architecture Revision */
+        post: operations["submit"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/workspaces/{workspaceId}/reviews/{reviewRequestId}/retry": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Retry a failed Review using the same immutable Architecture Revision */
+        post: operations["retry"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/workspaces/{workspaceId}/restore": {
         parameters: {
             query?: never;
@@ -609,6 +644,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/workspaces/{workspaceId}/reviews/{reviewRequestId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get the current durable Review request status */
+        get: operations["get_3"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/workspaces/{workspaceId}/reasoning": {
         parameters: {
             query?: never;
@@ -617,7 +669,7 @@ export interface paths {
             cookie?: never;
         };
         /** Get Workspace reasoning records */
-        get: operations["get_3"];
+        get: operations["get_4"];
         put?: never;
         post?: never;
         delete?: never;
@@ -767,25 +819,25 @@ export interface components {
             object?: boolean;
             float?: boolean;
             number?: boolean;
+            long?: boolean;
             /** @deprecated */
             textual?: boolean;
             binary?: boolean;
-            pojo?: boolean;
+            double?: boolean;
             boolean?: boolean;
+            pojo?: boolean;
             short?: boolean;
             int?: boolean;
             string?: boolean;
-            long?: boolean;
-            double?: boolean;
+            missingNode?: boolean;
+            integralNumber?: boolean;
             /** @enum {string} */
             nodeType?: "ARRAY" | "BINARY" | "BOOLEAN" | "MISSING" | "NULL" | "NUMBER" | "OBJECT" | "POJO" | "STRING";
-            bigInteger?: boolean;
-            missingNode?: boolean;
-            container?: boolean;
-            integralNumber?: boolean;
-            bigDecimal?: boolean;
             floatingPointNumber?: boolean;
+            bigDecimal?: boolean;
             valueNode?: boolean;
+            container?: boolean;
+            bigInteger?: boolean;
             embeddedValue?: boolean;
         };
         SaveArchitectureDocumentRequest: {
@@ -884,6 +936,20 @@ export interface components {
             response: string;
             architectureChanges?: string;
             decisionChanges?: string;
+        };
+        ReviewSubmission: {
+            /** Format: uuid */
+            id?: string;
+            /** Format: uuid */
+            workspaceId?: string;
+            /** Format: uuid */
+            revisionId?: string;
+            status?: string;
+            errorCode?: string;
+            /** Format: date-time */
+            createdAt?: string;
+            /** Format: date-time */
+            completedAt?: string;
         };
         RequirementRequest: {
             kind: string;
@@ -1084,6 +1150,21 @@ export interface components {
             stage: string;
             panel: string;
             canvasViewport: components["schemas"]["JsonNode"];
+        };
+        ReviewDetails: {
+            /** Format: uuid */
+            id?: string;
+            /** Format: uuid */
+            workspaceId?: string;
+            /** Format: uuid */
+            revisionId?: string;
+            status?: string;
+            errorCode?: string;
+            /** Format: date-time */
+            createdAt?: string;
+            /** Format: date-time */
+            completedAt?: string;
+            output?: components["schemas"]["JsonNode"];
         };
         ReasoningResponse: {
             requirements?: components["schemas"]["RequirementResponse"][];
@@ -1432,6 +1513,76 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["ScenarioResponse"];
+                };
+            };
+        };
+    };
+    history: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ReviewDetails"][];
+                };
+            };
+        };
+    };
+    submit: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Caller-generated idempotency key */
+                "Idempotency-Key": string;
+            };
+            path: {
+                workspaceId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Accepted */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ReviewSubmission"];
+                };
+            };
+        };
+    };
+    retry: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: string;
+                reviewRequestId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Accepted */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ReviewSubmission"];
                 };
             };
         };
@@ -2246,6 +2397,29 @@ export interface operations {
         };
     };
     get_3: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: string;
+                reviewRequestId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ReviewDetails"];
+                };
+            };
+        };
+    };
+    get_4: {
         parameters: {
             query?: never;
             header?: never;

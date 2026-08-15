@@ -9,6 +9,7 @@ import java.net.URI;
 class ReviewProblemAdvice {
 	@ExceptionHandler(InvalidIdempotencyKeyException.class) ProblemDetail invalidKey(RuntimeException e){return problem(HttpStatus.BAD_REQUEST,"invalid_idempotency_key",e.getMessage());}
 	@ExceptionHandler(IdempotencyConflictException.class) ProblemDetail conflict(RuntimeException e){return problem(HttpStatus.CONFLICT,"idempotency_conflict",e.getMessage());}
+	@ExceptionHandler(RetryNotAllowedException.class) ProblemDetail retryNotAllowed(RuntimeException e){return problem(HttpStatus.CONFLICT,"review_retry_not_allowed",e.getMessage());}
 	@ExceptionHandler(IllegalArgumentException.class) ProblemDetail notFound(IllegalArgumentException e){return problem(HttpStatus.NOT_FOUND,"review_request_not_found",e.getMessage());}
 	private ProblemDetail problem(HttpStatus status,String code,String detail){var result=ProblemDetail.forStatusAndDetail(status,detail);result.setType(URI.create("https://system-design-copilot.dev/problems/"+code));result.setProperty("code",code);return result;}
 }

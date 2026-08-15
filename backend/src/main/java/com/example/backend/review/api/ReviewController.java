@@ -19,5 +19,9 @@ public class ReviewController {
 	@PostMapping @ResponseStatus(HttpStatus.ACCEPTED) @Operation(summary="Request an asynchronous Review of an immutable Architecture Revision")
 	public ReviewService.ReviewSubmission submit(@AuthenticationPrincipal Jwt jwt,@PathVariable UUID workspaceId,@Parameter(in=ParameterIn.HEADER,required=true,description="Caller-generated idempotency key") @RequestHeader("Idempotency-Key") String idempotencyKey){return service.submit(users.getOrCreate(jwt.getSubject()).id(),workspaceId,idempotencyKey);}
 	@GetMapping("/{reviewRequestId}") @Operation(summary="Get the current durable Review request status")
-	public ReviewService.ReviewSubmission get(@AuthenticationPrincipal Jwt jwt,@PathVariable UUID workspaceId,@PathVariable UUID reviewRequestId){var result=service.get(users.getOrCreate(jwt.getSubject()).id(),reviewRequestId);if(!result.workspaceId().equals(workspaceId))throw new IllegalArgumentException("Review request not found");return result;}
+	public ReviewService.ReviewDetails get(@AuthenticationPrincipal Jwt jwt,@PathVariable UUID workspaceId,@PathVariable UUID reviewRequestId){var result=service.get(users.getOrCreate(jwt.getSubject()).id(),reviewRequestId);if(!result.workspaceId().equals(workspaceId))throw new IllegalArgumentException("Review request not found");return result;}
+	@GetMapping @Operation(summary="List immutable Review checkpoints for a Workspace")
+	public java.util.List<ReviewService.ReviewDetails> history(@AuthenticationPrincipal Jwt jwt,@PathVariable UUID workspaceId){return service.history(users.getOrCreate(jwt.getSubject()).id(),workspaceId);}
+	@PostMapping("/{reviewRequestId}/retry") @ResponseStatus(HttpStatus.ACCEPTED) @Operation(summary="Retry a failed Review using the same immutable Architecture Revision")
+	public ReviewService.ReviewSubmission retry(@AuthenticationPrincipal Jwt jwt,@PathVariable UUID workspaceId,@PathVariable UUID reviewRequestId){return service.retry(users.getOrCreate(jwt.getSubject()).id(),workspaceId,reviewRequestId);}
 }
