@@ -6,6 +6,7 @@ import com.example.backend.architecture.infrastructure.ArchitectureRevisionEntit
 import com.example.backend.architecture.infrastructure.ArchitectureRevisionRepository;
 import com.example.backend.workspace.application.WorkspaceAccess;
 import com.example.backend.reasoning.application.ReasoningSnapshotProvider;
+import com.example.backend.scenario.application.ScenarioSnapshotProvider;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Service;
@@ -34,9 +35,10 @@ public class ArchitectureDocumentService {
 	private final ObjectMapper objectMapper = new ObjectMapper();
 	private final Clock clock;
 	private final ReasoningSnapshotProvider reasoningSnapshotProvider;
+	private final ScenarioSnapshotProvider scenarioSnapshotProvider;
 
-	public ArchitectureDocumentService(WorkspaceAccess workspaceAccess, ArchitectureDocumentRepository documents, ArchitectureRevisionRepository revisions, ReasoningSnapshotProvider reasoningSnapshotProvider, Clock clock) {
-		this.workspaceAccess = workspaceAccess; this.documents = documents; this.revisions = revisions; this.reasoningSnapshotProvider = reasoningSnapshotProvider; this.clock = clock;
+	public ArchitectureDocumentService(WorkspaceAccess workspaceAccess, ArchitectureDocumentRepository documents, ArchitectureRevisionRepository revisions, ReasoningSnapshotProvider reasoningSnapshotProvider, ScenarioSnapshotProvider scenarioSnapshotProvider, Clock clock) {
+		this.workspaceAccess = workspaceAccess; this.documents = documents; this.revisions = revisions; this.reasoningSnapshotProvider = reasoningSnapshotProvider; this.scenarioSnapshotProvider = scenarioSnapshotProvider; this.clock = clock;
 	}
 
 	@Transactional(readOnly = true)
@@ -75,7 +77,7 @@ public class ArchitectureDocumentService {
 	public RevisionResponse createRevision(UUID userId, UUID workspaceId) {
 		workspaceAccess.requireEditable(userId, workspaceId);
 		var document = documents.findById(workspaceId).orElseThrow(ArchitectureDocumentMissingException::new);
-		var revision = revisions.save(new ArchitectureRevisionEntity(workspaceId, userId, document.getVersion(), document.getDocument(), reasoningSnapshotProvider.snapshotForRevision(userId, workspaceId), Instant.now(clock)));
+		var revision = revisions.save(new ArchitectureRevisionEntity(workspaceId, userId, document.getVersion(), document.getDocument(), revisionContext(userId, workspaceId), Instant.now(clock)));
 		return revisionResponse(revision);
 	}
 
@@ -143,6 +145,14 @@ public class ArchitectureDocumentService {
 	}
 	private void fail(String detail) { throw new InvalidArchitectureDocumentException(detail); }
 	private JsonNode emptyDocument() { var document = objectMapper.createObjectNode(); document.put("schemaVersion", SCHEMA_VERSION); document.putArray("components"); document.putArray("connections"); document.putArray("boundaries"); return document; }
+	private String revisionContext(UUID userId, UUID workspaceId) {
+		try {
+			var context = objectMapper.createObjectNode();
+			context.set("reasoning", objectMapper.readTree(reasoningSnapshotProvider.snapshotForRevision(userId, workspaceId)));
+			context.set("completedScenarios", objectMapper.readTree(scenarioSnapshotProvider.completedSnapshotForRevision(userId, workspaceId)));
+			return objectMapper.writeValueAsString(context);
+		} catch (Exception exception) { throw new IllegalStateException("Could not snapshot Workspace revision context", exception); }
+	}
 	private String write(JsonNode value) { try { return objectMapper.writeValueAsString(value); } catch (RuntimeException e) { throw new IllegalStateException("Could not store Architecture Document", e); } }
 	private JsonNode read(String value) { try { return objectMapper.readTree(value); } catch (RuntimeException e) { throw new IllegalStateException("Stored Architecture Document is invalid", e); } }
 	private DocumentResponse response(ArchitectureDocumentEntity entity) { return new DocumentResponse(entity.getWorkspaceId(), entity.getVersion(), read(entity.getDocument()), entity.getUpdatedAt()); }

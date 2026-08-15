@@ -76,6 +76,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/workspaces/{workspaceId}/scenarios/{scenarioId}/start": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reveal an available Scenario */
+        post: operations["start"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/workspaces/{workspaceId}/scenarios/{scenarioId}/complete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Complete a Scenario and include it in later revision context */
+        post: operations["complete"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/workspaces/{workspaceId}/scenarios/ai-assisted": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create a consented, schema-validated AI-assisted Scenario */
+        post: operations["createAiAssisted"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/workspaces/{workspaceId}/restore": {
         parameters: {
             query?: never;
@@ -263,6 +314,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/content-operations/challenge-versions/{versionId}/submit-review": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Move a Draft Challenge Version into independent Review */
+        post: operations["submitForReview"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/content-operations/challenge-versions/{versionId}/retire": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Retire a published Challenge Version */
+        post: operations["retire"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/content-operations/challenge-versions/{versionId}/publish": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Publish an independently reviewed Challenge Version */
+        post: operations["publish"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/challenges/{slug}/workspaces": {
         parameters: {
             query?: never;
@@ -273,7 +375,7 @@ export interface paths {
         get?: never;
         put?: never;
         /** Start an independent private Workspace from a published Challenge Version */
-        post: operations["start"];
+        post: operations["start_1"];
         delete?: never;
         options?: never;
         head?: never;
@@ -367,6 +469,23 @@ export interface paths {
         patch: operations["rename"];
         trace?: never;
     };
+    "/api/v1/workspaces/{workspaceId}/scenarios/{scenarioId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Save a Scenario response draft */
+        patch: operations["saveDraft"];
+        trace?: never;
+    };
     "/api/v1/workspaces/{workspaceId}/reasoning/requirements/{id}": {
         parameters: {
             query?: never;
@@ -454,6 +573,23 @@ export interface paths {
         head?: never;
         /** Save Workspace focus and Canvas viewport */
         patch: operations["updateFocus"];
+        trace?: never;
+    };
+    "/api/v1/workspaces/{workspaceId}/scenarios": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List private Workspace Scenarios */
+        get: operations["list_1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/api/v1/workspaces/{workspaceId}/reasoning": {
@@ -614,25 +750,25 @@ export interface components {
             object?: boolean;
             float?: boolean;
             number?: boolean;
+            container?: boolean;
             /** @enum {string} */
             nodeType?: "ARRAY" | "BINARY" | "BOOLEAN" | "MISSING" | "NULL" | "NUMBER" | "OBJECT" | "POJO" | "STRING";
-            container?: boolean;
+            integralNumber?: boolean;
             missingNode?: boolean;
             valueNode?: boolean;
             floatingPointNumber?: boolean;
-            integralNumber?: boolean;
             bigDecimal?: boolean;
             bigInteger?: boolean;
+            pojo?: boolean;
             short?: boolean;
-            double?: boolean;
+            string?: boolean;
+            int?: boolean;
+            binary?: boolean;
             long?: boolean;
             boolean?: boolean;
-            string?: boolean;
-            pojo?: boolean;
-            int?: boolean;
+            double?: boolean;
             /** @deprecated */
             textual?: boolean;
-            binary?: boolean;
             embeddedValue?: boolean;
         };
         SaveArchitectureDocumentRequest: {
@@ -709,6 +845,28 @@ export interface components {
             createdAt?: string;
             /** Format: date-time */
             updatedAt?: string;
+        };
+        ScenarioResponse: {
+            /** Format: uuid */
+            id?: string;
+            source?: string;
+            /** Format: int32 */
+            orderIndex?: number;
+            title?: string;
+            changedCondition?: string;
+            details?: string;
+            category?: string;
+            status?: string;
+            response?: string;
+            architectureChanges?: string;
+            decisionChanges?: string;
+            /** Format: date-time */
+            completedAt?: string;
+        };
+        ScenarioResponseRequest: {
+            response: string;
+            architectureChanges?: string;
+            decisionChanges?: string;
         };
         RequirementRequest: {
             kind: string;
@@ -868,6 +1026,13 @@ export interface components {
             connections?: number;
             /** Format: int32 */
             bytes?: number;
+        };
+        ReleaseResult: {
+            /** Format: uuid */
+            versionId?: string;
+            /** Format: uuid */
+            challengeId?: string;
+            status?: string;
         };
         PortalSession: {
             url?: string;
@@ -1170,6 +1335,78 @@ export interface operations {
             };
         };
     };
+    start: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: string;
+                scenarioId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ScenarioResponse"];
+                };
+            };
+        };
+    };
+    complete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: string;
+                scenarioId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ScenarioResponseRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ScenarioResponse"];
+                };
+            };
+        };
+    };
+    createAiAssisted: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ScenarioResponse"];
+                };
+            };
+        };
+    };
     restore: {
         parameters: {
             query?: never;
@@ -1436,7 +1673,73 @@ export interface operations {
             };
         };
     };
-    start: {
+    submitForReview: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                versionId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ReleaseResult"];
+                };
+            };
+        };
+    };
+    retire: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                versionId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ReleaseResult"];
+                };
+            };
+        };
+    };
+    publish: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                versionId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ReleaseResult"];
+                };
+            };
+        };
+    };
+    start_1: {
         parameters: {
             query?: never;
             header?: never;
@@ -1616,6 +1919,33 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["WorkspaceSummary"];
+                };
+            };
+        };
+    };
+    saveDraft: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: string;
+                scenarioId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ScenarioResponseRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ScenarioResponse"];
                 };
             };
         };
@@ -1834,6 +2164,28 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["WorkspaceSummary"];
+                };
+            };
+        };
+    };
+    list_1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ScenarioResponse"][];
                 };
             };
         };
