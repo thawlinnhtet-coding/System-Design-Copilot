@@ -8,12 +8,13 @@ import com.example.backend.billing.application.BillingProperties;
 import com.example.backend.entitlement.application.EntitlementProperties;
 import com.example.backend.ai.application.AiProviderProperties;
 import com.example.backend.challenge.application.ChallengeContentOperationsProperties;
+import com.example.backend.identity.application.PublicBetaAbuseProtectionProperties;
 
 import java.time.Clock;
 import org.springframework.context.annotation.Bean;
 
 @SpringBootApplication
-@EnableConfigurationProperties({EntitlementProperties.class, BillingProperties.class, AiProviderProperties.class, ChallengeContentOperationsProperties.class})
+@EnableConfigurationProperties({EntitlementProperties.class, BillingProperties.class, AiProviderProperties.class, ChallengeContentOperationsProperties.class, PublicBetaAbuseProtectionProperties.class})
 public class BackendApplication {
 
 	public static void main(String[] args) {

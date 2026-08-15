@@ -3,6 +3,7 @@ package com.example.backend.billing.api;
 import com.example.backend.billing.application.BillingService;
 import com.example.backend.billing.application.InvalidBillingRequestException;
 import com.example.backend.identity.application.CurrentUserService;
+import com.example.backend.identity.application.VerifiedEmailPolicy;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
@@ -25,10 +26,12 @@ public class BillingController {
 
 	private final CurrentUserService currentUserService;
 	private final BillingService billingService;
+	private final VerifiedEmailPolicy verifiedEmailPolicy;
 
-	public BillingController(CurrentUserService currentUserService, BillingService billingService) {
+	public BillingController(CurrentUserService currentUserService, BillingService billingService, VerifiedEmailPolicy verifiedEmailPolicy) {
 		this.currentUserService = currentUserService;
 		this.billingService = billingService;
+		this.verifiedEmailPolicy = verifiedEmailPolicy;
 	}
 
 	@PostMapping("/billing/checkout")
@@ -39,6 +42,7 @@ public class BillingController {
 			@Parameter(in = ParameterIn.HEADER, required = true, description = "Caller-generated idempotency key")
 			@RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey
 	) {
+		verifiedEmailPolicy.requireVerified(jwt);
 		if (idempotencyKey == null || idempotencyKey.isBlank() || idempotencyKey.length() > 255) {
 			throw new InvalidBillingRequestException();
 		}
@@ -49,6 +53,7 @@ public class BillingController {
 	@Operation(summary = "Create a Stripe Customer Portal session")
 	@SecurityRequirement(name = "clerkBearerAuth")
 	public BillingService.PortalSession customerPortal(@AuthenticationPrincipal Jwt jwt) {
+		verifiedEmailPolicy.requireVerified(jwt);
 		return billingService.startCustomerPortal(currentUserService.getOrCreate(jwt.getSubject()));
 	}
 
@@ -56,6 +61,7 @@ public class BillingController {
 	@Operation(summary = "Reconcile a completed Stripe Checkout session for the signed-in user")
 	@SecurityRequirement(name = "clerkBearerAuth")
 	public void completeCheckout(@AuthenticationPrincipal Jwt jwt, @RequestParam("session_id") String sessionId, HttpServletResponse response) {
+		verifiedEmailPolicy.requireVerified(jwt);
 		billingService.reconcileCompletedCheckout(currentUserService.getOrCreate(jwt.getSubject()), sessionId);
 		response.setStatus(HttpServletResponse.SC_NO_CONTENT);
 	}

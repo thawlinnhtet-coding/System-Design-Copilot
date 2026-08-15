@@ -14,9 +14,15 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import com.example.backend.identity.application.PublicBetaAbuseProtectionProperties;
+import com.example.backend.identity.application.VerifiedEmailPolicy;
+
+import java.time.Clock;
 
 import java.util.List;
 
@@ -33,7 +39,8 @@ import java.util.List;
 public class SecurityConfiguration {
 
 	@Bean
-	SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+	SecurityFilterChain securityFilterChain(HttpSecurity http, PublicBetaAbuseProtectionProperties abuseProtectionProperties, VerifiedEmailPolicy verifiedEmailPolicy, Clock clock) throws Exception {
+		var publicBetaAbuseProtectionFilter = new PublicBetaAbuseProtectionFilter(abuseProtectionProperties, verifiedEmailPolicy, clock);
 		return http
 				.csrf(AbstractHttpConfigurer::disable)
 				.cors(Customizer.withDefaults())
@@ -42,6 +49,7 @@ public class SecurityConfiguration {
 						.requestMatchers("/api/v1/health", "/api/v1/challenges", "/api/v1/webhooks/stripe", "/v3/api-docs", "/v3/api-docs/**", "/swagger-ui/**").permitAll()
 						.anyRequest().authenticated())
 				.oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()))
+				.addFilterAfter(publicBetaAbuseProtectionFilter, BearerTokenAuthenticationFilter.class)
 				.build();
 	}
 

@@ -4,6 +4,7 @@ import com.example.backend.ai.application.AiConsent;
 import com.example.backend.ai.application.AiConsentPolicy;
 import com.example.backend.ai.application.AiConsentService;
 import com.example.backend.identity.application.CurrentUserService;
+import com.example.backend.identity.application.VerifiedEmailPolicy;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
@@ -29,10 +30,12 @@ public class AiConsentController {
 
 	private final CurrentUserService currentUserService;
 	private final AiConsentService consentService;
+	private final VerifiedEmailPolicy verifiedEmailPolicy;
 
-	public AiConsentController(CurrentUserService currentUserService, AiConsentService consentService) {
+	public AiConsentController(CurrentUserService currentUserService, AiConsentService consentService, VerifiedEmailPolicy verifiedEmailPolicy) {
 		this.currentUserService = currentUserService;
 		this.consentService = consentService;
+		this.verifiedEmailPolicy = verifiedEmailPolicy;
 	}
 
 	@GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
@@ -48,6 +51,7 @@ public class AiConsentController {
 			@AuthenticationPrincipal Jwt jwt,
 			@Valid @RequestBody GrantConsentRequest request
 	) {
+		verifiedEmailPolicy.requireVerified(jwt);
 		var userId = currentUserService.getOrCreate(jwt.getSubject()).id();
 		return response(consentService.grant(userId, request.policyVersion().trim()));
 	}

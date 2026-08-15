@@ -5,6 +5,8 @@ import { renderWithProviders } from "@/test/setup";
 import { BillingOverview } from "./billing-overview";
 
 const session = vi.hoisted(() => ({ isLoaded: true, isSignedIn: false }));
+const user = vi.hoisted(() => ({ primaryEmailAddress: { verification: { status: "verified" } } }));
+const clerk = vi.hoisted(() => ({ openUserProfile: vi.fn() }));
 const api = vi.hoisted(() => ({
   getUsage: vi.fn(),
   startCheckout: vi.fn(),
@@ -12,7 +14,9 @@ const api = vi.hoisted(() => ({
 }));
 
 vi.mock("@clerk/nextjs", () => ({
-  useAuth: () => session,
+	useAuth: () => session,
+	useUser: () => ({ user }),
+	useClerk: () => clerk,
   SignInButton: ({ children }: { children: ReactNode }) => <>{children}</>,
 }));
 
@@ -24,7 +28,8 @@ describe("BillingOverview", () => {
   beforeEach(() => {
     session.isLoaded = true;
     session.isSignedIn = false;
-    vi.clearAllMocks();
+	vi.clearAllMocks();
+	user.primaryEmailAddress.verification.status = "verified";
   });
 
   it("starts the backend checkout flow and explains when the environment is disabled", async () => {
@@ -38,4 +43,17 @@ describe("BillingOverview", () => {
     await waitFor(() => expect(api.startCheckout).toHaveBeenCalledTimes(1));
     expect(await screen.findByRole("alert")).toHaveTextContent("Pro Checkout is not enabled for this environment");
   });
+
+	it("keeps Workspace practice available in principle while sending unverified billing users to Clerk", async () => {
+		session.isSignedIn = true;
+		user.primaryEmailAddress.verification.status = "unverified";
+		api.getUsage.mockResolvedValue({ plan: "FREE", activeWorkspaces: { used: 0, limit: 10 }, billing: { checkoutAvailable: true, portalAvailable: false } });
+
+		renderWithProviders(<BillingOverview />);
+
+		expect(await screen.findByRole("status")).toHaveTextContent("continue creating and saving private Workspaces");
+		expect(screen.getByRole("button", { name: /Upgrade unavailable in beta/i })).toBeDisabled();
+		fireEvent.click(screen.getByRole("button", { name: "Verify email with Clerk" }));
+		expect(clerk.openUserProfile).toHaveBeenCalledTimes(1);
+	});
 });

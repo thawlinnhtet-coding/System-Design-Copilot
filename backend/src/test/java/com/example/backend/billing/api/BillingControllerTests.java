@@ -57,6 +57,34 @@ class BillingControllerTests {
 	private JdbcTemplate jdbcTemplate;
 
 	@Test
+	void requiresVerifiedEmailBeforeAnyBillingAction() throws Exception {
+		mockMvc.perform(post("/api/v1/billing/checkout")
+				.header("Authorization", bearerToken("synthetic_test_user", false))
+				.header("Idempotency-Key", "checkout-unverified"))
+				.andExpect(status().isForbidden())
+				.andExpect(jsonPath("$.code").value("email_verification_required"));
+	}
+
+	@Test
+	void requiresClerkVerificationAfterUnverifiedChangeRequestsHitTheAdaptiveThreshold() throws Exception {
+		var token = bearerToken("unverified_rate_limited_" + System.nanoTime(), false);
+		for (var attempt = 0; attempt < 19; attempt++) {
+			mockMvc.perform(post("/api/v1/billing/checkout")
+						.header("Authorization", token)
+						.header("Origin", "http://localhost:3000")
+						.header("Idempotency-Key", "unverified-rate-" + attempt))
+					.andExpect(status().isForbidden());
+		}
+
+		mockMvc.perform(post("/api/v1/billing/checkout")
+					.header("Authorization", token)
+					.header("Origin", "http://localhost:3000")
+					.header("Idempotency-Key", "unverified-rate-final"))
+				.andExpect(status().isTooManyRequests())
+				.andExpect(jsonPath("$.code").value("adaptive_verification_required"));
+	}
+
+	@Test
 	void deniesCheckoutForUsersOtherThanTheConfiguredSyntheticAccount() throws Exception {
 		mockMvc.perform(post("/api/v1/billing/checkout")
 				.header("Authorization", bearerToken("personal_beta_user"))
@@ -147,11 +175,16 @@ class BillingControllerTests {
 	}
 
 	private static String bearerToken(String subject) throws Exception {
+		return bearerToken(subject, true);
+	}
+
+	private static String bearerToken(String subject, boolean emailVerified) throws Exception {
 		var claims = new JWTClaimsSet.Builder()
 				.subject(subject)
 				.issuer(ISSUER)
 				.audience(AUDIENCE)
 				.claim("azp", AUTHORIZED_PARTY)
+				.claim("email_verified", emailVerified)
 				.issueTime(Date.from(Instant.now()))
 				.expirationTime(Date.from(Instant.now().plusSeconds(300)))
 				.build();
