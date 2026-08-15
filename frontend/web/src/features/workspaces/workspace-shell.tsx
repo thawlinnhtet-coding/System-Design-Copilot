@@ -11,6 +11,7 @@ import { WorkspaceReasoning } from "./workspace-reasoning";
 import { ArchitectureCanvas } from "./architecture-canvas";
 import { useArchitectureEditorStore } from "./architecture-editor-store";
 import { ScenarioPanel } from "./scenario-panel";
+import { ReviewExperience } from "./review-experience";
 
 type Stage = "clarify" | "design" | "stress" | "review";
 
@@ -146,10 +147,14 @@ function StagePlaceholder({ stage, workspace }: { stage: Exclude<Stage, "clarify
 	if (stage === "stress") {
 		return <ScenarioPanel readOnly={workspace.status === "ARCHIVED"} workspaceId={workspace.id ?? ""} />;
 	}
+	if (stage === "review") {
+		return <ReviewExperience />;
+	}
 	const content = {
     design: { title: "Shape the architecture.", description: "The blank Architecture Canvas will become the primary design surface after the reasoning contract is in place.", action: "Open Canvas" },
     stress: { title: "Test the decision under pressure.", description: "Scenarios will change a condition and give you a place to defend or revise the design.", action: "Prepare a Scenario" },
-    review: { title: "Inspect evidence-backed feedback.", description: "Reviews will evaluate an immutable Architecture Revision against this Workspace's reasoning context.", action: "Prepare Review" },
   }[stage];
+  // The Review early-return above is intentionally retained while this legacy Design placeholder remains.
+  // @ts-expect-error TypeScript narrows this fallback to Design even though the stage model includes Review.
   return <section aria-label={`${stage} stage`} className="mt-10 border-y border-line py-10"><p className="font-mono text-xs uppercase tracking-[0.16em] text-text-muted">{workspace.source ?? "Custom"} Workspace</p><h2 className="mt-3 font-display text-3xl font-semibold">{content.title}</h2><p className="mt-4 max-w-2xl text-base leading-7 text-text-muted">{content.description}</p><p className="mt-5 max-w-2xl border-l-2 border-signal pl-4 text-sm text-text-muted">This stage stays available while you build evidence. You can return to Clarify or Design at any time.</p><button className="mt-7 inline-flex min-h-11 cursor-not-allowed items-center border border-line px-4 text-sm font-semibold text-text-muted" disabled type="button">{stage === "review" ? "Review submission is coming next" : `${content.action} · coming next`}</button></section>;
 }

@@ -15,3 +15,7 @@
 - [ ] A User can inspect linked evidence and manually carry a Finding into a Requirement, Assumption, Decision, or next-action list without automatic Workspace mutation.
 - [ ] Review history is a Workspace-scoped immutable timeline, and two completed Reviews from that Workspace can be compared.
 - [ ] Retrying a failed Review reuses its Architecture Revision without duplicate product usage.
+
+## Comments
+
+- 2026-08-16: Added the Review Experience UI/API-adapter shell on `issue/15-review-experience`. It renders the documented review states and completed-feedback structure as adapter input, but it intentionally does not submit, poll, retry, or load persisted Reviews until #14 provides the authoritative API contract. This ticket remains blocked and is not complete.
