@@ -10,6 +10,8 @@ import com.example.backend.workspace.infrastructure.WorkspaceRepository;
 import com.example.backend.workspace.infrastructure.WorkspaceStatus;
 import com.example.backend.workspace.infrastructure.WorkspaceSource;
 import com.example.backend.workspace.infrastructure.WorkspaceType;
+import com.example.backend.scenario.application.ScenarioInitializer;
+import com.example.backend.scenario.application.ScenarioWorkspaceContextProvider;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.context.annotation.Lazy;
@@ -23,11 +25,12 @@ import java.util.Set;
 import java.util.UUID;
 
 @Service
-public class WorkspaceService implements WorkspaceAccess, WorkspaceMetadataProvider {
+public class WorkspaceService implements WorkspaceAccess, WorkspaceMetadataProvider, ScenarioWorkspaceContextProvider {
 
 	private final WorkspaceRepository workspaceRepository;
 	private final EntitlementService entitlementService;
 	private final WorkspaceDataCleanup workspaceDataCleanup;
+	private final ScenarioInitializer scenarioInitializer;
 	private final Clock clock;
 	private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -35,11 +38,13 @@ public class WorkspaceService implements WorkspaceAccess, WorkspaceMetadataProvi
 		WorkspaceRepository workspaceRepository,
 		EntitlementService entitlementService,
 		@Lazy WorkspaceDataCleanup workspaceDataCleanup,
+		@Lazy ScenarioInitializer scenarioInitializer,
 		Clock clock
 	) {
 		this.workspaceRepository = workspaceRepository;
 		this.entitlementService = entitlementService;
 		this.workspaceDataCleanup = workspaceDataCleanup;
+		this.scenarioInitializer = scenarioInitializer;
 		this.clock = clock;
 	}
 
@@ -77,6 +82,13 @@ public class WorkspaceService implements WorkspaceAccess, WorkspaceMetadataProvi
 		return new WorkspaceMetadata(workspace.getId(), workspace.getName());
 	}
 
+	@Override
+	@Transactional(readOnly = true)
+	public ScenarioWorkspaceContext scenarioContext(UUID userId, UUID workspaceId) {
+		var workspace = ownedWorkspace(userId, workspaceId);
+		return new ScenarioWorkspaceContext(workspace.getName(), workspace.getDescription(), workspace.getChallengeSnapshot());
+	}
+
 	@Transactional
 	public WorkspaceSummary create(UUID userId, String name, String description, WorkspaceType type, WorkspaceSource source) {
 		validateTypeAndSource(type, source);
@@ -98,6 +110,7 @@ public class WorkspaceService implements WorkspaceAccess, WorkspaceMetadataProvi
 		entitlementService.registerActiveWorkspace(userId);
 		var workspace = workspaceRepository.save(new WorkspaceEntity(
 				userId, name, description, WorkspaceType.CHALLENGE, WorkspaceSource.CURATED_CHALLENGE, challengeVersionId, challengeSnapshot, now()));
+		scenarioInitializer.initializeCurated(userId, workspace.getId(), challengeSnapshot);
 		return summary(workspace);
 	}
 

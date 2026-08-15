@@ -10,6 +10,7 @@ import { downloadPortablePackage, type PortablePackage } from "@/lib/portable-pa
 import { WorkspaceReasoning } from "./workspace-reasoning";
 import { ArchitectureCanvas } from "./architecture-canvas";
 import { useArchitectureEditorStore } from "./architecture-editor-store";
+import { ScenarioPanel } from "./scenario-panel";
 
 type Stage = "clarify" | "design" | "stress" | "review";
 
@@ -28,7 +29,7 @@ export function WorkspaceShell({ workspaceId }: { workspaceId: string }) {
   const [error, setError] = useState<string | null>(null);
   const [isExporting, setIsExporting] = useState(false);
   const [isRestoring, setIsRestoring] = useState(false);
-  const [exportPackage, setExportPackage] = useState<Awaited<ReturnType<typeof api.exportWorkspace>> | null>(null);
+	const [exportPackage, setExportPackage] = useState<Awaited<ReturnType<typeof api.exportWorkspace>> | null>(null);
   const undo = useArchitectureEditorStore((state) => state.undo);
   const redo = useArchitectureEditorStore((state) => state.redo);
   const canUndo = useArchitectureEditorStore((state) => state.workspaceId === workspaceId && state.past.length > 0);
@@ -142,7 +143,10 @@ function viewportFromWorkspace(workspace: WorkspaceSummary) {
 }
 
 function StagePlaceholder({ stage, workspace }: { stage: Exclude<Stage, "clarify">; workspace: WorkspaceSummary }) {
-  const content = {
+	if (stage === "stress") {
+		return <ScenarioPanel readOnly={workspace.status === "ARCHIVED"} workspaceId={workspace.id ?? ""} />;
+	}
+	const content = {
     design: { title: "Shape the architecture.", description: "The blank Architecture Canvas will become the primary design surface after the reasoning contract is in place.", action: "Open Canvas" },
     stress: { title: "Test the decision under pressure.", description: "Scenarios will change a condition and give you a place to defend or revise the design.", action: "Prepare a Scenario" },
     review: { title: "Inspect evidence-backed feedback.", description: "Reviews will evaluate an immutable Architecture Revision against this Workspace's reasoning context.", action: "Prepare Review" },

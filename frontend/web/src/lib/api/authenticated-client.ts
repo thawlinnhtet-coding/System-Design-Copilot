@@ -23,6 +23,8 @@ export type Assumption = components["schemas"]["AssumptionResponse"];
 export type UnresolvedQuestion = components["schemas"]["QuestionResponse"];
 export type Decision = components["schemas"]["DecisionResponse"];
 export type ReviewBrief = components["schemas"]["ReviewBriefResponse"];
+export type Scenario = Required<Pick<components["schemas"]["ScenarioResponse"], "id" | "source" | "orderIndex" | "title" | "changedCondition" | "details" | "category" | "status">> & Pick<components["schemas"]["ScenarioResponse"], "response" | "architectureChanges" | "decisionChanges" | "completedAt">;
+export type ScenarioResponseInput = components["schemas"]["ScenarioResponseRequest"];
 export type RequirementInput = components["schemas"]["RequirementRequest"];
 export type AssumptionInput = components["schemas"]["AssumptionRequest"];
 export type QuestionInput = components["schemas"]["QuestionRequest"];
@@ -282,6 +284,25 @@ export function useAuthenticatedApiClient() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ expectedVersion, document }),
         });
+      },
+      getScenarios(workspaceId: string): Promise<Scenario[]> {
+        return json<Scenario[]>(`/api/v1/workspaces/${workspaceId}/scenarios`);
+      },
+      startScenario(workspaceId: string, scenarioId: string): Promise<Scenario> {
+        return json<Scenario>(`/api/v1/workspaces/${workspaceId}/scenarios/${scenarioId}/start`, { method: "POST" });
+      },
+      saveScenarioDraft(workspaceId: string, scenarioId: string, body: ScenarioResponseInput): Promise<Scenario> {
+        return json<Scenario>(`/api/v1/workspaces/${workspaceId}/scenarios/${scenarioId}`, {
+          method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
+        });
+      },
+      completeScenario(workspaceId: string, scenarioId: string, body: ScenarioResponseInput): Promise<Scenario> {
+        return json<Scenario>(`/api/v1/workspaces/${workspaceId}/scenarios/${scenarioId}/complete`, {
+          method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
+        });
+      },
+      createAiAssistedScenario(workspaceId: string): Promise<Scenario> {
+        return json<Scenario>(`/api/v1/workspaces/${workspaceId}/scenarios/ai-assisted`, { method: "POST" });
       },
       createArchitectureRevision(workspaceId: string): Promise<ArchitectureRevisionResponse> {
         return json<ArchitectureRevisionResponse>(`/api/v1/workspaces/${workspaceId}/architecture-revisions`, { method: "POST" });

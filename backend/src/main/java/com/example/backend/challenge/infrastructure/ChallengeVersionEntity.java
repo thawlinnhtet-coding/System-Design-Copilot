@@ -45,6 +45,9 @@ public class ChallengeVersionEntity {
 	@Column(name = "scenario_preview", nullable = false, columnDefinition = "jsonb", updatable = false)
 	private String scenarioPreview;
 	@JdbcTypeCode(SqlTypes.JSON)
+	@Column(name = "scenario_arc", nullable = false, columnDefinition = "jsonb", updatable = false)
+	private String scenarioArc;
+	@JdbcTypeCode(SqlTypes.JSON)
 	@Column(name = "quality_scores", nullable = false, columnDefinition = "jsonb", updatable = false)
 	private String qualityScores;
 	@Column(name = "independent_reviewer", nullable = false, length = 120, updatable = false)
@@ -67,6 +70,7 @@ public class ChallengeVersionEntity {
 	public String getInitialConstraints() { return initialConstraints; }
 	public String getSkillCoverage() { return skillCoverage; }
 	public String getScenarioPreview() { return scenarioPreview; }
+	public String getScenarioArc() { return scenarioArc; }
 	public String getQualityScores() { return qualityScores; }
 	public String getIndependentReviewer() { return independentReviewer; }
 	public ChallengeStatus getStatus() { return status; }

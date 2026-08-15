@@ -112,6 +112,7 @@ public class ChallengeService {
 			snapshot.set("initialConstraints", objectMapper.readTree(readJson(version.getInitialConstraints())));
 			snapshot.set("skillCoverage", objectMapper.readTree(readJson(version.getSkillCoverage())));
 			snapshot.set("scenarioPreview", objectMapper.readTree(readJson(version.getScenarioPreview())));
+			snapshot.set("scenarioArc", objectMapper.readTree(readJson(version.getScenarioArc())));
 			return objectMapper.writeValueAsString(snapshot);
 		} catch (Exception exception) {
 			throw new IllegalStateException("Published Challenge content is invalid", exception);
