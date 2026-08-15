@@ -95,7 +95,7 @@ class ScenarioControllerTests {
 	}
 
 	private UUID id(String body) throws Exception { JsonNode root = objectMapper.readTree(body); return UUID.fromString(root.path("id").asText()); }
-	private static String bearerToken(String subject) throws Exception { var claims = new JWTClaimsSet.Builder().subject(subject).issuer(ISSUER).audience(AUDIENCE).claim("azp", AUTHORIZED_PARTY).issueTime(Date.from(Instant.now())).expirationTime(Date.from(Instant.now().plusSeconds(300))).build(); var token = new SignedJWT(new JWSHeader(JWSAlgorithm.RS256), claims); token.sign(new RSASSASigner(SIGNING_KEY.getPrivate())); return "Bearer " + token.serialize(); }
+	private static String bearerToken(String subject) throws Exception { var claims = new JWTClaimsSet.Builder().subject(subject).issuer(ISSUER).audience(AUDIENCE).claim("azp", AUTHORIZED_PARTY).claim("email_verified", true).issueTime(Date.from(Instant.now())).expirationTime(Date.from(Instant.now().plusSeconds(300))).build(); var token = new SignedJWT(new JWSHeader(JWSAlgorithm.RS256), claims); token.sign(new RSASSASigner(SIGNING_KEY.getPrivate())); return "Bearer " + token.serialize(); }
 	private static KeyPair createKeyPair() { try { var generator = KeyPairGenerator.getInstance("RSA"); generator.initialize(2048); return generator.generateKeyPair(); } catch (Exception exception) { throw new IllegalStateException(exception); } }
 
 	@org.springframework.boot.test.context.TestConfiguration

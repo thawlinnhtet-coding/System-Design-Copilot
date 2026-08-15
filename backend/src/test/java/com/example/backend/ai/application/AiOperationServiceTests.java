@@ -102,6 +102,22 @@ class AiOperationServiceTests {
 		assertFalse(operation.acceptedOutput() != null);
 	}
 
+	@Test
+	void returnsTheSameAcceptedTurnWithoutInvokingTheProviderAgain() {
+		var store = new InMemoryOperationStore();
+		var provider = new StubProvider(new AiProviderResponse("advisory answer", "req", "model"));
+		var service = service(store, provider, BigDecimal.ZERO);
+		grantConsent(service.consentService);
+		var id = UUID.randomUUID();
+
+		var first = service.operationService.invoke(id, USER_ID, AiProfile.COPILOT, new AiBoundedContext(WORKSPACE_ID, "bounded context"), new BigDecimal("0.01"), PROMPT_VERSION);
+		var replay = service.operationService.accepted(id, USER_ID, WORKSPACE_ID, AiProfile.COPILOT);
+
+		assertEquals(first.operationId(), replay.operationId());
+		assertEquals("advisory answer", replay.content());
+		assertEquals(1, provider.invocations);
+	}
+
 	private ServiceFixture service(InMemoryOperationStore operationStore, StubProvider provider, BigDecimal ignored) {
 		var clock = Clock.fixed(NOW, ZoneOffset.UTC);
 		var consentStore = new InMemoryConsentStore();
@@ -159,6 +175,11 @@ class AiOperationServiceTests {
 		@Override
 		public BigDecimal chargedCostSince(Instant since) {
 			return chargedToday;
+		}
+
+		@Override
+		public java.util.Optional<AiOperation> findById(UUID id) {
+			return operations.stream().filter(operation -> operation.id().equals(id)).findFirst();
 		}
 
 		@Override

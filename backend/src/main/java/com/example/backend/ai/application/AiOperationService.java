@@ -47,6 +47,18 @@ public class AiOperationService {
 			BigDecimal estimatedCostUsd,
 			String promptVersion
 	) {
+		return invoke(UUID.randomUUID(), userId, profile, context, estimatedCostUsd, promptVersion);
+	}
+
+	@Transactional
+	public AiOperationResult invoke(
+			UUID operationId,
+			UUID userId,
+			AiProfile profile,
+			AiBoundedContext context,
+			BigDecimal estimatedCostUsd,
+			String promptVersion
+	) {
 		if (profile == null) {
 			throw new IllegalArgumentException("AI profile must not be null");
 		}
@@ -59,7 +71,6 @@ public class AiOperationService {
 
 		authorizer.requireAuthorized(userId, context.workspaceId());
 		var model = providerBoundary.profile(profile).model();
-		var operationId = UUID.randomUUID();
 		var startedAt = Instant.now(clock);
 		try {
 			var spentToday = operationStore.chargedCostSince(startOfUtcDay(startedAt));
@@ -98,6 +109,13 @@ public class AiOperationService {
 			));
 			throw exception;
 		}
+	}
+
+	public AiOperationResult accepted(UUID operationId, UUID userId, UUID workspaceId, AiProfile profile) {
+		return operationStore.findById(operationId)
+				.filter(operation -> operation.userId().equals(userId) && operation.workspaceId().equals(workspaceId) && operation.profile() == profile && operation.status() == AiOperationStatus.ACCEPTED)
+				.map(operation -> new AiOperationResult(operation.id(), operation.profile(), operation.model(), operation.acceptedOutput()))
+				.orElse(null);
 	}
 
 	private String outcomeCode(UnavailableException exception) {

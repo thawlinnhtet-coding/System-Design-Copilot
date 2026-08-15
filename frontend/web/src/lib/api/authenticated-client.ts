@@ -17,6 +17,8 @@ export type WorkspaceType = NonNullable<WorkspaceSummary["type"]>;
 export type WorkspaceSource = NonNullable<WorkspaceSummary["source"]>;
 export type CurrentEntitlements = components["schemas"]["CurrentEntitlements"];
 export type AiConsent = components["schemas"]["AiConsentResponse"];
+export type CopilotTurnRequest = Required<components["schemas"]["CopilotTurnRequest"]>;
+export type CopilotTurn = Required<components["schemas"]["CopilotTurn"]>;
 export type PortableValidationResponse = components["schemas"]["ImportResponse"];
 export type Requirement = components["schemas"]["RequirementResponse"];
 export type Assumption = components["schemas"]["AssumptionResponse"];
@@ -323,6 +325,11 @@ export function useAuthenticatedApiClient() {
       withdrawAiConsent(): Promise<AiConsent> {
         return json<AiConsent>("/api/v1/me/ai-consent", { method: "DELETE" });
       },
+		askCopilot(workspaceId: string, body: CopilotTurnRequest): Promise<CopilotTurn> {
+			return json<CopilotTurn>(`/api/v1/workspaces/${workspaceId}/copilot/turns`, {
+				method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
+			});
+		},
       async reconcileCompletedCheckout(sessionId: string): Promise<void> {
         const response = await request(`/api/v1/billing/checkout/complete?session_id=${encodeURIComponent(sessionId)}`, { method: "POST" });
         if (!response.ok) {

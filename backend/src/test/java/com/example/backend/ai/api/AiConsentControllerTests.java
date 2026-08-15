@@ -125,6 +125,13 @@ class AiConsentControllerTests {
 				.andExpect(jsonPath("$.paths['/api/v1/me/ai-consent'].delete").exists());
 	}
 
+	@Test
+	void publishesTheContextualCopilotContract() throws Exception {
+		mockMvc.perform(get("/v3/api-docs"))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.paths['/api/v1/workspaces/{workspaceId}/copilot/turns'].post").exists());
+	}
+
 	private void grant(String token) throws Exception {
 		mockMvc.perform(put("/api/v1/me/ai-consent")
 					.header("Authorization", token)
