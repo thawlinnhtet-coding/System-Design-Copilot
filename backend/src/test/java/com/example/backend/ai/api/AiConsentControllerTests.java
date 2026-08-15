@@ -46,6 +46,18 @@ class AiConsentControllerTests {
 	private MockMvc mockMvc;
 
 	@Test
+	void requiresVerifiedEmailBeforeGrantingAiConsent() throws Exception {
+		var token = bearerToken("consent_unverified_" + System.nanoTime(), false);
+
+		mockMvc.perform(put("/api/v1/me/ai-consent")
+					.header("Authorization", token)
+					.contentType(MediaType.APPLICATION_JSON)
+					.content("{\"policyVersion\":\"" + POLICY_VERSION + "\"}"))
+				.andExpect(status().isForbidden())
+				.andExpect(jsonPath("$.code").value("email_verification_required"));
+	}
+
+	@Test
 	void exposesBoundedPolicyAndPersistsGrantForTheAuthenticatedUser() throws Exception {
 		var token = bearerToken("consent_grant_" + System.nanoTime());
 
@@ -122,11 +134,16 @@ class AiConsentControllerTests {
 	}
 
 	private static String bearerToken(String subject) throws Exception {
+		return bearerToken(subject, true);
+	}
+
+	private static String bearerToken(String subject, boolean emailVerified) throws Exception {
 		var claims = new JWTClaimsSet.Builder()
 				.subject(subject)
 				.issuer(ISSUER)
 				.audience(AUDIENCE)
 				.claim("azp", AUTHORIZED_PARTY)
+				.claim("email_verified", emailVerified)
 				.issueTime(Date.from(Instant.now()))
 				.expirationTime(Date.from(Instant.now().plusSeconds(300)))
 				.build();

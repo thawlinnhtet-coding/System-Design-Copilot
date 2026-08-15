@@ -1,6 +1,6 @@
 "use client";
 
-import { SignInButton, useAuth } from "@clerk/nextjs";
+import { SignInButton, useAuth, useClerk, useUser } from "@clerk/nextjs";
 import { ArrowUpRight, CreditCard, RefreshCw } from "lucide-react";
 import { useState } from "react";
 import { useAuthenticatedApiClient, type ApiRequestError } from "@/lib/api/authenticated-client";
@@ -10,7 +10,9 @@ const buttonClassName =
   "inline-flex min-h-11 items-center justify-center gap-2 rounded-md px-4 py-2 text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus disabled:cursor-not-allowed disabled:opacity-50";
 
 export function BillingOverview() {
-  const { isLoaded, isSignedIn } = useAuth();
+	const { isLoaded, isSignedIn } = useAuth();
+	const { user } = useUser();
+	const clerk = useClerk();
   const api = useAuthenticatedApiClient();
   const [error, setError] = useState<string | null>(null);
   const [busyAction, setBusyAction] = useState<"checkout" | "portal" | null>(null);
@@ -37,7 +39,8 @@ export function BillingOverview() {
   const isPro = usage?.plan === "PRO";
   const isLoading = entitlements.isLoading;
   const checkoutAvailable = usage?.billing?.checkoutAvailable ?? false;
-  const portalAvailable = usage?.billing?.portalAvailable ?? false;
+	const portalAvailable = usage?.billing?.portalAvailable ?? false;
+	const emailVerified = user?.primaryEmailAddress?.verification?.status === "verified";
 
   async function openPortal() {
     setBusyAction("portal");
@@ -61,9 +64,12 @@ export function BillingOverview() {
     }
   }
 
+  const verifyEmail = () => clerk.openUserProfile();
+
   return (
     <div className="space-y-6">
       {error || entitlements.isError ? <p className="rounded-md border border-danger/30 bg-danger/10 px-4 py-3 text-sm text-danger" role="alert">{error ?? "We could not load your plan. Try again."}</p> : null}
+      {!emailVerified ? <section className="border-l-2 border-signal bg-signal-soft px-5 py-4 text-sm leading-6 text-foreground" role="status"><p className="font-semibold">Verify your email before managing billing.</p><p className="mt-1 text-text-muted">You can continue creating and saving private Workspaces. Clerk verification is required before any billing change.</p><button className="mt-3 inline-flex min-h-10 items-center border border-signal px-3 text-xs font-semibold text-signal" onClick={verifyEmail} type="button">Verify email with Clerk</button></section> : null}
 
       <section className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_18rem]">
         <div className="rounded-lg border border-line bg-surface p-6 sm:p-8">
@@ -85,10 +91,10 @@ export function BillingOverview() {
               </button>
             ) : (
               <div className="flex flex-wrap items-center gap-3">
-                <button className={`${buttonClassName} bg-signal text-text-on-dark hover:brightness-110`} disabled={busyAction !== null || !checkoutAvailable} onClick={startCheckout} type="button">
+                <button className={`${buttonClassName} bg-signal text-text-on-dark hover:brightness-110`} disabled={busyAction !== null || !checkoutAvailable || !emailVerified} onClick={startCheckout} type="button">
                   {busyAction === "checkout" ? <RefreshCw aria-hidden="true" className="animate-spin" size={16} /> : null} {checkoutAvailable ? "Upgrade to Pro" : "Upgrade unavailable in beta"} {checkoutAvailable ? <ArrowUpRight aria-hidden="true" size={16} /> : null}
                 </button>
-                <p className="text-xs text-text-muted">{checkoutAvailable ? "Configured test account only; eligibility is enforced by the backend." : "Ordinary personal-beta accounts stay on Free."}</p>
+                <p className="text-xs text-text-muted">{!emailVerified ? "Verify email ownership before changing billing." : checkoutAvailable ? "Configured test account only; eligibility is enforced by the backend." : "Ordinary personal-beta accounts stay on Free."}</p>
               </div>
             )}
           </div>

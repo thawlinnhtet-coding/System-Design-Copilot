@@ -4,13 +4,14 @@ import { renderWithProviders } from "@/test/setup";
 import { AccountDetail } from "./account-detail";
 
 const session = vi.hoisted(() => ({ isLoaded: true, isSignedIn: true }));
-const user = vi.hoisted(() => ({ fullName: "Thaw Linn Htet", primaryEmailAddress: { emailAddress: "thaw@example.com" } }));
+const user = vi.hoisted(() => ({ fullName: "Thaw Linn Htet", primaryEmailAddress: { emailAddress: "thaw@example.com", verification: { status: "verified" } } }));
+const clerk = vi.hoisted(() => ({ openUserProfile: vi.fn(), signOut: vi.fn() }));
 const api = vi.hoisted(() => ({ getUsage: vi.fn(), getAiConsent: vi.fn(), grantAiConsent: vi.fn(), withdrawAiConsent: vi.fn(), startCheckout: vi.fn(), openBillingPortal: vi.fn() }));
 
 vi.mock("@clerk/nextjs", () => ({
   SignInButton: ({ children }: { children: React.ReactNode }) => <>{children}</>,
   useAuth: () => session,
-  useClerk: () => ({ openUserProfile: vi.fn() }),
+	useClerk: () => clerk,
   useSession: () => ({ session: { id: "session-1" } }),
   useUser: () => ({ user }),
 }));
@@ -26,7 +27,9 @@ describe("AccountDetail", () => {
     api.getUsage.mockReset();
     api.getAiConsent.mockReset();
     api.grantAiConsent.mockReset();
-    api.withdrawAiConsent.mockReset();
+	api.withdrawAiConsent.mockReset();
+	user.primaryEmailAddress.verification.status = "verified";
+	vi.clearAllMocks();
   });
 
   it("renders the separate Profile & security detail state", () => {
@@ -35,10 +38,22 @@ describe("AccountDetail", () => {
     expect(screen.getByTestId("account-settings-sidebar")).toBeVisible();
     expect(screen.getByRole("heading", { name: "Profile" })).toBeVisible();
     expect(screen.getByText("Email address")).toBeVisible();
-    expect(screen.getByRole("button", { name: "Review sessions" })).toBeVisible();
+		expect(screen.getByRole("button", { name: "Sign out" })).toBeVisible();
+		expect(screen.getByRole("button", { name: "Manage all sessions" })).toBeVisible();
     expect(screen.getByRole("button", { name: "Manage sign-in" })).toBeVisible();
     expect(screen.getByText("Two-factor authentication")).toBeVisible();
   });
+
+	it("directs an unverified user to Clerk before enabling AI processing", async () => {
+		user.primaryEmailAddress.verification.status = "unverified";
+		api.getAiConsent.mockResolvedValue({ granted: false, policy: { currentVersion: "2026-08-01", includedCategories: [], excludedCategories: [] } });
+
+		renderWithProviders(<AccountDetail section="ai" />);
+
+		expect(await screen.findByRole("status")).toHaveTextContent("Copilot and Review AI work stay blocked");
+		fireEvent.click(screen.getByRole("button", { name: "Verify email" }));
+		expect(clerk.openUserProfile).toHaveBeenCalledTimes(1);
+	});
 
   it("renders plan usage detail with current allowance rows", async () => {
     api.getUsage.mockResolvedValue({

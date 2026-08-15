@@ -54,7 +54,8 @@ export function AccountDetail({ section }: { section: Exclude<AccountSection, "o
     );
   }
 
-  const email = user?.primaryEmailAddress?.emailAddress ?? "Email unavailable";
+	const email = user?.primaryEmailAddress?.emailAddress ?? "Email unavailable";
+	const emailVerified = user?.primaryEmailAddress?.verification?.status === "verified";
   if (section === "plan") {
     return (
       <div className="flex min-h-[calc(100vh-64px)] flex-col bg-background lg:flex-row" data-testid="account-detail-plan">
@@ -74,8 +75,8 @@ export function AccountDetail({ section }: { section: Exclude<AccountSection, "o
         <main className="min-w-0 flex-1 bg-[#f7f5ef] px-5 py-7 sm:px-8 lg:px-[46px] lg:py-[42px]">
           <div className="w-full max-w-[1080px]">
             <DetailHeader title={section === "privacy" ? "Privacy & deletion" : section === "data" ? "Import & export" : copy.title} description={section === "profile" ? "Manage your personal details, sign-in methods, and account security." : copy.description} />
-            {section === "profile" ? <ProfileDetail email={email} /> : null}
-            {section === "ai" ? <AiDetail /> : null}
+			{section === "profile" ? <ProfileDetail email={email} emailVerified={emailVerified} /> : null}
+			{section === "ai" ? <AiDetail emailVerified={emailVerified} /> : null}
             {section === "data" ? <DataDetail /> : null}
             {section === "privacy" ? <PrivacyDetail /> : null}
           </div>
@@ -93,20 +94,22 @@ function DetailHeader({ title, description }: { title: string; description: stri
   );
 }
 
-function ProfileDetail({ email }: { email: string }) {
-  const clerk = useClerk();
-  const openProfile = () => clerk.openUserProfile();
+function ProfileDetail({ email, emailVerified }: { email: string; emailVerified: boolean }) {
+	const clerk = useClerk();
+	const openProfile = () => clerk.openUserProfile();
+	const signOutCurrentSession = () => void clerk.signOut();
 
   return (
     <div className="flex max-w-[1120px] flex-col gap-4" data-testid="profile-security-card">
       <SettingsSection title="Profile">
         <SettingsRow label="Name" detail="Your display name is visible only within your account." action="Edit" onAction={openProfile} />
-        <SettingsRow label="Email address" detail={`${email} · Verified`} action="Edit" onAction={openProfile} />
+		<SettingsRow label="Email address" detail={`${email} · ${emailVerified ? "Verified" : "Verification required before AI and billing"}`} action={emailVerified ? "Edit" : "Verify email"} onAction={openProfile} />
       </SettingsSection>
       <SettingsSection title="Security">
-        <SettingsRow label="Sign-in methods" detail="Manage your password, passkeys, and supported sign-in methods." action="Manage sign-in" onAction={openProfile} />
-        <SettingsRow label="Two-factor authentication" detail="Add a second verification step to protect your account." action="Set up" onAction={openProfile} />
-        <SettingsRow label="Active sessions" detail="Review devices that are currently signed in to your account." action="Review sessions" onAction={openProfile} />
+		<SettingsRow label="Sign-in methods" detail="Manage your password, passkeys, and supported sign-in methods." action="Manage sign-in" onAction={openProfile} />
+		<SettingsRow label="Two-factor authentication" detail="Add a second verification step to protect your account." action="Set up" onAction={openProfile} />
+		<SettingsRow label="Current session" detail="End this browser session through Clerk." action="Sign out" onAction={signOutCurrentSession} />
+		<SettingsRow label="Active sessions" detail="Review devices and end sessions across every signed-in browser through Clerk." action="Manage all sessions" onAction={openProfile} />
       </SettingsSection>
     </div>
   );
@@ -208,9 +211,10 @@ function reviewValue(allowance: { used?: number; limit?: number | null } | undef
   return `${allowance.used ?? 0} / ${allowance.limit} this month`;
 }
 
-function AiDetail() {
-  const api = useAuthenticatedApiClient();
-  const queryClient = useQueryClient();
+function AiDetail({ emailVerified }: { emailVerified: boolean }) {
+	const api = useAuthenticatedApiClient();
+	const queryClient = useQueryClient();
+	const clerk = useClerk();
   const consent = useQuery({ queryKey: ["ai-consent"], queryFn: api.getAiConsent });
   const mutation = useMutation({
     mutationFn: (grant: boolean) => grant
@@ -225,9 +229,10 @@ function AiDetail() {
   const consentGranted = consent.data.granted === true;
   const policy = consent.data.policy;
 
-  return (
-    <div className="flex max-w-[1120px] flex-col gap-4" data-testid="ai-processing-card">
-      <SettingsSection title="AI processing consent">
+	return (
+		<div className="flex max-w-[1120px] flex-col gap-4" data-testid="ai-processing-card">
+			{!emailVerified ? <section className="border-l-2 border-signal bg-signal-soft px-4 py-3 text-[13px] leading-[1.5] text-foreground" role="status"><p className="font-semibold">Verify your email before enabling AI processing.</p><p className="mt-1 text-text-muted">Private Workspace editing remains available. Copilot and Review AI work stay blocked until Clerk confirms email ownership.</p><button className="mt-3 inline-flex h-8 items-center bg-signal px-3 text-[12px] font-semibold text-white" onClick={() => clerk.openUserProfile()} type="button">Verify email with Clerk</button></section> : null}
+			<SettingsSection title="AI processing consent">
         <div className="flex flex-col gap-2 text-[13px] leading-[1.5] text-[#66716c]">
           <p>AI guidance is advisory. Before a Copilot or Review operation, only bounded context from the current Workspace is sent for processing.</p>
           <p>There is no cross-Workspace context picker. Credentials, tokens, passwords, account data, billing, usage, identity data, unrelated Workspaces, and raw provider payloads stay excluded.</p>
@@ -237,7 +242,7 @@ function AiDetail() {
           <PolicyList title="Excluded categories" values={policy?.excludedCategories ?? []} />
         </div>
         <SettingsRow label="Provider privacy routing" detail={policy?.providerRouting ?? "Approved non-retaining routing with provider fallback disabled."} action="Policy shown above" onAction={() => undefined} />
-        <SettingsRow label="Revocation control" detail={consentGranted ? "Consent is granted. Revoking blocks future AI operations; prior transmissions cannot be retracted." : "Future AI processing is blocked until you grant consent again."} action={mutation.isPending ? "Saving..." : consentGranted ? "Revoke consent" : "Grant consent"} onAction={() => mutation.mutate(!consentGranted)} />
+			<SettingsRow label="Revocation control" detail={consentGranted ? "Consent is granted. Revoking blocks future AI operations; prior transmissions cannot be retracted." : emailVerified ? "Future AI processing is blocked until you grant consent again." : "Verify email ownership with Clerk before enabling AI processing."} action={mutation.isPending ? "Saving..." : consentGranted ? "Revoke consent" : emailVerified ? "Grant consent" : "Verify email"} onAction={() => consentGranted ? mutation.mutate(false) : emailVerified ? mutation.mutate(true) : clerk.openUserProfile()} />
         {mutation.isError ? <p className="text-xs text-warning" role="alert">The consent change could not be saved. Try again.</p> : null}
         <p className="border-t border-[#edf0eb] pt-4 text-[12px] leading-[1.5] text-[#66716c]">The personal beta stops new AI operations when the USD 0.10 UTC daily budget is reached. {policy?.priorTransmissionNotice ?? "Context already sent to a provider cannot be retracted."}</p>
       </SettingsSection>
