@@ -25,6 +25,8 @@ export type Assumption = components["schemas"]["AssumptionResponse"];
 export type UnresolvedQuestion = components["schemas"]["QuestionResponse"];
 export type Decision = components["schemas"]["DecisionResponse"];
 export type ReviewBrief = components["schemas"]["ReviewBriefResponse"];
+export type ReviewSubmission = components["schemas"]["ReviewSubmission"];
+export type ReviewDetails = components["schemas"]["ReviewDetails"];
 export type Scenario = Required<Pick<components["schemas"]["ScenarioResponse"], "id" | "source" | "orderIndex" | "title" | "changedCondition" | "details" | "category" | "status">> & Pick<components["schemas"]["ScenarioResponse"], "response" | "architectureChanges" | "decisionChanges" | "completedAt">;
 export type ScenarioResponseInput = components["schemas"]["ScenarioResponseRequest"];
 export type RequirementInput = components["schemas"]["RequirementRequest"];
@@ -308,6 +310,17 @@ export function useAuthenticatedApiClient() {
       },
       createArchitectureRevision(workspaceId: string): Promise<ArchitectureRevisionResponse> {
         return json<ArchitectureRevisionResponse>(`/api/v1/workspaces/${workspaceId}/architecture-revisions`, { method: "POST" });
+      },
+      submitReview(workspaceId: string, idempotencyKey: string): Promise<ReviewSubmission> {
+        return json<ReviewSubmission>(`/api/v1/workspaces/${workspaceId}/reviews`, {
+          method: "POST", headers: { "Idempotency-Key": idempotencyKey },
+        });
+      },
+      getReviews(workspaceId: string): Promise<ReviewDetails[]> {
+        return json<ReviewDetails[]>(`/api/v1/workspaces/${workspaceId}/reviews`);
+      },
+      retryReview(workspaceId: string, reviewRequestId: string): Promise<ReviewSubmission> {
+        return json<ReviewSubmission>(`/api/v1/workspaces/${workspaceId}/reviews/${reviewRequestId}/retry`, { method: "POST" });
       },
       getUsage(): Promise<CurrentEntitlements> {
         return json<CurrentEntitlements>("/api/v1/me/usage");

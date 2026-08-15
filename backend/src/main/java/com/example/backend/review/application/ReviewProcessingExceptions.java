@@ -5,4 +5,5 @@ public final class ReviewProcessingExceptions {
 	public static class InvalidIdempotencyKeyException extends RuntimeException { public InvalidIdempotencyKeyException() { super("Idempotency-Key must be present and at most 255 characters"); } }
 	public static class IdempotencyConflictException extends RuntimeException { public IdempotencyConflictException() { super("Idempotency-Key was already used for a different Review request"); } }
 	public static class InvalidReviewOutputException extends RuntimeException { public InvalidReviewOutputException(String message) { super(message); } }
+	public static class RetryNotAllowedException extends RuntimeException { public RetryNotAllowedException() { super("Only a failed Review can be retried"); } }
 }
