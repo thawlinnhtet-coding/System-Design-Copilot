@@ -24,13 +24,15 @@ public class ChallengeService {
 	private final ChallengeVersionRepository versionRepository;
 	private final EntitlementService entitlementService;
 	private final WorkspaceService workspaceService;
+	private final ChallengeContentPolicy contentPolicy;
 	private final ObjectMapper objectMapper = new ObjectMapper();
 
-	public ChallengeService(ChallengeRepository challengeRepository, ChallengeVersionRepository versionRepository, EntitlementService entitlementService, WorkspaceService workspaceService) {
+	public ChallengeService(ChallengeRepository challengeRepository, ChallengeVersionRepository versionRepository, EntitlementService entitlementService, WorkspaceService workspaceService, ChallengeContentPolicy contentPolicy) {
 		this.challengeRepository = challengeRepository;
 		this.versionRepository = versionRepository;
 		this.entitlementService = entitlementService;
 		this.workspaceService = workspaceService;
+		this.contentPolicy = contentPolicy;
 	}
 
 	@Transactional(readOnly = true)
@@ -59,13 +61,20 @@ public class ChallengeService {
 
 	private ChallengeSummary summary(ChallengeEntity challenge) {
 		var version = versionRepository.findTopByChallengeIdAndStatusOrderByVersionDesc(challenge.getId(), ChallengeStatus.PUBLISHED).orElseThrow(ChallengeNotFoundException::new);
+		validatePublished(version);
 		var skillFocus = readSkills(version.getSkillCoverage()).stream().filter(SkillCoverage::primary).findFirst().map(SkillCoverage::name).orElse("General systems reasoning");
 		return new ChallengeSummary(challenge.getSlug(), challenge.getTopic(), version.getId(), version.getTitle(), version.getDescription(), version.getDifficulty().name(), version.getEstimatedMinutes(), skillFocus);
 	}
 
 	private ChallengeVersionEntity publishedVersion(String slug) {
 		var challenge = challengeRepository.findBySlugAndStatus(slug, ChallengeStatus.PUBLISHED).orElseThrow(ChallengeNotFoundException::new);
-		return versionRepository.findTopByChallengeIdAndStatusOrderByVersionDesc(challenge.getId(), ChallengeStatus.PUBLISHED).orElseThrow(ChallengeNotFoundException::new);
+		var version = versionRepository.findTopByChallengeIdAndStatusOrderByVersionDesc(challenge.getId(), ChallengeStatus.PUBLISHED).orElseThrow(ChallengeNotFoundException::new);
+		validatePublished(version);
+		return version;
+	}
+
+	private void validatePublished(ChallengeVersionEntity version) {
+		contentPolicy.validatePublished(version.getSkillCoverage(), version.getQualityScores(), version.getIndependentReviewer());
 	}
 
 	private List<String> readStrings(String value) {

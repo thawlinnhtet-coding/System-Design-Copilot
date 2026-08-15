@@ -15,9 +15,9 @@
 - [x] Topic Packs are the canonical content structure, ordered as request paths, data/read scaling, consistency/contention, async/eventing, reliability/operations, and global/multi-region systems.
 - [x] The first Foundation anchors are URL Shortener, News Feed, Ticket Booking, Notification Delivery, Distributed Job Processing, and Global Rate Limiter; Intermediate and Advanced variants remain deferred until pilot evidence supports them.
 - [x] Difficulty uses reasoning load: Foundation has one dominant path and explicit trade-off; Intermediate combines multiple flows, quantified scale, and competing trade-offs; Advanced combines interacting constraints and ambiguity.
-- [ ] Skill Coverage tracks nine granular skills with `introduce`, `practice`, and `demonstrate` levels, one primary skill, and up to three secondary skills mapped to broader Review dimensions.
+- [x] Skill Coverage tracks nine granular skills with `introduce`, `practice`, and `demonstrate` levels, one primary skill, and up to three secondary skills mapped to broader Review dimensions.
 - [x] Estimated practice time means the first defensible design and uses Foundation 20-30, Intermediate 45-60, and Advanced 75-120 minute bands.
-- [ ] Challenge quality uses seven 1-5 dimensions, requires no critical score below 3 and an average of at least 4, and requires independent review.
+- [x] Challenge quality uses seven 1-5 dimensions, requires no critical score below 3 and an average of at least 4, and requires independent review.
 - [ ] Content follows Draft, Review, Published, and Retired lifecycle states through version-controlled authoring and authorized content-operator release.
 - [x] Challenge content is published as immutable Challenge Versions.
 - [x] Retiring a Challenge Version prevents new starts and normal discovery while preserving existing snapped Workspaces, Revisions, and Reviews.
@@ -27,3 +27,4 @@
 ## Comments
 
 - 2026-08-14: Review fixes completed on `ticket-09-curated-challenge-catalog`: seeded all six Foundation anchors, routed Challenge access through the entitlement boundary, added filterable compact catalog/detail attempt UX, shared API-test adapter coverage, immutable full-version snapshots, and blocked direct challenge workspace creation without a snapshot. Exact nine-skill taxonomy validation, seven-dimension quality scoring with independent review, and authorized Draft/Review/Published/Retired content operations remain follow-ups for the content-operations phase.
+- 2026-08-15: Added persistent independent-review and seven-dimension quality data for every published Challenge Version. The backend validates the exact nine-skill taxonomy, coverage levels and primary/secondary limits, score thresholds, and reviewer before serving or starting a Challenge. The authorized content-operator lifecycle remains the final follow-up.

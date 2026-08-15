@@ -1,0 +1,17 @@
+ALTER TABLE challenge_versions ADD COLUMN quality_scores JSONB;
+ALTER TABLE challenge_versions ADD COLUMN independent_reviewer VARCHAR(120);
+
+UPDATE challenge_versions
+SET skill_coverage = CASE id
+    WHEN '11111111-1111-4111-8111-111111111112' THEN '[{"name":"decomposition and APIs","level":"demonstrate","primary":true,"reviewDimension":"architecture"},{"name":"data modeling and consistency","level":"practice","primary":false,"reviewDimension":"consistency"},{"name":"scaling and performance","level":"practice","primary":false,"reviewDimension":"scaling"},{"name":"security and privacy","level":"introduce","primary":false,"reviewDimension":"security"}]'
+    WHEN '22222222-2222-4222-8222-222222222223' THEN '[{"name":"scaling and performance","level":"demonstrate","primary":true,"reviewDimension":"scaling"},{"name":"data modeling and consistency","level":"practice","primary":false,"reviewDimension":"consistency"},{"name":"async and distributed communication","level":"practice","primary":false,"reviewDimension":"async_reasoning"},{"name":"requirements and estimation","level":"introduce","primary":false,"reviewDimension":"requirements"}]'
+    WHEN '33333333-3333-4333-8333-333333333334' THEN '[{"name":"data modeling and consistency","level":"demonstrate","primary":true,"reviewDimension":"consistency"},{"name":"reliability and failure handling","level":"practice","primary":false,"reviewDimension":"reliability"},{"name":"requirements and estimation","level":"practice","primary":false,"reviewDimension":"requirements"},{"name":"security and privacy","level":"introduce","primary":false,"reviewDimension":"security"}]'
+    WHEN '44444444-4444-4444-8444-444444444445' THEN '[{"name":"async and distributed communication","level":"demonstrate","primary":true,"reviewDimension":"async_reasoning"},{"name":"reliability and failure handling","level":"practice","primary":false,"reviewDimension":"reliability"},{"name":"operations and observability","level":"practice","primary":false,"reviewDimension":"operations"},{"name":"trade-off communication","level":"introduce","primary":false,"reviewDimension":"tradeoffs"}]'
+    WHEN '55555555-5555-4555-8555-555555555556' THEN '[{"name":"async and distributed communication","level":"demonstrate","primary":true,"reviewDimension":"async_reasoning"},{"name":"reliability and failure handling","level":"practice","primary":false,"reviewDimension":"reliability"},{"name":"operations and observability","level":"practice","primary":false,"reviewDimension":"operations"},{"name":"data modeling and consistency","level":"introduce","primary":false,"reviewDimension":"consistency"}]'
+    WHEN '66666666-6666-4666-8666-666666666667' THEN '[{"name":"scaling and performance","level":"demonstrate","primary":true,"reviewDimension":"scaling"},{"name":"data modeling and consistency","level":"practice","primary":false,"reviewDimension":"consistency"},{"name":"trade-off communication","level":"practice","primary":false,"reviewDimension":"tradeoffs"},{"name":"operations and observability","level":"introduce","primary":false,"reviewDimension":"operations"}]'
+END,
+quality_scores = '{"learningAlignment":4,"realismAndIntentionalAmbiguity":4,"constraintsAndSolvability":4,"difficultyAndTimeCalibration":4,"scenarioQuality":4,"reviewEvaluability":4,"claritySafetyAndAccessibility":4}',
+independent_reviewer = 'content-review-2026-08-14';
+
+ALTER TABLE challenge_versions ALTER COLUMN quality_scores SET NOT NULL;
+ALTER TABLE challenge_versions ALTER COLUMN independent_reviewer SET NOT NULL;

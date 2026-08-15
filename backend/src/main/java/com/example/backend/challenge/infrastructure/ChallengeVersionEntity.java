@@ -44,6 +44,11 @@ public class ChallengeVersionEntity {
 	@JdbcTypeCode(SqlTypes.JSON)
 	@Column(name = "scenario_preview", nullable = false, columnDefinition = "jsonb", updatable = false)
 	private String scenarioPreview;
+	@JdbcTypeCode(SqlTypes.JSON)
+	@Column(name = "quality_scores", nullable = false, columnDefinition = "jsonb", updatable = false)
+	private String qualityScores;
+	@Column(name = "independent_reviewer", nullable = false, length = 120, updatable = false)
+	private String independentReviewer;
 	@Enumerated(EnumType.STRING)
 	@Column(nullable = false, length = 16)
 	private ChallengeStatus status;
@@ -62,4 +67,6 @@ public class ChallengeVersionEntity {
 	public String getInitialConstraints() { return initialConstraints; }
 	public String getSkillCoverage() { return skillCoverage; }
 	public String getScenarioPreview() { return scenarioPreview; }
+	public String getQualityScores() { return qualityScores; }
+	public String getIndependentReviewer() { return independentReviewer; }
 }

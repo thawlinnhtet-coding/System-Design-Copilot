@@ -69,7 +69,8 @@ class ChallengeControllerTests {
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.problemStatement").isNotEmpty())
 				.andExpect(jsonPath("$.initialConstraints").isArray())
-				.andExpect(jsonPath("$.skillCoverage[0].level").value("introduce"))
+				.andExpect(jsonPath("$.skillCoverage[0].name").value("decomposition and APIs"))
+				.andExpect(jsonPath("$.skillCoverage[0].level").value("demonstrate"))
 				.andExpect(jsonPath("$.scenarioPreview").isArray())
 				.andExpect(jsonPath("$.topicPacks[0]").value("request paths"));
 
