@@ -9,12 +9,15 @@ import com.example.backend.entitlement.application.EntitlementProperties;
 import com.example.backend.ai.application.AiProviderProperties;
 import com.example.backend.challenge.application.ChallengeContentOperationsProperties;
 import com.example.backend.identity.application.PublicBetaAbuseProtectionProperties;
+import com.example.backend.review.application.ReviewProcessingProperties;
 
 import java.time.Clock;
 import org.springframework.context.annotation.Bean;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 @SpringBootApplication
-@EnableConfigurationProperties({EntitlementProperties.class, BillingProperties.class, AiProviderProperties.class, ChallengeContentOperationsProperties.class, PublicBetaAbuseProtectionProperties.class})
+@EnableScheduling
+@EnableConfigurationProperties({EntitlementProperties.class, BillingProperties.class, AiProviderProperties.class, ChallengeContentOperationsProperties.class, PublicBetaAbuseProtectionProperties.class, ReviewProcessingProperties.class})
 public class BackendApplication {
 
 	public static void main(String[] args) {

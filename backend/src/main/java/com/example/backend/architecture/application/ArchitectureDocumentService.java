@@ -87,6 +87,15 @@ public class ArchitectureDocumentService {
 		return revisions.findByIdAndWorkspaceId(revisionId, workspaceId).map(this::revisionResponse).orElseThrow(ArchitectureRevisionNotFoundException::new);
 	}
 
+	/** A Review worker may read only the immutable snapshot it was created for. */
+	@Transactional(readOnly = true)
+	public ReviewRevisionSnapshot reviewSnapshot(UUID userId, UUID workspaceId, UUID revisionId) {
+		workspaceAccess.requireOwned(userId, workspaceId);
+		return revisions.findByIdAndWorkspaceId(revisionId, workspaceId)
+				.map(entity -> new ReviewRevisionSnapshot(entity.getId(), entity.getWorkspaceId(), entity.getDocument(), entity.getReasoningContext()))
+				.orElseThrow(ArchitectureRevisionNotFoundException::new);
+	}
+
 	private void validate(JsonNode document) {
 		if (!document.isObject() || document.path("schemaVersion").asInt(-1) != SCHEMA_VERSION) fail("schemaVersion must be 1");
 		var components = requiredArray(document, "components", 250);
@@ -160,6 +169,7 @@ public class ArchitectureDocumentService {
 
 	public record DocumentResponse(UUID workspaceId, long version, JsonNode document, Instant updatedAt) { }
 	public record RevisionResponse(UUID id, UUID workspaceId, long documentVersion, JsonNode document, JsonNode reasoningContext, Instant createdAt) { }
+	public record ReviewRevisionSnapshot(UUID id, UUID workspaceId, String document, String reasoningContext) { }
 	public static class InvalidArchitectureDocumentException extends RuntimeException { public InvalidArchitectureDocumentException(String message) { super(message); } }
 	public static class ArchitectureDocumentConflictException extends RuntimeException { private final long currentVersion; private final JsonNode currentDocument; public ArchitectureDocumentConflictException(long currentVersion, JsonNode currentDocument) { super("The Architecture Document changed while you were editing it"); this.currentVersion=currentVersion; this.currentDocument=currentDocument; } public long currentVersion(){return currentVersion;} public JsonNode currentDocument(){return currentDocument;} }
 	public static class ArchitectureDocumentMissingException extends RuntimeException { public ArchitectureDocumentMissingException(){super("Add an Architecture Document before preparing a Revision");} }
