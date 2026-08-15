@@ -614,25 +614,25 @@ export interface components {
             object?: boolean;
             float?: boolean;
             number?: boolean;
-            missingNode?: boolean;
-            integralNumber?: boolean;
-            container?: boolean;
             /** @enum {string} */
             nodeType?: "ARRAY" | "BINARY" | "BOOLEAN" | "MISSING" | "NULL" | "NUMBER" | "OBJECT" | "POJO" | "STRING";
+            container?: boolean;
+            missingNode?: boolean;
             valueNode?: boolean;
+            floatingPointNumber?: boolean;
+            integralNumber?: boolean;
             bigDecimal?: boolean;
             bigInteger?: boolean;
-            floatingPointNumber?: boolean;
-            string?: boolean;
-            double?: boolean;
-            pojo?: boolean;
             short?: boolean;
+            double?: boolean;
+            long?: boolean;
+            boolean?: boolean;
+            string?: boolean;
+            pojo?: boolean;
+            int?: boolean;
             /** @deprecated */
             textual?: boolean;
-            boolean?: boolean;
-            int?: boolean;
             binary?: boolean;
-            long?: boolean;
             embeddedValue?: boolean;
         };
         SaveArchitectureDocumentRequest: {
@@ -975,6 +975,9 @@ export interface components {
             level?: string;
             primary?: boolean;
             reviewDimension?: string;
+        };
+        DeleteWorkspaceRequest: {
+            confirmationName: string;
         };
     };
     responses: never;
@@ -1576,7 +1579,11 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DeleteWorkspaceRequest"];
+            };
+        };
         responses: {
             /** @description No Content */
             204: {

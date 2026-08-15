@@ -28,4 +28,10 @@ public final class WorkspaceExceptions {
 			super("The Workspace focus state is invalid");
 		}
 	}
+
+	public static class WorkspaceDeletionConfirmationMismatchException extends RuntimeException {
+		public WorkspaceDeletionConfirmationMismatchException() {
+			super("Type the exact Workspace name before permanently deleting it");
+		}
+	}
 }

@@ -8,6 +8,7 @@ const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:808
 const tokenTemplate = process.env.NEXT_PUBLIC_CLERK_JWT_TEMPLATE ?? "system-design-copilot-api";
 type CurrentUserResponse = components["schemas"]["CurrentUserResponse"];
 export type ManualRecreationRequest = components["schemas"]["ManualRecreationRequest"];
+export type DeleteWorkspaceRequest = components["schemas"]["DeleteWorkspaceRequest"];
 export type WorkspaceSummary = components["schemas"]["WorkspaceSummary"];
 export type ChallengeDetail = Omit<Required<components["schemas"]["ChallengeDetail"]>, "skillCoverage"> & {
   skillCoverage: Array<Required<components["schemas"]["SkillCoverage"]>>;
@@ -182,10 +183,16 @@ export function useAuthenticatedApiClient() {
       restoreWorkspace(id: string): Promise<WorkspaceSummary> {
         return json<WorkspaceSummary>(`/api/v1/workspaces/${id}/restore`, { method: "POST" });
       },
-      async deleteWorkspace(id: string): Promise<void> {
-        const response = await request(`/api/v1/workspaces/${id}`, { method: "DELETE" });
+      async deleteWorkspace(id: string, confirmationName: string): Promise<void> {
+        const response = await request(`/api/v1/workspaces/${id}`, {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ confirmationName } satisfies DeleteWorkspaceRequest),
+        });
         if (!response.ok) {
-          throw new Error(`API request failed with status ${response.status}`);
+          let details: Record<string, unknown> | undefined;
+          try { details = await response.json() as Record<string, unknown>; } catch { /* response may be empty */ }
+          throw new ApiRequestError(response.status, details);
         }
       },
       getReasoning(id: string): Promise<WorkspaceReasoning> {
