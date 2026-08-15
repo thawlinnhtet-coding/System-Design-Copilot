@@ -4,7 +4,7 @@
 
 **Blocked by:** 03 - Free Plan And Usage Policy; 05 - Custom Workspace Lifecycle; 07 - Architecture Document Contract; 19 - Workspace Types And Sources.
 
-**Status:** in-review
+**Status:** complete
 
 **UI delivery:** Implement this ticket's user-facing desktop and mobile states from `ui_design`; keep backend ownership and validation authoritative, and add or update a Playwright journey for the completed flow.
 
@@ -18,7 +18,7 @@
 - [x] Skill Coverage tracks nine granular skills with `introduce`, `practice`, and `demonstrate` levels, one primary skill, and up to three secondary skills mapped to broader Review dimensions.
 - [x] Estimated practice time means the first defensible design and uses Foundation 20-30, Intermediate 45-60, and Advanced 75-120 minute bands.
 - [x] Challenge quality uses seven 1-5 dimensions, requires no critical score below 3 and an average of at least 4, and requires independent review.
-- [ ] Content follows Draft, Review, Published, and Retired lifecycle states through version-controlled authoring and authorized content-operator release.
+- [x] Content follows Draft, Review, Published, and Retired lifecycle states through version-controlled authoring and authorized content-operator release.
 - [x] Challenge content is published as immutable Challenge Versions.
 - [x] Retiring a Challenge Version prevents new starts and normal discovery while preserving existing snapped Workspaces, Revisions, and Reviews.
 - [x] Starting a Challenge snapshots the selected Challenge Version into a private Challenge Workspace and never changes the source Challenge.
@@ -28,3 +28,4 @@
 
 - 2026-08-14: Review fixes completed on `ticket-09-curated-challenge-catalog`: seeded all six Foundation anchors, routed Challenge access through the entitlement boundary, added filterable compact catalog/detail attempt UX, shared API-test adapter coverage, immutable full-version snapshots, and blocked direct challenge workspace creation without a snapshot. Exact nine-skill taxonomy validation, seven-dimension quality scoring with independent review, and authorized Draft/Review/Published/Retired content operations remain follow-ups for the content-operations phase.
 - 2026-08-15: Added persistent independent-review and seven-dimension quality data for every published Challenge Version. The backend validates the exact nine-skill taxonomy, coverage levels and primary/secondary limits, score thresholds, and reviewer before serving or starting a Challenge. The authorized content-operator lifecycle remains the final follow-up.
+- 2026-08-15: Completed the content-operator release boundary. Version-controlled Challenge content can now move from Draft to Review, Published, and Retired only through operator-authorized API actions; publication validates independent review and quality gates, and retirement preserves existing snapshots. Full backend verification passes (87 tests).

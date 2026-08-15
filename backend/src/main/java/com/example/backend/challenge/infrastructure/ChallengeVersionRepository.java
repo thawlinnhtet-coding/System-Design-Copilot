@@ -6,4 +6,5 @@ import java.util.UUID;
 
 public interface ChallengeVersionRepository extends JpaRepository<ChallengeVersionEntity, UUID> {
 	Optional<ChallengeVersionEntity> findTopByChallengeIdAndStatusOrderByVersionDesc(UUID challengeId, ChallengeStatus status);
+	boolean existsByChallengeIdAndStatus(UUID challengeId, ChallengeStatus status);
 }

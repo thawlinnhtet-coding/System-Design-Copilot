@@ -29,4 +29,5 @@ public class ChallengeEntity {
 	public String getSlug() { return slug; }
 	public String getTopic() { return topic; }
 	public ChallengeStatus getStatus() { return status; }
+	public void setStatus(ChallengeStatus status) { this.status = status; }
 }

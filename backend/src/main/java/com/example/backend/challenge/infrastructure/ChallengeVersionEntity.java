@@ -52,7 +52,7 @@ public class ChallengeVersionEntity {
 	@Enumerated(EnumType.STRING)
 	@Column(nullable = false, length = 16)
 	private ChallengeStatus status;
-	@Column(name = "published_at", updatable = false)
+	@Column(name = "published_at")
 	private Instant publishedAt;
 	protected ChallengeVersionEntity() { }
 	public UUID getId() { return id; }
@@ -69,4 +69,7 @@ public class ChallengeVersionEntity {
 	public String getScenarioPreview() { return scenarioPreview; }
 	public String getQualityScores() { return qualityScores; }
 	public String getIndependentReviewer() { return independentReviewer; }
+	public ChallengeStatus getStatus() { return status; }
+	public void setStatus(ChallengeStatus status) { this.status = status; }
+	public void publishAt(Instant publishedAt) { this.publishedAt = publishedAt; }
 }
