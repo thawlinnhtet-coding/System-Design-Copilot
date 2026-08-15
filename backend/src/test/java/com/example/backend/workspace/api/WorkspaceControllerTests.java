@@ -101,7 +101,10 @@ class WorkspaceControllerTests {
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.status").value("ACTIVE"));
 
-		mockMvc.perform(delete("/api/v1/workspaces/{workspaceId}", workspaceId).header("Authorization", token))
+		mockMvc.perform(delete("/api/v1/workspaces/{workspaceId}", workspaceId)
+				.header("Authorization", token)
+				.contentType(MediaType.APPLICATION_JSON)
+				.content("{\"confirmationName\":\"Checkout service\"}"))
 				.andExpect(status().isNoContent());
 
 		mockMvc.perform(get("/api/v1/workspaces").header("Authorization", token))
@@ -111,6 +114,28 @@ class WorkspaceControllerTests {
 		mockMvc.perform(get("/api/v1/me/usage").header("Authorization", token))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.activeWorkspaces.used").value(0));
+	}
+
+	@Test
+	void requiresTheExactWorkspaceNameBeforePermanentDeletion() throws Exception {
+		var token = bearerToken("workspace_delete_confirmation_" + System.nanoTime());
+		var response = mockMvc.perform(post("/api/v1/workspaces")
+				.header("Authorization", token)
+				.contentType(MediaType.APPLICATION_JSON)
+				.content("{\"name\":\"Payments\",\"description\":\"Process payments\",\"type\":\"CUSTOM_DESIGN\",\"source\":\"CUSTOM_DESIGN\"}"))
+				.andExpect(status().isCreated())
+				.andReturn();
+		var workspaceId = workspaceId(response.getResponse().getContentAsString());
+
+		mockMvc.perform(delete("/api/v1/workspaces/{workspaceId}", workspaceId)
+				.header("Authorization", token)
+				.contentType(MediaType.APPLICATION_JSON)
+				.content("{\"confirmationName\":\"payments\"}"))
+				.andExpect(status().isUnprocessableEntity())
+				.andExpect(jsonPath("$.code").value("workspace_deletion_confirmation_mismatch"));
+
+		mockMvc.perform(get("/api/v1/workspaces/{workspaceId}", workspaceId).header("Authorization", token))
+				.andExpect(status().isOk());
 	}
 
 	@Test
@@ -413,7 +438,9 @@ class WorkspaceControllerTests {
 				.andExpect(status().isNoContent());
 
 		mockMvc.perform(delete("/api/v1/workspaces/{workspaceId}", workspaceId)
-				.header("Authorization", token))
+				.header("Authorization", token)
+				.contentType(MediaType.APPLICATION_JSON)
+				.content("{\"confirmationName\":\"News feed\"}"))
 				.andExpect(status().isNoContent());
 		mockMvc.perform(get("/api/v1/workspaces/{workspaceId}/reasoning", workspaceId).header("Authorization", token))
 				.andExpect(status().isNotFound());

@@ -27,6 +27,7 @@ export function WorkspaceShell({ workspaceId }: { workspaceId: string }) {
   const [stage, setStage] = useState<Stage>("clarify");
   const [error, setError] = useState<string | null>(null);
   const [isExporting, setIsExporting] = useState(false);
+  const [isRestoring, setIsRestoring] = useState(false);
   const [exportPackage, setExportPackage] = useState<Awaited<ReturnType<typeof api.exportWorkspace>> | null>(null);
   const undo = useArchitectureEditorStore((state) => state.undo);
   const redo = useArchitectureEditorStore((state) => state.redo);
@@ -74,6 +75,19 @@ export function WorkspaceShell({ workspaceId }: { workspaceId: string }) {
     }
   }
 
+  async function restoreWorkspace() {
+    if (!workspace) return;
+    setIsRestoring(true);
+    setError(null);
+    try {
+      setWorkspace(await api.restoreWorkspace(workspaceId));
+    } catch {
+      setError("This Workspace could not be restored because your active Workspace allowance is full. Archive another Workspace first.");
+    } finally {
+      setIsRestoring(false);
+    }
+  }
+
   if (!isLoaded) return <p className="text-sm text-text-muted">Restoring your session...</p>;
   if (!isSignedIn) {
     return <section className="mx-auto max-w-xl border-y border-line py-12 text-center"><p className="font-mono text-xs uppercase tracking-[0.18em] text-signal">Private Workspace</p><h1 className="mt-3 font-display text-3xl font-semibold">Sign in to continue.</h1><SignInButton fallbackRedirectUrl={`/workspace/${workspaceId}`} mode="modal"><button className="mt-6 inline-flex min-h-11 rounded-md bg-signal px-4 text-sm font-semibold text-text-on-dark" type="button">Sign in</button></SignInButton></section>;
@@ -105,6 +119,7 @@ export function WorkspaceShell({ workspaceId }: { workspaceId: string }) {
         <div className="min-w-0"><p className="font-mono text-[10px] uppercase tracking-[0.14em] text-text-muted">Workspace</p><h1 className="truncate font-display text-xl font-semibold">{workspace.name}</h1></div>
         <div className="flex items-center gap-1 text-text-muted"><button aria-label="Export portable package" className="text-xs font-semibold text-signal hover:underline" disabled={isExporting} onClick={() => void exportWorkspace()} type="button">{isExporting ? "Exporting..." : "Export"}</button><button aria-label="Undo" className="icon-button disabled:cursor-not-allowed disabled:opacity-40" disabled={!canUndo} onClick={undo} type="button"><RotateCcw aria-hidden="true" size={15} /></button><button aria-label="Redo" className="icon-button disabled:cursor-not-allowed disabled:opacity-40" disabled={!canRedo} onClick={redo} type="button"><RotateCw aria-hidden="true" size={15} /></button><span className="mx-2 hidden items-center gap-1 text-xs sm:flex"><Check aria-hidden="true" className="text-success" size={15} />{workspace.saveState ?? "Not started"}</span><button aria-label="Open contextual rail" className="icon-button" type="button"><PanelRight aria-hidden="true" size={16} /></button></div>
       </header>
+      {workspace.status === "ARCHIVED" ? <section className="flex flex-col justify-between gap-4 border-b border-amber-500/30 bg-amber-500/10 px-5 py-4 sm:flex-row sm:items-center sm:px-7" aria-label="Archived Workspace status"><div><p className="font-mono text-[10px] uppercase tracking-[0.14em] text-amber-800">ARCHIVED / READ-ONLY</p><p className="mt-1 text-sm text-foreground">Editing, Copilot use, and Review submission are unavailable until this Workspace is restored. Export remains available.</p></div><button className="inline-flex min-h-11 shrink-0 items-center justify-center border border-signal bg-signal px-4 text-sm font-semibold text-text-on-dark disabled:opacity-50" disabled={isRestoring} onClick={() => void restoreWorkspace()} type="button">{isRestoring ? "Restoring..." : "Restore Workspace"}</button></section> : null}
       {exportPackage?.packageNode ? <section aria-label="Portable export preview" className="border-b border-line bg-background px-5 py-4 sm:px-7"><div className="flex flex-wrap items-center justify-between gap-4"><div><p className="font-mono text-[10px] uppercase tracking-[0.14em] text-text-muted">PORTABLE EXPORT PREVIEW</p><p className="mt-1 text-sm text-foreground">{exportPackage.preview?.title ?? workspace.name} · {exportPackage.preview?.requirements ?? 0} Requirements · {exportPackage.preview?.assumptions ?? 0} Assumptions · {exportPackage.preview?.decisions ?? 0} Decisions · {exportPackage.preview?.components ?? 0} Components</p><p className="mt-1 text-xs text-text-muted">Identity, billing, usage, provider metadata, and Reviews are excluded.</p></div><div className="flex gap-2"><button className="border border-line px-3 py-2 text-xs text-text-muted" onClick={() => setExportPackage(null)} type="button">Cancel</button><button className="bg-signal px-3 py-2 text-xs font-semibold text-text-on-dark" onClick={() => { downloadPortablePackage(exportPackage.packageNode as unknown as PortablePackage, `${workspace.name ?? "workspace"}.json`); setExportPackage(null); }} type="button">Download JSON</button></div></div></section> : null}
       <nav aria-label="Mobile Workspace stages" className="grid grid-cols-4 border-b border-line bg-background md:hidden">{stages.map((item) => <button aria-current={stage === item.id ? "step" : undefined} className={`min-h-12 border-r border-line px-2 text-xs font-semibold last:border-r-0 ${stage === item.id ? "text-signal" : "text-text-muted"}`} key={item.id} onClick={() => void selectStage(item.id)} type="button"><span className="mr-1 font-mono text-[10px]">{item.number}</span>{item.label}</button>)}</nav>
       <main className="min-w-0 flex-1 overflow-auto px-5 py-8 sm:px-8 lg:px-12 lg:py-10">

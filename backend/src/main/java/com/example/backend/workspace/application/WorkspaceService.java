@@ -3,6 +3,7 @@ package com.example.backend.workspace.application;
 import com.example.backend.entitlement.application.EntitlementService;
 import com.example.backend.identity.application.CurrentUserService;
 import com.example.backend.workspace.application.WorkspaceExceptions.WorkspaceNotFoundException;
+import com.example.backend.workspace.application.WorkspaceExceptions.WorkspaceDeletionConfirmationMismatchException;
 import com.example.backend.workspace.application.WorkspaceExceptions.InvalidWorkspaceTypeSourceException;
 import com.example.backend.workspace.infrastructure.WorkspaceEntity;
 import com.example.backend.workspace.infrastructure.WorkspaceRepository;
@@ -153,8 +154,11 @@ public class WorkspaceService implements WorkspaceAccess, WorkspaceMetadataProvi
 	}
 
 	@Transactional
-	public void delete(UUID userId, UUID workspaceId) {
+	public void delete(UUID userId, UUID workspaceId, String confirmationName) {
 		var workspace = ownedWorkspace(userId, workspaceId);
+		if (!workspace.getName().equals(confirmationName)) {
+			throw new WorkspaceDeletionConfirmationMismatchException();
+		}
 		if (workspace.getStatus() == WorkspaceStatus.ACTIVE) {
 			entitlementService.unregisterActiveWorkspace(userId);
 		}

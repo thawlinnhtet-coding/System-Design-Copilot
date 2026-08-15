@@ -135,8 +135,12 @@ public class WorkspaceController {
 	@DeleteMapping("/{workspaceId}")
 	@ResponseStatus(HttpStatus.NO_CONTENT)
 	@Operation(summary = "Permanently delete an owned Workspace")
-	public void delete(@AuthenticationPrincipal Jwt jwt, @PathVariable UUID workspaceId) {
-		workspaceService.delete(currentUserService.getOrCreate(jwt.getSubject()).id(), workspaceId);
+	public void delete(
+			@AuthenticationPrincipal Jwt jwt,
+			@PathVariable UUID workspaceId,
+			@Valid @RequestBody DeleteWorkspaceRequest request
+	) {
+		workspaceService.delete(currentUserService.getOrCreate(jwt.getSubject()).id(), workspaceId, request.confirmationName());
 	}
 
 	public record CreateWorkspaceRequest(
@@ -161,5 +165,8 @@ public class WorkspaceController {
 	}
 
 	public record RenameWorkspaceRequest(@NotBlank @Size(max = 120) String name) {
+	}
+
+	public record DeleteWorkspaceRequest(@NotBlank @Size(max = 120) String confirmationName) {
 	}
 }

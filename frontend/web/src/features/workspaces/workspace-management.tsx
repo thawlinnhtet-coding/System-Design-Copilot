@@ -17,8 +17,10 @@ export function WorkspaceManagement() {
   const api = useAuthenticatedApiClient();
   const router = useRouter();
   const client = useQueryClient();
+  const [archiving, setArchiving] = useState<WorkspaceSummary | null>(null);
   const [deleting, setDeleting] = useState<WorkspaceSummary | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
   const query = useQuery({ queryKey: workspaceKey, queryFn: api.getWorkspaces, enabled: isLoaded && isSignedIn });
 
   useEffect(() => {
@@ -28,16 +30,18 @@ export function WorkspaceManagement() {
   async function mutate(workspace: WorkspaceSummary, operation: "archive" | "restore" | "delete") {
     if (!workspace.id) return;
     setError(null);
+    setNotice(null);
     try {
       if (operation === "archive") await api.archiveWorkspace(workspace.id);
       if (operation === "restore") await api.restoreWorkspace(workspace.id);
-      if (operation === "delete") await api.deleteWorkspace(workspace.id);
+      if (operation === "delete") await api.deleteWorkspace(workspace.id, workspace.name ?? "");
       await client.invalidateQueries({ queryKey: workspaceKey });
+      if (operation === "archive") setNotice(`${workspace.name ?? "Workspace"} is archived. It is read-only and no longer uses an active Workspace allowance.`);
+      if (operation === "restore") setNotice(`${workspace.name ?? "Workspace"} is active again and ready to continue.`);
+      setArchiving(null);
       setDeleting(null);
     } catch (caught) {
-      setError(caught instanceof ApiRequestError && caught.status === 403
-        ? "That action is not available for this Workspace."
-        : "The Workspace could not be updated. Your existing work is safe.");
+      setError(messageFor(operation, caught));
     }
   }
 
@@ -52,15 +56,17 @@ export function WorkspaceManagement() {
       <Link className={`${action} border-signal bg-signal font-semibold text-text-on-dark`} href="/practice">New Workspace</Link>
     </header>
     {error || query.isError ? <p className="border border-danger/30 bg-danger/10 px-4 py-3 text-sm text-danger" role="alert">{error ?? "We could not load your Workspaces. Try again."}</p> : null}
+    {notice ? <p className="border border-success/30 bg-success/10 px-4 py-3 text-sm text-success" role="status">{notice}</p> : null}
     {query.isLoading ? <p className="border border-line bg-surface px-7 py-12 text-sm text-text-muted">Loading your Workspaces...</p> : <section className="grid items-start gap-9 min-[1400px]:grid-cols-[860px_360px]">
       <div className="border border-line bg-surface"><div className="flex items-center justify-between border-b border-line p-7"><div><p className="font-mono text-[11px] text-text-muted">YOUR WORKSPACES</p><h2 className="mt-1 font-display text-2xl">Active and archived work</h2></div><span className="border border-line bg-background px-2 py-1 font-mono text-[10px] text-text-muted">{active.length} ACTIVE</span></div>
-        <WorkspaceGroup label="ACTIVE WORKSPACES" empty="No active Workspaces. Start a custom design when you are ready to reason through a new problem." workspaces={active}>{(workspace) => <><Link className="text-sm text-signal hover:underline" href={`/workspace/${workspace.id}`}>Open</Link><button className="inline-flex items-center gap-1 text-sm text-text-muted hover:text-foreground" onClick={() => void mutate(workspace, "archive")} type="button"><Archive size={14} />Archive</button></>}</WorkspaceGroup>
+        <WorkspaceGroup label="ACTIVE WORKSPACES" empty="No active Workspaces. Start a custom design when you are ready to reason through a new problem." workspaces={active}>{(workspace) => <><Link className="text-sm text-signal hover:underline" href={`/workspace/${workspace.id}`}>Open</Link><button className="inline-flex items-center gap-1 text-sm text-text-muted hover:text-foreground" onClick={() => setArchiving(workspace)} type="button"><Archive size={14} />Archive</button></>}</WorkspaceGroup>
         <WorkspaceGroup label="ARCHIVED WORKSPACES" empty="No archived Workspaces. Archiving is a reversible way to clear active practice." workspaces={archived}>{(workspace) => <><button className="inline-flex items-center gap-1 text-sm text-signal hover:underline" onClick={() => void mutate(workspace, "restore")} type="button"><RotateCcw size={14} />Restore</button><button className="inline-flex items-center gap-1 text-sm text-danger hover:underline" onClick={() => setDeleting(workspace)} type="button"><Trash2 size={14} />Delete</button></>}</WorkspaceGroup>
       </div>
       <aside className="flex w-full self-start flex-col gap-3 bg-chrome-850 p-7"><p className="font-mono text-[11px] leading-[1.3] text-text-on-dark-secondary">WORKSPACE STATUS</p><p className="max-w-[300px] font-display text-[22px] leading-[1.35] text-text-on-dark">One active problem at a time.</p><p className="max-w-[290px] text-[13px] leading-[1.45] text-text-on-dark-secondary">Archive paused work to keep Practice focused. Restoring brings the Workspace back exactly where you left it.</p></aside>
     </section>}
     <Link className="inline-flex w-fit items-center font-mono text-[11px] leading-[1.3] text-signal transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-focus" href="/practice"><ArrowLeft aria-hidden="true" className="mr-1" size={14} />BACK TO PRACTICE</Link>
-    {deleting ? <DeleteDialog name={deleting.name ?? "this Workspace"} onCancel={() => setDeleting(null)} onConfirm={() => void mutate(deleting, "delete")} /> : null}
+    {archiving ? <ArchiveDialog name={archiving.name ?? "this Workspace"} onCancel={() => setArchiving(null)} onConfirm={() => void mutate(archiving, "archive")} /> : null}
+    {deleting ? <DeleteDialog name={deleting.name ?? "this Workspace"} onCancel={() => setDeleting(null)} onConfirm={(confirmationName) => void deleteWorkspace(deleting, confirmationName, api, client, setDeleting, setError, setNotice)} /> : null}
   </main>;
 }
 
@@ -68,6 +74,35 @@ function WorkspaceGroup({ children, empty, label, workspaces }: { children: (wor
   return <section><p className="px-7 pb-2 pt-4 font-mono text-[10px] text-text-muted">{label}</p>{workspaces.length ? workspaces.map((workspace) => <div className="flex items-center justify-between gap-4 border-b border-line px-7 py-3" key={workspace.id}><div className="min-w-0"><p className="truncate text-sm text-foreground">{workspace.name ?? "Untitled Workspace"}</p><p className="mt-1 font-mono text-[11px] text-text-muted">{workspace.type?.replaceAll("_", " ") ?? "WORKSPACE"} · {workspace.source?.replaceAll("_", " ") ?? "UNKNOWN SOURCE"}</p><p className="mt-1 font-mono text-[11px] text-text-muted">{workspace.status} · {workspace.progressPercent ?? 0}% · {workspace.saveState?.replaceAll("_", " ") ?? "SAVED"}</p></div><div className="flex shrink-0 items-center gap-4">{children(workspace)}</div></div>) : <p className="border-b border-line px-7 py-5 text-sm text-text-muted">{empty}</p>}</section>;
 }
 
-function DeleteDialog({ name, onCancel, onConfirm }: { name: string; onCancel: () => void; onConfirm: () => void }) {
-  return <div aria-modal="true" className="fixed inset-0 z-50 grid place-items-center bg-chrome-850/70 p-5" role="dialog" aria-labelledby="delete-workspace-title"><section className="w-full max-w-md border border-line bg-surface p-7 shadow-xl"><p className="font-mono text-[11px] text-danger">DELETE WORKSPACE</p><h2 className="mt-2 font-display text-2xl" id="delete-workspace-title">Delete {name}?</h2><p className="mt-3 text-sm leading-6 text-text-muted">This permanently removes the Workspace and its private reasoning. This cannot be undone.</p><div className="mt-7 flex justify-end gap-3"><button className={`${action} border-line bg-background text-foreground`} onClick={onCancel} type="button">Cancel</button><button className={`${action} border-danger bg-danger text-text-on-dark`} onClick={onConfirm} type="button">Delete Workspace</button></div></section></div>;
+function ArchiveDialog({ name, onCancel, onConfirm }: { name: string; onCancel: () => void; onConfirm: () => void }) {
+  return <div aria-modal="true" className="fixed inset-0 z-50 grid place-items-center bg-chrome-850/70 p-5" role="dialog" aria-labelledby="archive-workspace-title"><section className="w-full max-w-md border border-line bg-surface p-7 shadow-xl"><p className="font-mono text-[11px] text-text-muted">ARCHIVE WORKSPACE</p><h2 className="mt-2 font-display text-2xl" id="archive-workspace-title">Archive {name}?</h2><p className="mt-3 text-sm leading-6 text-text-muted">Archived Workspaces become read-only and stop using an active-Workspace allowance. You can restore this Workspace later if capacity is available.</p><div className="mt-7 flex justify-end gap-3"><button className={`${action} border-line bg-background text-foreground`} onClick={onCancel} type="button">Cancel</button><button className={`${action} border-signal bg-signal text-text-on-dark`} onClick={onConfirm} type="button">Archive Workspace</button></div></section></div>;
+}
+
+function DeleteDialog({ name, onCancel, onConfirm }: { name: string; onCancel: () => void; onConfirm: (confirmationName: string) => void }) {
+  const [confirmationName, setConfirmationName] = useState("");
+  const confirmed = confirmationName === name;
+  return <div aria-modal="true" className="fixed inset-0 z-50 grid place-items-center bg-chrome-850/70 p-5" role="dialog" aria-labelledby="delete-workspace-title"><section className="w-full max-w-md border border-line bg-surface p-7 shadow-xl"><p className="font-mono text-[11px] text-danger">DELETE WORKSPACE</p><h2 className="mt-2 font-display text-2xl" id="delete-workspace-title">Delete {name}?</h2><p className="mt-3 text-sm leading-6 text-text-muted">This permanently removes the Workspace, its Architecture Document, private reasoning, and Reviews. This cannot be undone.</p><label className="mt-5 grid gap-2 text-sm font-semibold" htmlFor="delete-workspace-confirmation">Type <span className="font-mono text-danger">{name}</span> to confirm.<input autoComplete="off" className="field" id="delete-workspace-confirmation" onChange={(event) => setConfirmationName(event.target.value)} value={confirmationName} /></label><div className="mt-7 flex justify-end gap-3"><button className={`${action} border-line bg-background text-foreground`} onClick={onCancel} type="button">Cancel</button><button className={`${action} border-danger bg-danger text-text-on-dark`} disabled={!confirmed} onClick={() => onConfirm(confirmationName)} type="button">Delete Workspace</button></div></section></div>;
+}
+
+function messageFor(operation: "archive" | "restore" | "delete", caught: unknown) {
+  if (caught instanceof ApiRequestError && caught.status === 403) {
+    return operation === "restore"
+      ? "This Workspace cannot be restored because your active Workspace allowance is full. Archive another Workspace first."
+      : "That action is not available for this Workspace.";
+  }
+  if (caught instanceof ApiRequestError && caught.status === 422) return "The Workspace name did not match. Nothing was deleted.";
+  return "The Workspace could not be updated. Your existing work is safe.";
+}
+
+async function deleteWorkspace(workspace: WorkspaceSummary, confirmationName: string, api: ReturnType<typeof useAuthenticatedApiClient>, client: ReturnType<typeof useQueryClient>, close: (value: WorkspaceSummary | null) => void, setError: (value: string | null) => void, setNotice: (value: string | null) => void) {
+  if (!workspace.id) return;
+  setError(null);
+  setNotice(null);
+  try {
+    await api.deleteWorkspace(workspace.id, confirmationName);
+    await client.invalidateQueries({ queryKey: workspaceKey });
+    close(null);
+  } catch (caught) {
+    setError(messageFor("delete", caught));
+  }
 }

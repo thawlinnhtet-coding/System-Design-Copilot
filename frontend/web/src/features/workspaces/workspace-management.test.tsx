@@ -1,6 +1,7 @@
 import { fireEvent, screen, waitFor } from "@testing-library/react";
 import { vi } from "vitest";
 import { renderWithProviders } from "@/test/setup";
+import { ApiRequestError } from "@/lib/api/authenticated-client";
 import { WorkspaceManagement } from "./workspace-management";
 
 const session = vi.hoisted(() => ({ isLoaded: true, isSignedIn: true }));
@@ -21,7 +22,7 @@ describe("WorkspaceManagement", () => {
     session.isSignedIn = true;
   });
 
-  it("separates active and archived workspaces and confirms permanent deletion", async () => {
+  it("separates active and archived workspaces and requires the exact name before deletion", async () => {
     api.getWorkspaces.mockResolvedValue([
       { id: "active-1", name: "Notifications", status: "ACTIVE", progressPercent: 38, saveState: "SAVED" },
       { id: "archived-1", name: "Image pipeline", status: "ARCHIVED", progressPercent: 61, saveState: "SAVED" },
@@ -32,7 +33,33 @@ describe("WorkspaceManagement", () => {
     expect(screen.getByText("Image pipeline")).toBeVisible();
     fireEvent.click(screen.getByRole("button", { name: "Delete" }));
     expect(screen.getByRole("dialog")).toHaveTextContent("Delete Image pipeline?");
+    expect(screen.getByRole("button", { name: "Delete Workspace" })).toBeDisabled();
+    fireEvent.change(screen.getByLabelText("Type Image pipeline to confirm."), { target: { value: "Image pipeline" } });
     fireEvent.click(screen.getByRole("button", { name: "Delete Workspace" }));
-    await waitFor(() => expect(api.deleteWorkspace).toHaveBeenCalledWith("archived-1"));
+    await waitFor(() => expect(api.deleteWorkspace).toHaveBeenCalledWith("archived-1", "Image pipeline"));
+  });
+
+  it("explains archive consequences before removing active capacity", async () => {
+    api.getWorkspaces.mockResolvedValue([{ id: "active-1", name: "Notifications", status: "ACTIVE", progressPercent: 38, saveState: "SAVED" }]);
+    renderWithProviders(<WorkspaceManagement />);
+
+    await screen.findByText("Notifications");
+    fireEvent.click(screen.getByRole("button", { name: "Archive" }));
+
+    expect(screen.getByRole("dialog")).toHaveTextContent("become read-only and stop using an active-Workspace allowance");
+    fireEvent.click(screen.getByRole("button", { name: "Archive Workspace" }));
+    await waitFor(() => expect(api.archiveWorkspace).toHaveBeenCalledWith("active-1"));
+  });
+
+  it("keeps the Workspace visible when restoration is blocked by capacity", async () => {
+    api.getWorkspaces.mockResolvedValue([{ id: "archived-1", name: "Image pipeline", status: "ARCHIVED", progressPercent: 61, saveState: "SAVED" }]);
+    api.restoreWorkspace.mockRejectedValue(new ApiRequestError(403));
+    renderWithProviders(<WorkspaceManagement />);
+
+    await screen.findByText("Image pipeline");
+    fireEvent.click(screen.getByRole("button", { name: "Restore" }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent("active Workspace allowance is full");
+    expect(screen.getByText("Image pipeline")).toBeVisible();
   });
 });
