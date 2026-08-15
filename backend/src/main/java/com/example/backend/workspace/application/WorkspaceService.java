@@ -186,7 +186,7 @@ public class WorkspaceService implements WorkspaceAccess, WorkspaceMetadataProvi
 				reviewBriefRequired(workspace.getSource()),
 				workspace.getFocusStage(),
 				workspace.getFocusPanel(),
-				read(workspace.getCanvasViewport()),
+				canvasViewport(workspace.getCanvasViewport()),
 				workspace.getType() == WorkspaceType.CUSTOM_DESIGN ? "Make the system needs explicit." : null,
 				workspace.getType() == WorkspaceType.CUSTOM_DESIGN ? "Add your first Requirement or open the blank Canvas." : null,
 				workspace.getCreatedAt(),
@@ -223,12 +223,20 @@ public class WorkspaceService implements WorkspaceAccess, WorkspaceMetadataProvi
 		boolean reviewBriefRequired,
 		String focusStage,
 		String focusPanel,
-		JsonNode canvasViewport,
+		CanvasViewport canvasViewport,
 		String clarifyPrompt,
 		String suggestedNextAction,
 		Instant createdAt,
 			Instant updatedAt
 	) {
+	}
+
+	public record CanvasViewport(double x, double y, double zoom) {
+	}
+
+	private CanvasViewport canvasViewport(String value) {
+		var node = read(value);
+		return new CanvasViewport(node.path("x").asDouble(), node.path("y").asDouble(), node.path("zoom").asDouble());
 	}
 
 	private JsonNode read(String value) {

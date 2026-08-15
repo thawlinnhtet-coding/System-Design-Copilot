@@ -84,6 +84,12 @@ public class EntitlementService {
 		userAllowanceStore.updateActiveWorkspaceCount(userId, activeWorkspaceCount + 1);
 	}
 
+	/** Serialize durable Workspace-create commands for one User before they reserve an idempotency key. */
+	@Transactional
+	public void lockActiveWorkspaceCount(UUID userId) {
+		userAllowanceStore.activeWorkspaceCountForUpdate(userId);
+	}
+
 	@Transactional
 	public void unregisterActiveWorkspace(UUID userId) {
 		var activeWorkspaceCount = userAllowanceStore.activeWorkspaceCountForUpdate(userId);

@@ -102,13 +102,14 @@ export function PracticeHome() {
                   : "Choose the recommended starter Challenge, or begin with your own system. Your first Workspace will guide the practice loop."}
               </p>
             </div>
-            <button
-              className={`${button} shrink-0 border-signal bg-signal font-semibold text-text-on-dark hover:brightness-110`}
-              onClick={() => setCreating(true)}
-              type="button"
-            >
-              Start custom design
-            </button>
+            <div className="flex flex-wrap gap-3">
+              <Link className={`${button} shrink-0 border-signal bg-signal font-semibold text-text-on-dark hover:brightness-110`} href="/practice/review">
+                Review existing architecture
+              </Link>
+              <button className={`${button} shrink-0 border-line text-signal hover:bg-surface-alt`} onClick={() => setCreating(true)} type="button">
+                Start custom design
+              </button>
+            </div>
           </header>
           {next ? <ResumeWorkspace workspace={next} /> : <StarterChallenge />}
           <section className="grid gap-9 lg:grid-cols-2">

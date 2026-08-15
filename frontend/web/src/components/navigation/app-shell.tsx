@@ -39,7 +39,6 @@ export function AppShell({ children, fullBleed = false, compactHeader = false }:
           </nav>
 
           <div className="flex items-center gap-3">
-            <span className="hidden font-mono text-[10px] font-semibold tracking-[0.12em] text-warning lg:inline">PERSONAL BETA</span>
             {isLoaded && isSignedIn ? <AccountMenu isOpen={isAccountOpen} onToggle={() => setIsAccountOpen((open) => !open)} /> : null}
             <button aria-controls="mobile-navigation" aria-expanded={isMenuOpen} aria-label={isMenuOpen ? "Close navigation menu" : "Open navigation menu"} className="inline-flex size-11 items-center justify-center rounded-[3px] border border-white/15 text-text-on-dark md:hidden" onClick={() => setIsMenuOpen((open) => !open)} type="button">
               {isMenuOpen ? <X aria-hidden="true" size={18} /> : <Menu aria-hidden="true" size={18} />}

@@ -32,5 +32,7 @@ describe("AppShell account menu", () => {
     expect(await screen.findByTestId("account-menu")).toBeVisible();
     expect(screen.getByTestId("account-settings-overview-link")).toHaveAttribute("href", "/account");
     expect(screen.getByRole("menuitem", { name: /Profile & security/ })).toHaveAttribute("href", "/account/profile");
+    expect(await screen.findByRole("button", { name: "Close account menu" })).toHaveTextContent("PERSONAL BETA");
+    expect(screen.getAllByText(/PERSONAL BETA/)).toHaveLength(1);
   });
 });

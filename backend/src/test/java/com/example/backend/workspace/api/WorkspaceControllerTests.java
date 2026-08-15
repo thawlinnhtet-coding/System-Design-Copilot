@@ -267,6 +267,50 @@ class WorkspaceControllerTests {
 	}
 
 	@Test
+	void createsManualArchitectureReviewWorkspaceWithBriefAndKnownReasoning() throws Exception {
+		var token = bearerToken("manual_review_entry_" + System.nanoTime());
+		var response = mockMvc.perform(post("/api/v1/architecture-review-workspaces/manual-recreation")
+				.header("Authorization", token)
+				.header("Idempotency-Key", "manual-review-entry-1")
+				.contentType(MediaType.APPLICATION_JSON)
+				.content("""
+						{"name":"Ticket booking","systemDescription":"A ticket booking system","reviewGoal":"Check overselling and recovery","knownRequirements":["Never oversell a seat"],"knownAssumptions":["Inventory is partitioned by venue"]}
+						"""))
+				.andExpect(status().isCreated())
+				.andExpect(jsonPath("$.type").value("ARCHITECTURE_REVIEW"))
+				.andExpect(jsonPath("$.source").value("MANUAL_RECREATION"))
+				.andExpect(jsonPath("$.reviewBriefRequired").value(true))
+				.andReturn();
+		var workspaceId = workspaceId(response.getResponse().getContentAsString());
+		mockMvc.perform(post("/api/v1/architecture-review-workspaces/manual-recreation")
+				.header("Authorization", token)
+				.header("Idempotency-Key", "manual-review-entry-1")
+				.contentType(MediaType.APPLICATION_JSON)
+				.content("""
+						{"name":"Ticket booking","systemDescription":"A ticket booking system","reviewGoal":"Check overselling and recovery","knownRequirements":["Never oversell a seat"],"knownAssumptions":["Inventory is partitioned by venue"]}
+						"""))
+				.andExpect(status().isCreated())
+				.andExpect(jsonPath("$.id").value(workspaceId.toString()));
+
+		mockMvc.perform(get("/api/v1/workspaces/{workspaceId}/reasoning", workspaceId).header("Authorization", token))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.reviewBrief.systemDescription").value("A ticket booking system"))
+				.andExpect(jsonPath("$.reviewBrief.reviewGoal").value("Check overselling and recovery"))
+				.andExpect(jsonPath("$.requirements[0].statement").value("Never oversell a seat"))
+				.andExpect(jsonPath("$.assumptions[0].rationale").value("Inventory is partitioned by venue"));
+	}
+
+	@Test
+	void rejectsManualArchitectureReviewWithoutAReviewGoal() throws Exception {
+		mockMvc.perform(post("/api/v1/architecture-review-workspaces/manual-recreation")
+				.header("Authorization", bearerToken("manual_review_validation_" + System.nanoTime()))
+				.header("Idempotency-Key", "manual-review-validation-1")
+				.contentType(MediaType.APPLICATION_JSON)
+				.content("{\"name\":\"Ticket booking\",\"systemDescription\":\"Existing system\"}"))
+				.andExpect(status().isBadRequest());
+	}
+
+	@Test
 	void rejectsWorkspaceTypeAndSourceCombinationsThatCannotBeResumedSafely() throws Exception {
 		mockMvc.perform(post("/api/v1/workspaces")
 				.header("Authorization", bearerToken("workspace_type_validation_" + System.nanoTime()))

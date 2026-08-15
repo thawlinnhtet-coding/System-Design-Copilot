@@ -65,7 +65,7 @@ public class PortablePackageController {
 
 	public record ImportPackageRequest(
 			@NotBlank @Size(max = 120) String name,
-			@NotBlank @Size(max = 4000) String systemDescription,
+			@NotBlank @Size(max = 2000) String systemDescription,
 			@NotBlank @Size(max = 2000) String reviewGoal,
 			@NotNull JsonNode packageNode
 	) { }

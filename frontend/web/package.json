@@ -14,12 +14,15 @@
   },
   "dependencies": {
     "@clerk/nextjs": "^7.6.5",
+    "@hookform/resolvers": "^5.8.0",
     "@tanstack/react-query": "^5.101.4",
     "@xyflow/react": "^12.11.3",
     "lucide-react": "^1.30.0",
     "next": "16.3.0",
     "react": "19.2.8",
     "react-dom": "19.2.8",
+    "react-hook-form": "^7.85.0",
+    "zod": "^4.4.3",
     "zustand": "^5.0.15"
   },
   "devDependencies": {

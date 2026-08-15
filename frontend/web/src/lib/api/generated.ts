@@ -195,6 +195,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/workspaces/custom-design": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create a blank Custom Design Workspace */
+        post: operations["createCustomDesign"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/webhooks/stripe": {
         parameters: {
             query?: never;
@@ -206,6 +223,40 @@ export interface paths {
         put?: never;
         /** Receive a signed Stripe webhook */
         post: operations["stripeWebhook"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/import-packages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create an Architecture Review Workspace from a validated Import Package */
+        post: operations["importPackage"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/import-packages/validate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Validate a portable Import Package without creating a Workspace */
+        post: operations["validateImport"];
         delete?: never;
         options?: never;
         head?: never;
@@ -274,6 +325,23 @@ export interface paths {
         put?: never;
         /** Reconcile a completed Stripe Checkout session for the signed-in user */
         post: operations["completeCheckout"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/architecture-review-workspaces/manual-recreation": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create a Manual Recreation Architecture Review Workspace */
+        post: operations["createManualRecreation"];
         delete?: never;
         options?: never;
         head?: never;
@@ -371,6 +439,23 @@ export interface paths {
         patch: operations["updateAssumption"];
         trace?: never;
     };
+    "/api/v1/workspaces/{workspaceId}/focus": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Save Workspace focus and Canvas viewport */
+        patch: operations["updateFocus"];
+        trace?: never;
+    };
     "/api/v1/workspaces/{workspaceId}/reasoning": {
         parameters: {
             query?: never;
@@ -380,6 +465,23 @@ export interface paths {
         };
         /** Get Workspace reasoning records */
         get: operations["get_3"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/workspaces/{workspaceId}/portable-export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Export portable content from an owned Workspace */
+        get: operations["export"];
         put?: never;
         post?: never;
         delete?: never;
@@ -489,53 +591,6 @@ export interface paths {
     };
 }
 export type webhooks = Record<string, never>;
-
-export type PortableImportResponse = {
-    packageNode?: components["schemas"]["JsonNode"];
-    preview?: {
-        title?: string;
-        requirements?: number;
-        assumptions?: number;
-        decisions?: number;
-        components?: number;
-        connections?: number;
-        bytes?: number;
-    };
-};
-
-export interface paths {
-    "/api/v1/import-packages/validate": {
-        post: {
-            requestBody: { content: { "application/json": components["schemas"]["JsonNode"] } };
-            responses: { 200: { content: { "*/*": PortableImportResponse } } };
-        };
-    };
-    "/api/v1/workspaces/{workspaceId}/portable-export": {
-        get: {
-            parameters: { path: { workspaceId: string } };
-            responses: { 200: { content: { "*/*": PortableImportResponse } } };
-        };
-    };
-    "/api/v1/import-packages": {
-        post: {
-            requestBody: { content: { "application/json": { name: string; systemDescription: string; reviewGoal: string; packageNode: components["schemas"]["JsonNode"] } } };
-            responses: { 201: { content: { "*/*": components["schemas"]["WorkspaceSummary"] } } };
-        };
-    };
-    "/api/v1/workspaces/custom-design": {
-        post: {
-            requestBody: { content: { "application/json": { name: string; systemIdea: string } } };
-            responses: { 201: { content: { "*/*": components["schemas"]["WorkspaceSummary"] } } };
-        };
-    };
-    "/api/v1/workspaces/{workspaceId}/focus": {
-        patch: {
-            parameters: { path: { workspaceId: string } };
-            requestBody: { content: { "application/json": { stage: string; panel: string; canvasViewport: components["schemas"]["JsonNode"] } } };
-            responses: { 200: { content: { "*/*": components["schemas"]["WorkspaceSummary"] } } };
-        };
-    };
-}
 export interface components {
     schemas: {
         ReviewBriefRequest: {
@@ -558,26 +613,26 @@ export interface components {
             null?: boolean;
             object?: boolean;
             float?: boolean;
-            string?: boolean;
-            int?: boolean;
-            /** @deprecated */
-            textual?: boolean;
-            pojo?: boolean;
-            double?: boolean;
-            boolean?: boolean;
-            binary?: boolean;
-            short?: boolean;
-            long?: boolean;
+            number?: boolean;
+            missingNode?: boolean;
+            integralNumber?: boolean;
             container?: boolean;
-            floatingPointNumber?: boolean;
             /** @enum {string} */
             nodeType?: "ARRAY" | "BINARY" | "BOOLEAN" | "MISSING" | "NULL" | "NUMBER" | "OBJECT" | "POJO" | "STRING";
-            integralNumber?: boolean;
-            missingNode?: boolean;
             valueNode?: boolean;
-            bigInteger?: boolean;
             bigDecimal?: boolean;
-            number?: boolean;
+            bigInteger?: boolean;
+            floatingPointNumber?: boolean;
+            string?: boolean;
+            double?: boolean;
+            pojo?: boolean;
+            short?: boolean;
+            /** @deprecated */
+            textual?: boolean;
+            boolean?: boolean;
+            int?: boolean;
+            binary?: boolean;
+            long?: boolean;
             embeddedValue?: boolean;
         };
         SaveArchitectureDocumentRequest: {
@@ -620,6 +675,14 @@ export interface components {
             /** @enum {string} */
             source: "CURATED_CHALLENGE" | "CUSTOM_DESIGN" | "IMPORT_PACKAGE" | "MANUAL_RECREATION";
         };
+        CanvasViewport: {
+            /** Format: double */
+            x?: number;
+            /** Format: double */
+            y?: number;
+            /** Format: double */
+            zoom?: number;
+        };
         WorkspaceSummary: {
             /** Format: uuid */
             id?: string;
@@ -639,11 +702,7 @@ export interface components {
             reviewBriefRequired?: boolean;
             focusStage?: string;
             focusPanel?: string;
-            canvasViewport?: {
-                x?: number;
-                y?: number;
-                zoom?: number;
-            };
+            canvasViewport?: components["schemas"]["CanvasViewport"];
             clarifyPrompt?: string;
             suggestedNextAction?: string;
             /** Format: date-time */
@@ -781,6 +840,35 @@ export interface components {
             /** Format: date-time */
             createdAt?: string;
         };
+        CreateCustomDesignWorkspaceRequest: {
+            name: string;
+            systemIdea: string;
+        };
+        ImportPackageRequest: {
+            name: string;
+            systemDescription: string;
+            reviewGoal: string;
+            packageNode: components["schemas"]["JsonNode"];
+        };
+        ImportResponse: {
+            packageNode?: components["schemas"]["JsonNode"];
+            preview?: components["schemas"]["PortablePreview"];
+        };
+        PortablePreview: {
+            title?: string;
+            /** Format: int32 */
+            requirements?: number;
+            /** Format: int32 */
+            assumptions?: number;
+            /** Format: int32 */
+            decisions?: number;
+            /** Format: int32 */
+            components?: number;
+            /** Format: int32 */
+            connections?: number;
+            /** Format: int32 */
+            bytes?: number;
+        };
         PortalSession: {
             url?: string;
         };
@@ -788,8 +876,20 @@ export interface components {
             id?: string;
             url?: string;
         };
+        ManualRecreationRequest: {
+            name: string;
+            systemDescription: string;
+            reviewGoal: string;
+            knownRequirements?: string[];
+            knownAssumptions?: string[];
+        };
         RenameWorkspaceRequest: {
             name: string;
+        };
+        WorkspaceFocusRequest: {
+            stage: string;
+            panel: string;
+            canvasViewport: components["schemas"]["JsonNode"];
         };
         ReasoningResponse: {
             requirements?: components["schemas"]["RequirementResponse"][];
@@ -1237,6 +1337,30 @@ export interface operations {
             };
         };
     };
+    createCustomDesign: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateCustomDesignWorkspaceRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["WorkspaceSummary"];
+                };
+            };
+        };
+    };
     stripeWebhook: {
         parameters: {
             query?: never;
@@ -1258,6 +1382,54 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    importPackage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ImportPackageRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["WorkspaceSummary"];
+                };
+            };
+        };
+    };
+    validateImport: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["JsonNode"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ImportResponse"];
+                };
             };
         };
     };
@@ -1343,6 +1515,33 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    createManualRecreation: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Caller-generated idempotency key */
+                "Idempotency-Key": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ManualRecreationRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["WorkspaceSummary"];
+                };
             };
         };
     };
@@ -1606,6 +1805,32 @@ export interface operations {
             };
         };
     };
+    updateFocus: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WorkspaceFocusRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["WorkspaceSummary"];
+                };
+            };
+        };
+    };
     get_3: {
         parameters: {
             query?: never;
@@ -1624,6 +1849,28 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["ReasoningResponse"];
+                };
+            };
+        };
+    };
+    export: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ImportResponse"];
                 };
             };
         };

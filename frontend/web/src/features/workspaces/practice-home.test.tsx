@@ -42,6 +42,7 @@ describe("PracticeHome", () => {
 		api.getWorkspaces.mockResolvedValue([{ id: "workspace-1", name: "Reliable notification platform", status: "ACTIVE", type: "CUSTOM_DESIGN", source: "CUSTOM_DESIGN", progressPercent: 38 }]);
 		renderWithProviders(<PracticeHome />);
 		expect(await screen.findByRole("link", { name: "Continue Clarify" })).toHaveAttribute("href", "/workspace/workspace-1");
+		expect(screen.getByRole("link", { name: "Review existing architecture" })).toHaveAttribute("href", "/practice/review");
 		expect(screen.getByText("CUSTOM DESIGN · CUSTOM DESIGN")).toBeVisible();
     expect(screen.getByText("RECENT WORKSPACES")).toBeVisible();
     expect(screen.getByRole("link", { name: "Manage all →" })).toHaveAttribute("href", "/practice/workspaces");

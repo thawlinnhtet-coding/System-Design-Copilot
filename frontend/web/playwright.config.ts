@@ -7,6 +7,7 @@ export default defineConfig({
   testDir: "./e2e",
   use: {
     baseURL,
+    ...(process.env.PLAYWRIGHT_AUTH_STATE ? { storageState: process.env.PLAYWRIGHT_AUTH_STATE } : {}),
     ...(executablePath ? { launchOptions: { executablePath } } : {}),
   },
   webServer: {

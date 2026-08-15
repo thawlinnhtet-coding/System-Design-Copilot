@@ -2,11 +2,12 @@
 
 import { useAuth } from "@clerk/nextjs";
 import { useMemo } from "react";
-import type { components, PortableImportResponse } from "./generated";
+import type { components } from "./generated";
 
 const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8080";
 const tokenTemplate = process.env.NEXT_PUBLIC_CLERK_JWT_TEMPLATE ?? "system-design-copilot-api";
 type CurrentUserResponse = components["schemas"]["CurrentUserResponse"];
+export type ManualRecreationRequest = components["schemas"]["ManualRecreationRequest"];
 export type WorkspaceSummary = components["schemas"]["WorkspaceSummary"];
 export type ChallengeDetail = Omit<Required<components["schemas"]["ChallengeDetail"]>, "skillCoverage"> & {
   skillCoverage: Array<Required<components["schemas"]["SkillCoverage"]>>;
@@ -15,7 +16,7 @@ export type WorkspaceType = NonNullable<WorkspaceSummary["type"]>;
 export type WorkspaceSource = NonNullable<WorkspaceSummary["source"]>;
 export type CurrentEntitlements = components["schemas"]["CurrentEntitlements"];
 export type AiConsent = components["schemas"]["AiConsentResponse"];
-export type PortableValidationResponse = PortableImportResponse;
+export type PortableValidationResponse = components["schemas"]["ImportResponse"];
 export type Requirement = components["schemas"]["RequirementResponse"];
 export type Assumption = components["schemas"]["AssumptionResponse"];
 export type UnresolvedQuestion = components["schemas"]["QuestionResponse"];
@@ -152,6 +153,13 @@ export function useAuthenticatedApiClient() {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ name, systemIdea }),
+        });
+      },
+      createManualArchitectureReviewWorkspace(body: ManualRecreationRequest, idempotencyKey: string): Promise<WorkspaceSummary> {
+        return json<WorkspaceSummary>("/api/v1/architecture-review-workspaces/manual-recreation", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "Idempotency-Key": idempotencyKey },
+          body: JSON.stringify(body),
         });
       },
       updateWorkspaceFocus(id: string, stage: string, panel: string, canvasViewport: { x: number; y: number; zoom: number }): Promise<WorkspaceSummary> {
