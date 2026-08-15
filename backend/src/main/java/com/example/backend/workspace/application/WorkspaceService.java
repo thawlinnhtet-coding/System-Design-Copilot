@@ -11,6 +11,7 @@ import com.example.backend.workspace.infrastructure.WorkspaceStatus;
 import com.example.backend.workspace.infrastructure.WorkspaceSource;
 import com.example.backend.workspace.infrastructure.WorkspaceType;
 import com.example.backend.scenario.application.ScenarioInitializer;
+import com.example.backend.ai.application.CopilotWorkspaceContextProvider;
 import com.example.backend.scenario.application.ScenarioWorkspaceContextProvider;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,7 +26,7 @@ import java.util.Set;
 import java.util.UUID;
 
 @Service
-public class WorkspaceService implements WorkspaceAccess, WorkspaceMetadataProvider, ScenarioWorkspaceContextProvider {
+public class WorkspaceService implements WorkspaceAccess, WorkspaceMetadataProvider, ScenarioWorkspaceContextProvider, CopilotWorkspaceContextProvider {
 
 	private final WorkspaceRepository workspaceRepository;
 	private final EntitlementService entitlementService;
@@ -87,6 +88,13 @@ public class WorkspaceService implements WorkspaceAccess, WorkspaceMetadataProvi
 	public ScenarioWorkspaceContext scenarioContext(UUID userId, UUID workspaceId) {
 		var workspace = ownedWorkspace(userId, workspaceId);
 		return new ScenarioWorkspaceContext(workspace.getName(), workspace.getDescription(), workspace.getChallengeSnapshot());
+	}
+
+	@Override
+	@Transactional(readOnly = true)
+	public CopilotWorkspaceContext loadForCopilot(UUID userId, UUID workspaceId) {
+		var workspace = ownedWorkspace(userId, workspaceId);
+		return new CopilotWorkspaceContext(workspace.getId(), workspace.getName(), workspace.getDescription(), workspace.getChallengeSnapshot());
 	}
 
 	@Transactional

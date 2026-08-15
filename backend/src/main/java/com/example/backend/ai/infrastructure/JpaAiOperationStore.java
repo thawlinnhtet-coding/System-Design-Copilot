@@ -7,6 +7,7 @@ import org.springframework.stereotype.Repository;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
+import java.util.Optional;
 
 @Repository
 class JpaAiOperationStore implements AiOperationStore {
@@ -20,6 +21,11 @@ class JpaAiOperationStore implements AiOperationStore {
 	@Override
 	public BigDecimal chargedCostSince(Instant since) {
 		return repository.chargedCostSince(since);
+	}
+
+	@Override
+	public Optional<AiOperation> findById(UUID id) {
+		return repository.findById(id).map(AiOperationEntity::toOperation);
 	}
 
 	@Override

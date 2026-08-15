@@ -212,6 +212,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/workspaces/{workspaceId}/copilot/turns": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Get advisory contextual Copilot guidance for one owned Workspace */
+        post: operations["turn"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/workspaces/{workspaceId}/archive": {
         parameters: {
             query?: never;
@@ -750,25 +767,25 @@ export interface components {
             object?: boolean;
             float?: boolean;
             number?: boolean;
-            container?: boolean;
-            /** @enum {string} */
-            nodeType?: "ARRAY" | "BINARY" | "BOOLEAN" | "MISSING" | "NULL" | "NUMBER" | "OBJECT" | "POJO" | "STRING";
-            integralNumber?: boolean;
-            missingNode?: boolean;
-            valueNode?: boolean;
-            floatingPointNumber?: boolean;
-            bigDecimal?: boolean;
-            bigInteger?: boolean;
-            pojo?: boolean;
-            short?: boolean;
-            string?: boolean;
-            int?: boolean;
-            binary?: boolean;
-            long?: boolean;
-            boolean?: boolean;
-            double?: boolean;
             /** @deprecated */
             textual?: boolean;
+            binary?: boolean;
+            pojo?: boolean;
+            boolean?: boolean;
+            short?: boolean;
+            int?: boolean;
+            string?: boolean;
+            long?: boolean;
+            double?: boolean;
+            /** @enum {string} */
+            nodeType?: "ARRAY" | "BINARY" | "BOOLEAN" | "MISSING" | "NULL" | "NUMBER" | "OBJECT" | "POJO" | "STRING";
+            bigInteger?: boolean;
+            missingNode?: boolean;
+            container?: boolean;
+            integralNumber?: boolean;
+            bigDecimal?: boolean;
+            floatingPointNumber?: boolean;
+            valueNode?: boolean;
             embeddedValue?: boolean;
         };
         SaveArchitectureDocumentRequest: {
@@ -985,6 +1002,18 @@ export interface components {
             createdAt?: string;
             /** Format: date-time */
             updatedAt?: string;
+        };
+        CopilotTurnRequest: {
+            /** Format: uuid */
+            clientTurnId: string;
+            question: string;
+        };
+        CopilotTurn: {
+            /** Format: uuid */
+            id?: string;
+            content?: string;
+            model?: string;
+            replayed?: boolean;
         };
         RevisionResponse: {
             /** Format: uuid */
@@ -1529,6 +1558,32 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["AssumptionResponse"];
+                };
+            };
+        };
+    };
+    turn: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspaceId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CopilotTurnRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CopilotTurn"];
                 };
             };
         };

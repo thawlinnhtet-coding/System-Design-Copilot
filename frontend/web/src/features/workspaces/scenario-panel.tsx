@@ -14,16 +14,12 @@ export function ScenarioPanel({ workspaceId, readOnly, onInspectArchitecture, on
 
 	useEffect(() => {
 		let current = true;
-		api.getScenarios(workspaceId).then((value) => { if (current) { setScenarios(value); selectActive(value, onActiveScenario); } }).catch(() => { if (current) setError("Scenarios could not be loaded. Try again."); });
+		api.getScenarios(workspaceId).then((value) => { if (current) { setScenarios(value); const next = selectActive(value, onActiveScenario); if (next) setDraft(draftFor(next)); } }).catch(() => { if (current) setError("Scenarios could not be loaded. Try again."); });
 		return () => { current = false; };
 	}, [api, onActiveScenario, workspaceId]);
 
 	const active = scenarios?.find((scenario) => scenario.status === "REVEALED" || scenario.status === "DRAFT");
 	const available = scenarios?.find((scenario) => scenario.status === "AVAILABLE" && scenarios.filter((item) => item.orderIndex < scenario.orderIndex).every((item) => item.status === "COMPLETED"));
-
-	useEffect(() => {
-		if (active) setDraft({ response: active.response ?? "", architectureChanges: active.architectureChanges ?? "", decisionChanges: active.decisionChanges ?? "" });
-	}, [active?.id]);
 
 	async function start(scenario: Scenario) {
 		setWorking(true); setError(null);
@@ -46,6 +42,7 @@ export function ScenarioPanel({ workspaceId, readOnly, onInspectArchitecture, on
 	}
 	function replace(next: Scenario) {
 		setScenarios((current) => current ? [...current.filter((item) => item.id !== next.id), next].sort((a, b) => a.orderIndex - b.orderIndex) : [next]);
+		if (next.status === "REVEALED" || next.status === "DRAFT") setDraft(draftFor(next));
 		onActiveScenario?.(next.status === "REVEALED" || next.status === "DRAFT" ? next : null);
 	}
 
@@ -69,5 +66,6 @@ function ActiveScenario({ scenario, draft, disabled, onChange, onInspectArchitec
 	return <section className="mt-8 border-l-2 border-scenario bg-surface-raised p-5" aria-label="Active Scenario"><p className="font-mono text-[10px] uppercase tracking-[0.14em] text-scenario">REVEALED / SCENARIO {scenario.orderIndex + 1}</p><h3 className="mt-2 font-display text-2xl font-semibold">{scenario.changedCondition}</h3><p className="mt-3 max-w-2xl text-sm leading-6 text-foreground">{scenario.details}</p><div className="mt-6 grid gap-4"><label className="grid gap-2 text-sm font-semibold text-foreground">What changes, and why?<textarea className="min-h-32 border border-line bg-background p-3 text-sm font-normal outline-none focus:border-signal focus:ring-2 focus:ring-signal/20" disabled={disabled} onChange={(event) => onChange({ ...draft, response: event.target.value })} value={draft.response} /></label><label className="grid gap-2 text-sm font-semibold text-foreground">Related architecture changes <span className="font-normal text-text-muted">(optional)</span><textarea className="min-h-20 border border-line bg-background p-3 text-sm font-normal outline-none focus:border-signal focus:ring-2 focus:ring-signal/20" disabled={disabled} onChange={(event) => onChange({ ...draft, architectureChanges: event.target.value })} value={draft.architectureChanges} /></label><label className="grid gap-2 text-sm font-semibold text-foreground">Related Decision changes <span className="font-normal text-text-muted">(optional)</span><textarea className="min-h-20 border border-line bg-background p-3 text-sm font-normal outline-none focus:border-signal focus:ring-2 focus:ring-signal/20" disabled={disabled} onChange={(event) => onChange({ ...draft, decisionChanges: event.target.value })} value={draft.decisionChanges} /></label></div><div className="mt-6 flex flex-wrap gap-3"><button className="inline-flex min-h-11 border border-line px-4 text-sm font-semibold text-signal disabled:opacity-50" disabled={disabled} onClick={onInspectArchitecture} type="button">Inspect architecture</button><button className="inline-flex min-h-11 border border-line px-4 text-sm font-semibold text-text-muted disabled:opacity-50" disabled={disabled} onClick={onSave} type="button">Save response</button><button className="inline-flex min-h-11 border border-signal bg-signal px-4 text-sm font-semibold text-text-on-dark disabled:opacity-50" disabled={disabled || draft.response.trim().length < 10} onClick={onComplete} type="button">Mark complete</button></div></section>;
 }
 
-function selectActive(values: Scenario[], onActiveScenario?: (scenario: Scenario | null) => void) { onActiveScenario?.(values.find((value) => value.status === "REVEALED" || value.status === "DRAFT") ?? null); }
+function selectActive(values: Scenario[], onActiveScenario?: (scenario: Scenario | null) => void) { const active = values.find((value) => value.status === "REVEALED" || value.status === "DRAFT") ?? null; onActiveScenario?.(active); return active; }
+function draftFor(scenario: Scenario): Draft { return { response: scenario.response ?? "", architectureChanges: scenario.architectureChanges ?? "", decisionChanges: scenario.decisionChanges ?? "" }; }
 function message(error: unknown, completing: boolean) { if ((error instanceof ApiRequestError || (typeof error === "object" && error !== null && "details" in error)) && (error as { details?: { code?: string } }).details?.code === "ai_consent_required") return "AI Processing Consent is required before an AI-assisted Scenario can be shown."; return completing ? "The Scenario could not be completed. Keep your response and try again." : "The Scenario could not be saved. Your response remains here."; }
