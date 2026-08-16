@@ -1444,6 +1444,16 @@ and
 
 always choose clearer engineering information.
 
+---
+
+# 55. Frontend implementation primitives
+
+The shared practice primitives live in `frontend/web/src/components/design/practice-primitives.tsx`.
+Use `PracticeButton` and `PracticeLink` for primary and quiet actions, `PracticeField` for labeled inputs,
+`FocusPanel` for document sections, `StageRail` for flexible Workspace stages, `EvidenceLink` for cited
+evidence navigation, and `SaveStatus` for persistent save/sync state. These primitives preserve the hairline,
+square workshop geometry and include visible focus, reduced-motion behavior, and semantic status announcements.
+
 When choosing between:
 
 **generic SaaS convention**
