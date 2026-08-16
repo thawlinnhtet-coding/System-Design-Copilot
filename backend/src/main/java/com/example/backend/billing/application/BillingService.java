@@ -8,6 +8,9 @@ public interface BillingService {
 
 	PortalSession startCustomerPortal(CurrentUserService.CurrentUser user);
 
+	/** Stops renewal as soon as a deletion request is accepted; access may continue through paid-through date. */
+	void cancelSubscriptionRenewal(CurrentUserService.CurrentUser user);
+
 	void reconcileCompletedCheckout(CurrentUserService.CurrentUser user, String stripeCheckoutSessionId);
 
 	void processWebhook(byte[] rawBody, String stripeSignature);

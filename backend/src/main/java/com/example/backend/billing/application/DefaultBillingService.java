@@ -166,6 +166,18 @@ class DefaultBillingService implements BillingService, BillingPlanResolver {
 	}
 
 	@Override
+	@Transactional
+	public void cancelSubscriptionRenewal(CurrentUserService.CurrentUser user) {
+		var existing = projectionStore.findSubscriptionByUserIdForUpdate(user.id());
+		if (existing.isEmpty() || "canceled".equals(existing.get().status())) return;
+		var subscription = billingClient.cancelSubscriptionRenewal(existing.get().stripeSubscriptionId());
+		if (!existing.get().stripeCustomerId().equals(subscription.stripeCustomerId())) throw new BillingProviderException();
+		var now = Instant.now(clock);
+		projectionStore.saveSubscription(new BillingProjectionStore.Subscription(user.id(), subscription.id(), subscription.stripeCustomerId(), "canceled",
+				subscription.currentPeriodEnd(), null, now, "account-deletion-" + subscription.id(), now));
+	}
+
+	@Override
 	@Transactional(readOnly = true)
 	public BillingPlan planFor(CurrentUserService.CurrentUser user, Instant now) {
 		var customer = projectionStore.findCustomerByUserId(user.id());

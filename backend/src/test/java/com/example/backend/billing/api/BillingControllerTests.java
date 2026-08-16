@@ -262,6 +262,11 @@ class BillingControllerTests {
 				public BillingService.PortalSession createCustomerPortalSession(String stripeCustomerId) {
 					return new BillingService.PortalSession("https://billing.stripe.test/portal");
 				}
+
+				@Override
+				public BillingClient.StripeSubscription cancelSubscriptionRenewal(String stripeSubscriptionId) {
+					return new BillingClient.StripeSubscription(stripeSubscriptionId, "cus_endpoint", "active", Instant.now().plusSeconds(2_592_000), true);
+				}
 			};
 		}
 	}

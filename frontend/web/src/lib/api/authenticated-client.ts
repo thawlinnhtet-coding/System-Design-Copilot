@@ -16,7 +16,13 @@ export type ChallengeDetail = Omit<Required<components["schemas"]["ChallengeDeta
 export type WorkspaceType = NonNullable<WorkspaceSummary["type"]>;
 export type WorkspaceSource = NonNullable<WorkspaceSummary["source"]>;
 export type CurrentEntitlements = components["schemas"]["CurrentEntitlements"];
+export type PracticeProgress = {
+  practiceVolume: { ownedWorkspaceCount: number; activeWorkspaceCount: number; completedScenarioCount: number; completedReviewCount: number };
+  recentActivity: Array<{ type: "WORKSPACE_UPDATED" | "SCENARIO_COMPLETED" | "REVIEW_COMPLETED"; workspaceId: string; workspaceName?: string; occurredAt?: string }>;
+  qualifiedReviewTrends: Array<{ workspaceId: string; workspaceName?: string; dimension: string; baselineScore: number; comparisonScore: number; change: number; baselineReviewRequestId: string; comparisonReviewRequestId: string; baselineCompletedAt?: string; comparisonCompletedAt?: string }>;
+};
 export type AiConsent = components["schemas"]["AiConsentResponse"];
+export type AccountDeletionStatus = { scheduled: boolean; requestedAt?: string | null; recoveryEndsAt?: string | null };
 export type CopilotTurnRequest = Required<components["schemas"]["CopilotTurnRequest"]>;
 export type CopilotTurn = Required<components["schemas"]["CopilotTurn"]>;
 export type PortableValidationResponse = components["schemas"]["ImportResponse"];
@@ -325,6 +331,9 @@ export function useAuthenticatedApiClient() {
       getUsage(): Promise<CurrentEntitlements> {
         return json<CurrentEntitlements>("/api/v1/me/usage");
       },
+      getProgress(): Promise<PracticeProgress> {
+        return json<PracticeProgress>("/api/v1/me/progress");
+      },
       getAiConsent(): Promise<AiConsent> {
         return json<AiConsent>("/api/v1/me/ai-consent");
       },
@@ -338,6 +347,21 @@ export function useAuthenticatedApiClient() {
       withdrawAiConsent(): Promise<AiConsent> {
         return json<AiConsent>("/api/v1/me/ai-consent", { method: "DELETE" });
       },
+			getAccountDeletion(): Promise<AccountDeletionStatus> {
+				return json<AccountDeletionStatus>("/api/v1/me/account-deletion");
+			},
+			requestAccountDeletion(): Promise<AccountDeletionStatus | { clerk_error: { type: "forbidden"; reason: "reverification-error" } }> {
+				return request("/api/v1/me/account-deletion", { method: "POST" }).then(async (response) => {
+					if (response.ok) return response.json() as Promise<AccountDeletionStatus>;
+					const body = await response.json().catch(() => ({})) as { code?: string };
+					if (body.code === "recent_authentication_required") return { clerk_error: { type: "forbidden", reason: "reverification-error" } };
+					throw new ApiRequestError(response.status, body);
+				});
+			},
+			async cancelAccountDeletion(token: string): Promise<void> {
+				const response = await request(`/api/v1/me/account-deletion/cancel?token=${encodeURIComponent(token)}`, { method: "POST" });
+				if (!response.ok) throw new ApiRequestError(response.status, await response.json().catch(() => undefined));
+			},
 		askCopilot(workspaceId: string, body: CopilotTurnRequest): Promise<CopilotTurn> {
 			return json<CopilotTurn>(`/api/v1/workspaces/${workspaceId}/copilot/turns`, {
 				method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),

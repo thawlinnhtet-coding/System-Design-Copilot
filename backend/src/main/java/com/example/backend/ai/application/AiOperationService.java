@@ -9,8 +9,6 @@ import java.math.BigDecimal;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
-import java.time.LocalDate;
-import java.time.ZoneOffset;
 import java.util.UUID;
 
 /** Shared application boundary for future Copilot and Review operations. */
@@ -23,6 +21,7 @@ public class AiOperationService {
 	private final AiProviderBoundary providerBoundary;
 	private final AiProviderPort provider;
 	private final AiOperationStore operationStore;
+	private final AiOperationAuditService operationAudit;
 	private final Clock clock;
 
 	public AiOperationService(
@@ -30,12 +29,14 @@ public class AiOperationService {
 			AiProviderBoundary providerBoundary,
 			AiProviderPort provider,
 			AiOperationStore operationStore,
+			AiOperationAuditService operationAudit,
 			Clock clock
 	) {
 		this.authorizer = authorizer;
 		this.providerBoundary = providerBoundary;
 		this.provider = provider;
 		this.operationStore = operationStore;
+		this.operationAudit = operationAudit;
 		this.clock = clock;
 	}
 
@@ -73,10 +74,9 @@ public class AiOperationService {
 		var model = providerBoundary.profile(profile).model();
 		var startedAt = Instant.now(clock);
 		try {
-			var spentToday = operationStore.chargedCostSince(startOfUtcDay(startedAt));
-			providerBoundary.budgetPolicy().requireAvailable(spentToday, estimatedCostUsd);
+			operationStore.requireDailyBudgetAvailable(startedAt, estimatedCostUsd, providerBoundary.budgetPolicy());
 		} catch (DailyBudgetExceededException exception) {
-			operationStore.save(new AiOperation(
+			operationAudit.record(new AiOperation(
 					operationId, userId, context.workspaceId(), profile, AiOperationStatus.BUDGET_REJECTED,
 					model, null, promptVersion, null, null, null, estimatedCostUsd, ZERO_COST,
 					0L, "ai_daily_budget_reached", null, startedAt, startedAt
@@ -98,11 +98,11 @@ public class AiOperationService {
 					response.inputTokens(), response.outputTokens(), totalTokens(response), estimatedCostUsd, chargedCost,
 					latencyMillis(startedAt, completedAt), null, response.content(), startedAt, completedAt
 			);
-			operationStore.save(operation);
+			operationAudit.record(operation);
 			return new AiOperationResult(operationId, profile, operation.model(), response.content());
 		} catch (UnavailableException exception) {
 			var completedAt = Instant.now(clock);
-			operationStore.save(new AiOperation(
+			operationAudit.record(new AiOperation(
 					operationId, userId, context.workspaceId(), profile, AiOperationStatus.PROVIDER_FAILED,
 					model, null, promptVersion, null, null, null, estimatedCostUsd, estimatedCostUsd,
 					latencyMillis(startedAt, completedAt), outcomeCode(exception), null, startedAt, completedAt
@@ -137,10 +137,6 @@ public class AiOperationService {
 
 	private String safeMetadata(String value, int maxLength) {
 		return value == null || value.isBlank() || value.length() > maxLength ? null : value;
-	}
-
-	private Instant startOfUtcDay(Instant instant) {
-		return LocalDate.ofInstant(instant, ZoneOffset.UTC).atStartOfDay(ZoneOffset.UTC).toInstant();
 	}
 
 	private long latencyMillis(Instant startedAt, Instant completedAt) {

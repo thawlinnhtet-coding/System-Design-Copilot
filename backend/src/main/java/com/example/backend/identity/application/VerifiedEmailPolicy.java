@@ -17,4 +17,11 @@ public class VerifiedEmailPolicy {
 		var value = jwt.getClaim("email_verified");
 		return Boolean.TRUE.equals(value) || "verified".equals(value);
 	}
+
+	public String verifiedEmail(Jwt jwt) {
+		requireVerified(jwt);
+		var email = jwt.getClaimAsString("email");
+		if (email == null || email.isBlank() || email.length() > 320 || !email.contains("@")) throw new EmailVerificationRequiredException();
+		return email;
+	}
 }

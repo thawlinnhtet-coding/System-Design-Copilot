@@ -84,6 +84,24 @@ class AiOperationServiceTests {
 	}
 
 	@Test
+	void dailyBudgetAdmissionReservesTheLastAvailableAmountBeforeAnotherOperationCanStart() {
+		var store = new InMemoryOperationStore();
+		store.chargedToday = new BigDecimal("0.090000");
+		var provider = new StubProvider(new AiProviderResponse("advisory answer", "req", "model"));
+		var service = service(store, provider, store.chargedToday);
+		grantConsent(service.consentService);
+
+		service.operationService.invoke(USER_ID, AiProfile.COPILOT,
+				new AiBoundedContext(WORKSPACE_ID, "bounded Workspace context"), new BigDecimal("0.010000"), PROMPT_VERSION);
+
+		assertThrows(AiProviderExceptions.DailyBudgetExceededException.class, () -> service.operationService.invoke(
+				USER_ID, AiProfile.COPILOT, new AiBoundedContext(WORKSPACE_ID, "another bounded Workspace context"),
+				new BigDecimal("0.001000"), PROMPT_VERSION));
+		assertEquals(1, provider.invocations);
+		assertEquals(AiOperationStatus.BUDGET_REJECTED, store.operations.get(1).status());
+	}
+
+	@Test
 	void providerFailureIsObservableWithoutAcceptedOutput() {
 		var store = new InMemoryOperationStore();
 		var provider = new StubProvider(null);
@@ -138,7 +156,8 @@ class AiOperationServiceTests {
 				"https://openrouter.ai/api/v1", "sk-or-test", "copilot-model", "review-model",
 				java.time.Duration.ofSeconds(30), 4096, new BigDecimal("0.10"), POLICY_VERSION);
 		var operationService = new AiOperationService(
-				authorizer, new AiProviderBoundary(properties), provider, operationStore, clock);
+				authorizer, new AiProviderBoundary(properties), provider, operationStore,
+				new AiOperationAuditService(operationStore), clock);
 		return new ServiceFixture(operationService, consentService);
 	}
 
@@ -175,6 +194,12 @@ class AiOperationServiceTests {
 		@Override
 		public BigDecimal chargedCostSince(Instant since) {
 			return chargedToday;
+		}
+
+		@Override
+		public void requireDailyBudgetAvailable(Instant startedAt, BigDecimal estimatedCostUsd, AiBudgetPolicy policy) {
+			policy.requireAvailable(chargedToday, estimatedCostUsd);
+			chargedToday = chargedToday.add(estimatedCostUsd);
 		}
 
 		@Override

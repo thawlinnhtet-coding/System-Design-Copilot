@@ -14,6 +14,8 @@ public interface BillingClient {
 
 	BillingService.PortalSession createCustomerPortalSession(String stripeCustomerId);
 
+	StripeSubscription cancelSubscriptionRenewal(String stripeSubscriptionId);
+
 	record StripeSubscription(String id, String stripeCustomerId, String status, java.time.Instant currentPeriodEnd, boolean cancelAtPeriodEnd) {
 	}
 

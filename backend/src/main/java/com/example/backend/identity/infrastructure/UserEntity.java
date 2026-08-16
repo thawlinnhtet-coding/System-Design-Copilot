@@ -27,12 +27,16 @@ class UserEntity {
 	@Column(name = "active_workspace_count", nullable = false)
 	private int activeWorkspaceCount;
 
+	@Column(name = "access_status", nullable = false)
+	private String accessStatus;
+
 	protected UserEntity() {
 	}
 
 	UserEntity(String clerkSubject) {
 		this.clerkSubject = clerkSubject;
 		this.createdAt = Instant.now();
+		this.accessStatus = "ACTIVE";
 	}
 
 	UUID getId() {
@@ -50,5 +54,9 @@ class UserEntity {
 	void setActiveWorkspaceCount(int activeWorkspaceCount) {
 		this.activeWorkspaceCount = activeWorkspaceCount;
 	}
+
+	boolean isSuspended() { return "DELETION_PENDING".equals(accessStatus); }
+	void suspend() { this.accessStatus = "DELETION_PENDING"; }
+	void restore() { this.accessStatus = "ACTIVE"; }
 
 }

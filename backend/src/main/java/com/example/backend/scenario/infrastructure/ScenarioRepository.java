@@ -10,4 +10,5 @@ public interface ScenarioRepository extends JpaRepository<ScenarioEntity, UUID> 
 	List<ScenarioEntity> findAllByWorkspaceIdAndUserIdOrderByOrderIndexAsc(UUID workspaceId, UUID userId);
 	Optional<ScenarioEntity> findByIdAndWorkspaceIdAndUserId(UUID id, UUID workspaceId, UUID userId);
 	List<ScenarioEntity> findAllByWorkspaceIdAndUserIdAndStatusOrderByOrderIndexAsc(UUID workspaceId, UUID userId, ScenarioStatus status);
+	List<ScenarioEntity> findAllByUserIdAndStatusOrderByCompletedAtDesc(UUID userId, ScenarioStatus status);
 }

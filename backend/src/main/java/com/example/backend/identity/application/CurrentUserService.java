@@ -17,6 +17,9 @@ public class CurrentUserService {
 	public CurrentUser getOrCreate(String clerkSubject) {
 		var existingUser = currentUserStore.findByClerkSubject(clerkSubject);
 		if (existingUser.isPresent()) {
+			if (currentUserStore.isSuspended(existingUser.get().id())) {
+				throw new AccountDeletionExceptions.AccountSuspendedException();
+			}
 			return existingUser.get();
 		}
 

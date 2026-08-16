@@ -78,6 +78,15 @@ class StripeHttpBillingClient implements BillingClient {
 		return new BillingService.PortalSession(text(response, "url"));
 	}
 
+	@Override
+	public BillingClient.StripeSubscription cancelSubscriptionRenewal(String stripeSubscriptionId) {
+		var id = URLEncoder.encode(stripeSubscriptionId, StandardCharsets.UTF_8);
+		var response = post("subscriptions/" + id, form(Map.of("cancel_at_period_end", "true")), "account-deletion-" + stripeSubscriptionId);
+		var periodEndSeconds = currentPeriodEndSeconds(response);
+		if (periodEndSeconds < 0) throw new BillingProviderException();
+		return new BillingClient.StripeSubscription(text(response, "id"), text(response, "customer"), text(response, "status"), java.time.Instant.ofEpochSecond(periodEndSeconds), response.path("cancel_at_period_end").asBoolean(false));
+	}
+
 	private JsonNode post(String path, String body, String idempotencyKey) {
 		if (properties.stripeSecretKey() == null || properties.stripeSecretKey().isBlank()) {
 			throw new BillingProviderException();

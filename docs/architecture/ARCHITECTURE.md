@@ -338,6 +338,7 @@ Invalid output may receive one bounded repair attempt. It is never stored as a c
 - Monthly Plan quotas.
 - The same operation-specific model profile applies to Free and Pro; Plan policy changes allowance and operational limits, not model quality or privacy routing.
 - Global daily provider-spend threshold, set to USD 0.10 for the personal beta.
+- Personal-beta AI admission is serialized through a durable database guard; accepted and provider-failed attempts retain their reserved estimated cost so concurrent requests and request rollback cannot reopen the daily cap.
 - Model-specific cost metadata and alerts.
 - No automatic fallback or escalation to another model.
 - OpenRouter routing requires `data_collection: "deny"` and disables provider fallback; unavailable eligible providers fail recoverably rather than weakening the privacy policy.
@@ -422,7 +423,7 @@ Email links use random one-time tokens, short expiration, an allowlisted applica
 
 ### 14.1 Account Deletion
 
-An Account Deletion Request is a durable scheduled workflow rather than a request-thread cascade. It requires fresh managed-identity authentication, revokes all Clerk sessions, suspends product access, cancels subscription renewal, records a 7-day recovery deadline, and sends a cancellation link. The link requires Clerk authentication and can only cancel the pending request. After the deadline, an idempotent worker writes a pseudonymous permanent-deletion tombstone to a create-only ledger outside PostgreSQL, deletes the Clerk User, and then removes private product content and identity data. Tombstones contain only User ID and deletion time, are retained for at least 70 days, and are replayed before access resumes after any disaster restore. This covers every still-retained 35-day backup. Restricted billing, fraud, or security records follow the PRD retention rules.
+An Account Deletion Request is a durable scheduled workflow rather than a request-thread cascade. It requires fresh managed-identity authentication, revokes all Clerk sessions, suspends product access, cancels subscription renewal, records a 7-day recovery deadline, and sends a cancellation link. The link requires Clerk authentication and can only cancel the pending request. After the deadline, an idempotent worker deletes the Clerk User and then removes private product content and identity data through database cascades. The beta retains only an unlinkable deletion timestamp in PostgreSQL; it contains no Clerk subject, email, billing identifier, or private product content. The beta makes no independent backup-deletion or recovery guarantee. A commercial launch must replace this with the PRD's create-only, externally retained, replayed tombstone ledger before restored product data is made accessible. Restricted billing, fraud, or security records follow the PRD retention rules.
 
 ## 15. Observability
 

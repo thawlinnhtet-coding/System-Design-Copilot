@@ -1,35 +1,37 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { vi } from "vitest";
 import { AccountDeletionState } from "./account-deletion";
 
-const replace = vi.hoisted(() => vi.fn());
-
-vi.mock("next/navigation", () => ({
-  useRouter: () => ({ replace }),
+const { replace, signOut, requestAccountDeletion, cancelAccountDeletion } = vi.hoisted(() => ({
+  replace: vi.fn(), signOut: vi.fn(), requestAccountDeletion: vi.fn(), cancelAccountDeletion: vi.fn(),
 }));
 
+vi.mock("next/navigation", () => ({ useRouter: () => ({ replace }), useSearchParams: () => new URLSearchParams("token=recovery-token") }));
+vi.mock("@clerk/nextjs", () => ({
+  useAuth: () => ({ isSignedIn: true }), useClerk: () => ({ signOut }), useReverification: (fetcher: () => unknown) => fetcher,
+  SignInButton: ({ children }: { children: React.ReactNode }) => children,
+}));
+vi.mock("@/lib/api/authenticated-client", () => ({ useAuthenticatedApiClient: () => ({ requestAccountDeletion, cancelAccountDeletion }) }));
+
 describe("AccountDeletionState", () => {
-  beforeEach(() => replace.mockReset());
+  beforeEach(() => { replace.mockReset(); signOut.mockReset(); requestAccountDeletion.mockReset(); cancelAccountDeletion.mockReset(); });
 
-  it("moves from confirmation to the scheduled state", () => {
+  it("requests deletion only through the authenticated API then revokes the browser session", async () => {
+    requestAccountDeletion.mockResolvedValue({ scheduled: true, recoveryEndsAt: "2026-08-23T00:00:00Z" });
+    signOut.mockResolvedValue(undefined);
     render(<AccountDeletionState state="confirmation" />);
-
-    expect(screen.getByRole("heading", { name: "Delete your account?" })).toBeVisible();
-    expect(screen.getByText(/cancel this request for 7 days/)).toBeVisible();
-
+    expect(screen.getByText(/independent backup deletion and recovery guarantees/i)).toBeVisible();
     fireEvent.click(screen.getByRole("button", { name: "Delete account" }));
-
+    await waitFor(() => expect(requestAccountDeletion).toHaveBeenCalledOnce());
+    expect(signOut).toHaveBeenCalledOnce();
     expect(replace).toHaveBeenCalledWith("/account/privacy/scheduled");
   });
 
-  it("shows the recovery action for a scheduled deletion", () => {
+  it("requires the email-link token before cancelling a scheduled deletion", async () => {
+    cancelAccountDeletion.mockResolvedValue(undefined);
     render(<AccountDeletionState state="scheduled" />);
-
-    expect(screen.getByRole("heading", { name: "Your account is scheduled for deletion" })).toBeVisible();
-    expect(screen.getByRole("button", { name: "Cancel deletion" })).toBeVisible();
-
     fireEvent.click(screen.getByRole("button", { name: "Cancel deletion" }));
-
-    expect(replace).toHaveBeenCalledWith("/account/privacy");
+    await waitFor(() => expect(cancelAccountDeletion).toHaveBeenCalledWith("recovery-token"));
+    expect(replace).toHaveBeenCalledWith("/account");
   });
 });

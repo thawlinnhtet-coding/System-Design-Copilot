@@ -261,6 +261,11 @@ class BillingServiceTests {
 		public BillingService.PortalSession createCustomerPortalSession(String stripeCustomerId) {
 			return new BillingService.PortalSession("https://billing.stripe.test/portal");
 		}
+
+		@Override
+		public BillingClient.StripeSubscription cancelSubscriptionRenewal(String stripeSubscriptionId) {
+			return new BillingClient.StripeSubscription(currentSubscription.id(), currentSubscription.stripeCustomerId(), currentSubscription.status(), currentSubscription.currentPeriodEnd(), true);
+		}
 	}
 
 	private static final class InMemoryStore implements BillingProjectionStore {

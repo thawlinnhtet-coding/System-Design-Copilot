@@ -26,7 +26,7 @@ export default function PricingPage() {
       </section>
       <section className="mx-auto flex max-w-[920px] flex-col gap-2 px-5 pb-14 text-center text-[11px] leading-5 text-text-muted sm:px-8">
         <p>* Subject to fair-use rate, concurrency, abuse, and spend protections. Pricing and allowances are server-configurable.</p>
-         <p className="text-warning">Stripe Checkout is test-mode only during the Free personal beta, so no real payment is collected. Test-mode Pro access is available to authenticated beta users while it is enabled.</p>
+         <p className="text-warning">Stripe Checkout is test-mode only during the Free personal beta, so no real payment is collected. Ordinary beta participants remain on Free; only separately configured non-public test accounts may exercise test-mode Pro access.</p>
       </section>
     </main>
   );
