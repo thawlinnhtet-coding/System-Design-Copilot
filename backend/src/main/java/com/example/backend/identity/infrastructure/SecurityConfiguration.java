@@ -21,8 +21,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import com.example.backend.identity.application.PublicBetaAbuseProtectionProperties;
 import com.example.backend.identity.application.VerifiedEmailPolicy;
-
-import java.time.Clock;
+import com.example.backend.ratelimit.infrastructure.RedisRateLimitStore;
 
 import java.util.List;
 
@@ -39,8 +38,8 @@ import java.util.List;
 public class SecurityConfiguration {
 
 	@Bean
-	SecurityFilterChain securityFilterChain(HttpSecurity http, PublicBetaAbuseProtectionProperties abuseProtectionProperties, VerifiedEmailPolicy verifiedEmailPolicy, Clock clock) throws Exception {
-		var publicBetaAbuseProtectionFilter = new PublicBetaAbuseProtectionFilter(abuseProtectionProperties, verifiedEmailPolicy, clock);
+	SecurityFilterChain securityFilterChain(HttpSecurity http, PublicBetaAbuseProtectionProperties abuseProtectionProperties, VerifiedEmailPolicy verifiedEmailPolicy, RedisRateLimitStore limits) throws Exception {
+		var publicBetaAbuseProtectionFilter = new PublicBetaAbuseProtectionFilter(abuseProtectionProperties, verifiedEmailPolicy, limits);
 		return http
 				.csrf(AbstractHttpConfigurer::disable)
 				.cors(Customizer.withDefaults())

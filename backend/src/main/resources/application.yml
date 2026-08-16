@@ -1,0 +1,86 @@
+spring:
+  config:
+    import: "optional:file:.env[.properties]"
+  application:
+    name: system-design-copilot
+  datasource:
+    url: "${DATABASE_URL}"
+    username: "${DATABASE_USERNAME}"
+    password: "${DATABASE_PASSWORD}"
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+  data:
+    redis:
+      url: "${REDIS_URL:redis://localhost:6379}"
+      connect-timeout: "${REDIS_CONNECT_TIMEOUT:500ms}"
+      timeout: "${REDIS_COMMAND_TIMEOUT:500ms}"
+  ai:
+    openai:
+      base-url: "${OPENROUTER_BASE_URL:https://openrouter.ai/api/v1}"
+      api-key: "${OPENROUTER_API_KEY:local-placeholder}"
+app:
+  version: 0.1.0
+  redis:
+    rate-limits-enabled: "${REDIS_RATE_LIMITS_ENABLED:true}"
+  security:
+    clerk:
+      issuer: "${CLERK_JWT_ISSUER}"
+      audience: "${CLERK_JWT_AUDIENCE}"
+      authorized-party: "${CLERK_AUTHORIZED_PARTY}"
+      jwk-set-uri: "${CLERK_JWK_SET_URI}"
+    cors:
+      allowed-origins: "${APP_CORS_ALLOWED_ORIGINS}"
+  public-beta:
+    abuse-protection:
+      origin-requests-per-minute: "${PUBLIC_BETA_ORIGIN_REQUESTS_PER_MINUTE:120}"
+      user-requests-per-minute: "${PUBLIC_BETA_USER_REQUESTS_PER_MINUTE:60}"
+      unverified-challenge-threshold: "${PUBLIC_BETA_UNVERIFIED_CHALLENGE_THRESHOLD:20}"
+      concurrent-requests-per-user: "${PUBLIC_BETA_CONCURRENT_REQUESTS_PER_USER:8}"
+  entitlements:
+    free:
+      active-workspaces: "${FREE_ACTIVE_WORKSPACE_LIMIT:10}"
+      copilot-turns-per-month: "${FREE_COPILOT_TURNS_PER_MONTH:50}"
+      reviews-per-month: "${FREE_REVIEWS_PER_MONTH:5}"
+  billing:
+    stripe-secret-key: "${STRIPE_SECRET_KEY:}"
+    stripe-webhook-secret: "${STRIPE_WEBHOOK_SECRET:}"
+    pro-price-id: "${STRIPE_PRO_PRICE_ID:}"
+    synthetic-clerk-subject: "${STRIPE_SYNTHETIC_CLERK_SUBJECT:}"
+    test-pro-enabled: "${STRIPE_TEST_PRO_ENABLED:false}"
+    allow-all-test-users: "${STRIPE_ALLOW_ALL_TEST_USERS:false}"
+    checkout-success-url: "${STRIPE_CHECKOUT_SUCCESS_URL:http://localhost:3000/billing/success?session_id={CHECKOUT_SESSION_ID}}"
+    checkout-cancel-url: "${STRIPE_CHECKOUT_CANCEL_URL:http://localhost:3000/billing/cancel}"
+    portal-return-url: "${STRIPE_PORTAL_RETURN_URL:http://localhost:3000/account}"
+    checkout-cooldown-seconds: "${STRIPE_CHECKOUT_COOLDOWN_SECONDS:60}"
+    past-due-grace-days: "${STRIPE_PAST_DUE_GRACE_DAYS:7}"
+    webhook-tolerance-seconds: "${STRIPE_WEBHOOK_TOLERANCE_SECONDS:300}"
+  ai:
+    open-router-base-url: "${OPENROUTER_BASE_URL:https://openrouter.ai/api/v1}"
+    open-router-api-key: "${OPENROUTER_API_KEY:local-placeholder}"
+    copilot-model: "${OPENROUTER_COPILOT_MODEL:deepseek/deepseek-v4-flash-0731}"
+    review-model: "${OPENROUTER_REVIEW_MODEL:openai/gpt-5.6-luna}"
+    request-timeout: "${AI_REQUEST_TIMEOUT:30s}"
+    max-output-tokens: "${AI_MAX_OUTPUT_TOKENS:4096}"
+    daily-budget-usd: "${AI_DAILY_BUDGET_USD:0.10}"
+    consent-policy-version: "${AI_CONSENT_POLICY_VERSION:2026-08-01}"
+  review:
+    queue-name: "${REVIEW_QUEUE_NAME:review-processing}"
+    dead-letter-queue-name: "${REVIEW_DEAD_LETTER_QUEUE_NAME:review-processing-dead-letter}"
+    max-attempts: "${REVIEW_MAX_ATTEMPTS:3}"
+    worker-enabled: "${REVIEW_WORKER_ENABLED:true}"
+    outbox-publisher-enabled: "${REVIEW_OUTBOX_PUBLISHER_ENABLED:true}"
+  content-operations:
+    authorized-clerk-subjects: "${CONTENT_OPERATOR_CLERK_SUBJECTS:}"
+  account-deletion:
+    recent-authentication-minutes: "${ACCOUNT_DELETION_RECENT_AUTHENTICATION_MINUTES:10}"
+    cancellation-base-url: "${ACCOUNT_DELETION_CANCELLATION_BASE_URL:http://localhost:3000/account/privacy/cancel}"
+    clerk-secret-key: "${CLERK_SECRET_KEY:}"
+    clerk-api-base-url: "${CLERK_BACKEND_API_BASE_URL:https://api.clerk.com/v1/}"
+    resend-api-key: "${RESEND_API_KEY:}"
+    resend-from-email: "${RESEND_FROM_EMAIL:}"
+management:
+  health:
+    redis:
+      enabled: "${REDIS_HEALTH_ENABLED:true}"

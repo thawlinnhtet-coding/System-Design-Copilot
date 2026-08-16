@@ -16,6 +16,7 @@ Before deploying, verify managed-secret configuration without printing secret va
 | Control | Required personal-beta value or condition |
 | --- | --- |
 | `AI_DAILY_BUDGET_USD` | `0.10`; startup rejects a higher value. |
+| `REDIS_URL` | Reachable disposable Redis instance used for rate limits and short-lived concurrency leases; never use it for product state. |
 | `OPENROUTER_API_KEY` | Present only in the backend secret store. |
 | `STRIPE_SECRET_KEY` | A test-mode key (`sk_test_…`) or billing disabled; never a live key. |
 | `STRIPE_TEST_PRO_ENABLED` | `false` for the public beta. |
@@ -52,6 +53,7 @@ Use application logs and read-only operational queries that select identifiers, 
 | Queue publication and retries | `review_outbox_events` and `review_jobs` (`status`, attempts, failure code, timestamps) | Pending outbox backlog, attempts approaching max, or publish failures. |
 | Dead letters | configured `review-processing-dead-letter` queue and `review_jobs.status=DEAD_LETTERED` | Any new dead letter requires triage before widening availability. |
 | Quota and abuse-control decisions | RFC 9457 response code and safe code (`public_beta_rate_limited`, `adaptive_verification_required`, entitlement quota code) | Sustained throttling, unusual origin patterns, or repeated verification escalation. |
+| Redis rate-limit health | Actuator Redis health plus safe rate-limit error codes | Any `rate_limit_unavailable` response pauses promotion until the disposable guard is healthy. |
 | Billing test-mode health | Stripe test webhook receipt/projection status and safe event ID | A live-mode event, signature failure, or ordinary User receiving Pro is a release stop. |
 
 AI operation admission is serialized through a durable database guard. Accepted and provider-failed attempts reserve their estimated cost in the operation record; budget rejections are recorded with zero charged cost. This intentionally favors a safe early stop over reclaiming a failed provider attempt whose upstream charge cannot be proven absent.

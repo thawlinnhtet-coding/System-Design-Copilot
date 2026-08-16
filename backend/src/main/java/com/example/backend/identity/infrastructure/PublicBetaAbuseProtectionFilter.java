@@ -2,6 +2,7 @@ package com.example.backend.identity.infrastructure;
 
 import com.example.backend.identity.application.PublicBetaAbuseProtectionProperties;
 import com.example.backend.identity.application.VerifiedEmailPolicy;
+import com.example.backend.ratelimit.infrastructure.RedisRateLimitStore;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -13,26 +14,20 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.net.URI;
-import java.time.Clock;
 import java.time.Duration;
-import java.time.Instant;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicInteger;
 
-/** Disposable, in-process public-beta guard. Production deployments may back these limits with Redis. */
+/** Redis-backed, disposable public-beta guard. PostgreSQL remains authoritative for product state. */
 public class PublicBetaAbuseProtectionFilter extends OncePerRequestFilter {
 	private static final Duration WINDOW = Duration.ofMinutes(1);
+	private static final Duration CONCURRENCY_LEASE = Duration.ofMinutes(2);
 	private final PublicBetaAbuseProtectionProperties properties;
 	private final VerifiedEmailPolicy verifiedEmailPolicy;
-	private final Clock clock;
-	private final ConcurrentHashMap<String, Window> originWindows = new ConcurrentHashMap<>();
-	private final ConcurrentHashMap<String, Window> userWindows = new ConcurrentHashMap<>();
-	private final ConcurrentHashMap<String, AtomicInteger> concurrentRequests = new ConcurrentHashMap<>();
+	private final RedisRateLimitStore limits;
 
-	public PublicBetaAbuseProtectionFilter(PublicBetaAbuseProtectionProperties properties, VerifiedEmailPolicy verifiedEmailPolicy, Clock clock) {
+	public PublicBetaAbuseProtectionFilter(PublicBetaAbuseProtectionProperties properties, VerifiedEmailPolicy verifiedEmailPolicy, RedisRateLimitStore limits) {
 		this.properties = properties;
 		this.verifiedEmailPolicy = verifiedEmailPolicy;
-		this.clock = clock;
+		this.limits = limits;
 	}
 
 	@Override
@@ -48,42 +43,35 @@ public class PublicBetaAbuseProtectionFilter extends OncePerRequestFilter {
 			filterChain.doFilter(request, response);
 			return;
 		}
-		var now = Instant.now(clock);
 		var subject = jwt.getSubject();
-		if (!increment(originWindows, originKey(request), properties.originRequestsPerMinute(), now) || !increment(userWindows, subject, properties.userRequestsPerMinute(), now)) {
+		var origin = limits.incrementWindow("origin-minute", originKey(request), properties.originRequestsPerMinute(), WINDOW);
+		var user = limits.incrementWindow("user-minute", subject, properties.userRequestsPerMinute(), WINDOW);
+		if (!origin.available() || !user.available()) {
+			writeProblem(response, HttpStatus.SERVICE_UNAVAILABLE, "Rate-limit service unavailable", "Please retry shortly.", "rate_limit_unavailable");
+			return;
+		}
+		if (!origin.allowed() || !user.allowed()) {
 			writeProblem(response, HttpStatus.TOO_MANY_REQUESTS, "Request rate limited", "Please wait before making another change.", "public_beta_rate_limited");
 			return;
 		}
-		if (!verifiedEmailPolicy.isVerified(jwt) && count(userWindows, subject) >= properties.unverifiedChallengeThreshold()) {
+		if (!verifiedEmailPolicy.isVerified(jwt) && user.count() >= properties.unverifiedChallengeThreshold()) {
 			writeProblem(response, HttpStatus.TOO_MANY_REQUESTS, "Verification required to continue", "Verify ownership of your email address with Clerk before making more changes.", "adaptive_verification_required");
 			return;
 		}
-		var active = concurrentRequests.computeIfAbsent(subject, ignored -> new AtomicInteger()).incrementAndGet();
-		if (active > properties.concurrentRequestsPerUser()) {
-			concurrentRequests.get(subject).decrementAndGet();
+		var concurrency = limits.acquireConcurrency("user-concurrent", subject, properties.concurrentRequestsPerUser(), CONCURRENCY_LEASE);
+		if (!concurrency.available()) {
+			writeProblem(response, HttpStatus.SERVICE_UNAVAILABLE, "Concurrency service unavailable", "Please retry shortly.", "rate_limit_unavailable");
+			return;
+		}
+		if (!concurrency.allowed()) {
 			writeProblem(response, HttpStatus.TOO_MANY_REQUESTS, "Too many concurrent requests", "Finish the pending request before starting another.", "concurrent_request_limit");
 			return;
 		}
 		try {
 			filterChain.doFilter(request, response);
 		} finally {
-			concurrentRequests.get(subject).decrementAndGet();
+			limits.releaseConcurrency("user-concurrent", subject);
 		}
-	}
-
-	private boolean increment(ConcurrentHashMap<String, Window> windows, String key, int limit, Instant now) {
-		var accepted = new java.util.concurrent.atomic.AtomicBoolean();
-		windows.compute(key, (ignored, current) -> {
-			var window = current == null || !now.isBefore(current.startedAt().plus(WINDOW)) ? new Window(now, 0) : current;
-			if (window.count() < limit) accepted.set(true);
-			return new Window(window.startedAt(), window.count() + 1);
-		});
-		return accepted.get();
-	}
-
-	private int count(ConcurrentHashMap<String, Window> windows, String key) {
-		var window = windows.get(key);
-		return window == null ? 0 : window.count();
 	}
 
 	private String originKey(HttpServletRequest request) {
@@ -100,8 +88,5 @@ public class PublicBetaAbuseProtectionFilter extends OncePerRequestFilter {
 		response.setContentType("application/problem+json");
 		response.setHeader("Retry-After", "60");
 		response.getWriter().write("{\"type\":\"" + problem.getType() + "\",\"title\":\"" + title + "\",\"status\":" + status.value() + ",\"detail\":\"" + detail + "\",\"code\":\"" + code + "\"}");
-	}
-
-	private record Window(Instant startedAt, int count) {
 	}
 }

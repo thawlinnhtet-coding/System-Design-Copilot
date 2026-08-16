@@ -1,0 +1,70 @@
+app:
+  version: 0.1.0
+  redis:
+    rate-limits-enabled: false
+  security:
+    clerk:
+      issuer: https://clerk.test
+      audience: system-design-copilot-api
+      authorized-party: http://localhost:3000
+      jwk-set-uri: https://clerk.test/.well-known/jwks.json
+    cors:
+      allowed-origins: http://localhost:3000
+  public-beta:
+    abuse-protection:
+      origin-requests-per-minute: 120
+      user-requests-per-minute: 60
+      unverified-challenge-threshold: 20
+      concurrent-requests-per-user: 8
+  entitlements:
+    free:
+      active-workspaces: 10
+      copilot-turns-per-month: 50
+      reviews-per-month: 5
+  billing:
+    stripe-secret-key: sk_test_placeholder
+    stripe-webhook-secret: whsec_test_webhook_secret
+    pro-price-id: price_test_pro
+    synthetic-clerk-subject: synthetic_test_user
+    test-pro-enabled: true
+    checkout-success-url: "http://localhost:3000/billing/success?session_id={CHECKOUT_SESSION_ID}"
+    checkout-cancel-url: http://localhost:3000/billing/cancel
+    portal-return-url: http://localhost:3000/billing
+    checkout-cooldown-seconds: 60
+    past-due-grace-days: 7
+    webhook-tolerance-seconds: 300
+  ai:
+    open-router-base-url: https://openrouter.test/api/v1
+    open-router-api-key: sk-or-test
+    copilot-model: deepseek/deepseek-v4-flash-0731
+    review-model: openai/gpt-5.6-luna
+    request-timeout: 30s
+    max-output-tokens: 4096
+    daily-budget-usd: 0.10
+    consent-policy-version: 2026-08-01
+  review:
+    queue-name: review-processing-test
+    dead-letter-queue-name: review-processing-dead-letter-test
+    max-attempts: 3
+    worker-enabled: false
+    outbox-publisher-enabled: false
+  account-deletion:
+    recent-authentication-minutes: 10
+    cancellation-base-url: http://localhost:3000/account/privacy/cancel
+    clerk-secret-key: ""
+    clerk-api-base-url: https://clerk.test/v1/
+    resend-api-key: ""
+    resend-from-email: ""
+spring:
+  datasource:
+    url: "jdbc:h2:mem:system_design_copilot;MODE=PostgreSQL;DB_CLOSE_DELAY=-1"
+    username: sa
+    password: ""
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+  ai:
+    openai:
+      base-url: https://openrouter.test/api/v1
+      api-key: sk-or-test
