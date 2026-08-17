@@ -417,13 +417,13 @@ The application remains correct after Redis eviction or restart. Durable quota, 
 
 ## 14. Email Architecture
 
-An application-owned mail port supports product notifications such as Account Deletion Request cancellation links. Clerk owns verification and password-reset email. The registration slice does not require Mailpit; a production notification adapter is introduced before the first product email. Email jobs may begin synchronously for the walking skeleton but should become retryable asynchronous work before launch if provider latency affects reliability.
+An application-owned mail port supports product notifications. Clerk owns verification and password-reset email. The registration slice does not require Mailpit; a production notification adapter is introduced before the first product email. Email jobs may begin synchronously for the walking skeleton but should become retryable asynchronous work before launch if provider latency affects reliability.
 
 Email links use random one-time tokens, short expiration, an allowlisted application base URL, and generic request responses.
 
 ### 14.1 Account Deletion
 
-An Account Deletion Request is a durable scheduled workflow rather than a request-thread cascade. It requires fresh managed-identity authentication, revokes all Clerk sessions, suspends product access, cancels subscription renewal, records a 7-day recovery deadline, and sends a cancellation link. The link requires Clerk authentication and can only cancel the pending request. After the deadline, an idempotent worker deletes the Clerk User and then removes private product content and identity data through database cascades. The beta retains only an unlinkable deletion timestamp in PostgreSQL; it contains no Clerk subject, email, billing identifier, or private product content. The beta makes no independent backup-deletion or recovery guarantee. A commercial launch must replace this with the PRD's create-only, externally retained, replayed tombstone ledger before restored product data is made accessible. Restricted billing, fraud, or security records follow the PRD retention rules.
+Account deletion requires an authenticated managed-identity session and explicit product confirmation. The command revokes all Clerk sessions, cancels subscription renewal, deletes the Clerk User, records an unlinkable deletion timestamp, and removes private product content and identity data through database cascades in the same application operation. There is no recovery period or cancellation link. The beta makes no independent backup-deletion or recovery guarantee. A commercial launch must replace this with the PRD's create-only, externally retained, replayed tombstone ledger before restored product data is made accessible. Restricted billing, fraud, or security records follow the PRD retention rules.
 
 ## 15. Observability
 
@@ -519,7 +519,7 @@ CORS uses an explicit allowlist. Clerk session, social-login callback, Stripe re
 | Malformed AI output                        | Validate, optionally repair once, then fail safely                                                                           |
 | Stripe webhook duplicate                   | Return success after idempotent no-op                                                                                        |
 | Stripe webhook delayed                     | Retain current projection and reconcile when event arrives                                                                   |
-| Notification-email provider unavailable    | Preserve the pending Account Deletion Request and retry notification delivery without exposing private content               |
+| Clerk or billing provider unavailable      | Do not claim deletion success; keep product data intact and return a retryable failure without exposing private content   |
 | Stale autosave                             | Return conflict and preserve both server state and unsaved local draft                                                       |
 | Duplicate RabbitMQ delivery                | Acknowledge terminal jobs; defer a delivery with an active lease; reclaim an expired lease without duplicate Review or usage |
 | Worker crash while processing              | Lease expires, the message is redelivered or recovered, and another worker safely reclaims the job                           |

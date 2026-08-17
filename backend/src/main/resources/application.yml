@@ -83,12 +83,8 @@ app:
   content-operations:
     authorized-clerk-subjects: "${CONTENT_OPERATOR_CLERK_SUBJECTS:}"
   account-deletion:
-    recent-authentication-minutes: "${ACCOUNT_DELETION_RECENT_AUTHENTICATION_MINUTES:10}"
-    cancellation-base-url: "${ACCOUNT_DELETION_CANCELLATION_BASE_URL:http://localhost:3000/account/privacy/cancel}"
     clerk-secret-key: "${CLERK_SECRET_KEY:}"
     clerk-api-base-url: "${CLERK_BACKEND_API_BASE_URL:https://api.clerk.com/v1/}"
-    resend-api-key: "${RESEND_API_KEY:}"
-    resend-from-email: "${RESEND_FROM_EMAIL:}"
 management:
   health:
     redis:

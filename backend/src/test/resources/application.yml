@@ -49,12 +49,8 @@ app:
     worker-enabled: false
     outbox-publisher-enabled: false
   account-deletion:
-    recent-authentication-minutes: 10
-    cancellation-base-url: http://localhost:3000/account/privacy/cancel
     clerk-secret-key: ""
     clerk-api-base-url: https://clerk.test/v1/
-    resend-api-key: ""
-    resend-from-email: ""
 spring:
   datasource:
     url: "jdbc:h2:mem:system_design_copilot;MODE=PostgreSQL;DB_CLOSE_DELAY=-1"

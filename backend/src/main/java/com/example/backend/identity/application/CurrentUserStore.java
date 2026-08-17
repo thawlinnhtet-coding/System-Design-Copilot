@@ -9,14 +9,6 @@ public interface CurrentUserStore {
 
 	CurrentUserService.CurrentUser create(String clerkSubject);
 
-	Optional<CurrentUserService.CurrentUser> findByIdIncludingSuspended(UUID userId);
-
-	boolean isSuspended(UUID userId);
-
-	void suspend(UUID userId);
-
-	void restore(UUID userId);
-
 	void delete(UUID userId);
 
 }

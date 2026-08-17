@@ -15,7 +15,6 @@ class ClerkAccountIdentityLifecycle implements AccountIdentityLifecycle {
 	private final AccountDeletionProperties properties;
 	private final HttpClient client = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(10)).build();
 	ClerkAccountIdentityLifecycle(AccountDeletionProperties properties) { this.properties = properties; }
-	public void revokeAllSessions(String clerkSubject) { call("users/" + clerkSubject + "/sessions/revoke", "POST"); }
 	public void deleteUser(String clerkSubject) { call("users/" + clerkSubject, "DELETE"); }
 	private void call(String path, String method) {
 		if (properties.clerkSecretKey() == null || properties.clerkSecretKey().isBlank()) throw new AccountDeletionProviderException();

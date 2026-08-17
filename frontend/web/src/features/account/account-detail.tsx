@@ -277,7 +277,7 @@ function PrivacyDetail() {
       <SettingsSection title="Privacy & deletion">
         <SettingsRow label="Privacy choices" detail="Review how your account and private Workspace content are handled." action="Review privacy" onAction={() => undefined} />
         <SettingsRow label="Data export" detail="Prepare a portable copy of your Workspace design content." action="Request export" onAction={() => undefined} />
-        <div className="flex flex-col gap-3 border-t border-[#f2d7d4] pt-4 sm:flex-row sm:items-center sm:justify-between"><div className="flex flex-col gap-1"><p className="text-sm font-semibold text-[#8d332a]">Delete account</p><p className="text-[13px] leading-[1.4] text-[#66716c]">Recent authentication is required before deletion can be requested.</p></div><Link className="inline-flex h-8 shrink-0 items-center justify-center rounded-[4px] bg-danger px-3 text-[13px] font-semibold text-white hover:brightness-110" href="/account/privacy/confirm">Delete account</Link></div>
+<div className="flex flex-col gap-3 border-t border-[#f2d7d4] pt-4 sm:flex-row sm:items-center sm:justify-between"><div className="flex flex-col gap-1"><p className="text-sm font-semibold text-[#8d332a]">Delete account</p><p className="text-[13px] leading-[1.4] text-[#66716c]">Explicit confirmation is required before permanent deletion.</p></div><Link className="inline-flex h-8 shrink-0 items-center justify-center rounded-[4px] bg-danger px-3 text-[13px] font-semibold text-white hover:brightness-110" href="/account/privacy/confirm">Delete account</Link></div>
       </SettingsSection>
     </div>
   );

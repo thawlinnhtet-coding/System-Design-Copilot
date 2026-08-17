@@ -294,7 +294,7 @@ This plan implements `docs/product/PRD.md` using the architecture in `ARCHITECTU
 ### Product
 
 - Add recent activity, Review history, basic dimension trends, and usage visibility.
-- Implement recent Clerk-authenticated Account Deletion Requests, immediate Clerk-session revocation and product-access suspension, bounded 10-minute API JWT expiry, renewal cancellation, 7-day recovery, a Clerk-authenticated cancellation link, an external create-only deletion tombstone, irreversible Clerk and product-content deletion, restricted legal-record retention, and backup-expiry handling.
+- Implement authenticated account deletion confirmation, immediate Clerk-session revocation, renewal cancellation, irreversible Clerk and product-content deletion, an external create-only deletion tombstone, restricted legal-record retention, and backup-expiry handling.
 - Complete responsive behavior and accessibility remediation.
 - Add actionable empty, degraded, quota, and provider-outage states.
 
@@ -355,7 +355,7 @@ Voice, recording, and organization features require separate privacy and archite
 | AI             | Timeout, refusal, malformed JSON, invalid evidence, oversized output, budget disabled               |
 | Stripe         | Invalid signature, duplicate, out-of-order event, cancellation, delayed webhook                     |
 | Email          | Provider timeout, expired token, reused token, safe resend behavior                                 |
-| Deletion       | Reauthentication, recovery, idempotent purge, billing-record restriction, restored-backup tombstone |
+| Deletion       | Authenticated session, explicit confirmation, immediate idempotent purge, billing-record restriction, restored-backup tombstone |
 | Backup         | Encryption, checksum failure, retention, clean restore, measured RPO/RTO                            |
 | Frontend       | Loading, empty, error, forbidden, quota, conflict, offline, responsive, keyboard                    |
 

@@ -32,24 +32,6 @@ class JpaCurrentUserStore implements CurrentUserStore {
 	}
 
 	@Override
-	@Transactional(readOnly = true, propagation = Propagation.REQUIRES_NEW)
-	public Optional<CurrentUserService.CurrentUser> findByIdIncludingSuspended(java.util.UUID userId) {
-		return userRepository.findById(userId).map(user -> new CurrentUserService.CurrentUser(user.getId(), user.getClerkSubject()));
-	}
-
-	@Override
-	@Transactional(readOnly = true, propagation = Propagation.REQUIRES_NEW)
-	public boolean isSuspended(java.util.UUID userId) { return userRepository.findById(userId).map(UserEntity::isSuspended).orElse(false); }
-
-	@Override
-	@Transactional
-	public void suspend(java.util.UUID userId) { userRepository.findByIdForUpdate(userId).orElseThrow().suspend(); }
-
-	@Override
-	@Transactional
-	public void restore(java.util.UUID userId) { userRepository.findByIdForUpdate(userId).orElseThrow().restore(); }
-
-	@Override
 	@Transactional
 	public void delete(java.util.UUID userId) { userRepository.deleteById(userId); }
 

@@ -89,7 +89,7 @@ export function AccountSettings() {
               <div className="flex flex-col gap-1">
                 <p className="font-mono text-[11px] leading-[1.3] text-[#8d332a]">PRIVACY &amp; DELETION</p>
                 <p className="text-sm leading-[1.3] text-[#8d332a]">Delete account</p>
-                <p className="max-w-[720px] text-xs leading-[1.3] text-text-muted">Account deletion requires recent authentication.</p>
+                <p className="max-w-[720px] text-xs leading-[1.3] text-text-muted">Account deletion requires explicit confirmation.</p>
               </div>
               <Link className="shrink-0 text-left text-[13px] leading-[1.3] text-text-muted hover:text-foreground hover:underline sm:text-right" href="/account/privacy">Open privacy &amp; deletion →</Link>
             </div>
@@ -146,7 +146,7 @@ function MobileAccountNavigation({ plan, activeWorkspaces, session, consentLabel
     { icon: CreditCard, label: "Plan & usage", detail: `${plan} · ${activeWorkspaces}`, href: "/account/plan" },
     { icon: ShieldCheck, label: "AI processing", detail: consentLabel, href: "/account/ai" },
     { icon: ArrowUpDown, label: "Import & export", detail: "Portable design data", href: "/account/data" },
-    { icon: LockKeyhole, label: "Privacy & deletion", detail: "Recent authentication required", href: "/account/privacy" },
+    { icon: LockKeyhole, label: "Privacy & deletion", detail: "Explicit confirmation required", href: "/account/privacy" },
   ];
 
   return (

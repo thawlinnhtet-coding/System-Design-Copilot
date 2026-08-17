@@ -524,14 +524,14 @@ A payment dispute does not silently change access outside this mapping; an audit
 
 ### 13.13 Account Deletion And Retention
 
-- `DATA-001`: Account deletion requires recent authentication and explicit confirmation.
-- `DATA-002`: An Account Deletion Request immediately revokes all managed-identity sessions, suspends product access, and cancels subscription renewal. Already issued API JWTs expire within at most 10 minutes.
-- `DATA-003`: A 7-day recovery period precedes irreversible deletion; the User receives a cancellation link through the verified email channel and must authenticate through the managed identity provider before canceling the request.
-- `DATA-004`: After the recovery period, the system deletes the managed-identity User, Workspaces, Architecture Documents, Revisions, Decisions, Copilot content, Scenarios, Reviews, and progress data.
+- `DATA-001`: Account deletion requires an authenticated session and explicit confirmation.
+- `DATA-002`: The account-deletion command immediately revokes all managed-identity sessions and cancels subscription renewal. Already issued API JWTs expire within at most 10 minutes.
+- `DATA-003`: After explicit confirmation from an authenticated session, the system immediately and irreversibly deletes the managed-identity User, Workspaces, Architecture Documents, Revisions, Decisions, Copilot content, Scenarios, Reviews, and progress data.
+- `DATA-004`: There is no recovery window or cancellation link after confirmation; the product must clearly describe the irreversible consequences before the command is submitted.
 - `DATA-005`: Minimal pseudonymous billing and security records may be retained only for a documented legal, fraud, or accounting purpose and may not contain architecture or Copilot content.
 - `DATA-006`: Application logs expire within 30 days unless a documented security incident requires restricted retention.
 - `DATA-007`: Deleted content ages out of encrypted backups within 35 days. A pseudonymous create-only deletion tombstone is retained outside PostgreSQL for at least 70 days and replayed before restored product data becomes accessible.
-- `DATA-008`: The public beta promises product-content deletion after the recovery period but discloses that independent backup deletion and recovery guarantees are deferred until commercial launch.
+- `DATA-008`: The public beta promises product-content deletion immediately after confirmation but discloses that independent backup deletion and recovery guarantees are deferred until commercial launch.
 
 ## 14. Review Output Contract
 

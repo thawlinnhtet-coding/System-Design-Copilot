@@ -7,5 +7,5 @@ export const metadata: Metadata = {
 };
 
 export default function AccountDeletionConfirmationPage() {
-  return <AppShell compactHeader fullBleed><AccountDeletionState state="confirmation" /></AppShell>;
+  return <AppShell compactHeader fullBleed><AccountDeletionState /></AppShell>;
 }
