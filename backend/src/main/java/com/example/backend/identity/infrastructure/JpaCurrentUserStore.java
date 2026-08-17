@@ -42,15 +42,15 @@ class JpaCurrentUserStore implements CurrentUserStore {
 	public boolean isSuspended(java.util.UUID userId) { return userRepository.findById(userId).map(UserEntity::isSuspended).orElse(false); }
 
 	@Override
-	@Transactional(propagation = Propagation.REQUIRES_NEW)
+	@Transactional
 	public void suspend(java.util.UUID userId) { userRepository.findByIdForUpdate(userId).orElseThrow().suspend(); }
 
 	@Override
-	@Transactional(propagation = Propagation.REQUIRES_NEW)
+	@Transactional
 	public void restore(java.util.UUID userId) { userRepository.findByIdForUpdate(userId).orElseThrow().restore(); }
 
 	@Override
-	@Transactional(propagation = Propagation.REQUIRES_NEW)
+	@Transactional
 	public void delete(java.util.UUID userId) { userRepository.deleteById(userId); }
 
 }

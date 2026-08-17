@@ -2,21 +2,24 @@
 
 import { SignInButton, useAuth, useClerk, useReverification } from "@clerk/nextjs";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import { useAuthenticatedApiClient } from "@/lib/api/authenticated-client";
 import { AccountSettingsSidebar } from "./account-navigation";
 
 export function AccountDeletionState({ state }: { state: "confirmation" | "scheduled" }) {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const { isSignedIn } = useAuth();
   const clerk = useClerk();
   const api = useAuthenticatedApiClient();
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [cancellationToken] = useState<string | null>(() => typeof window === "undefined" ? null : new URLSearchParams(window.location.hash.replace(/^#/, "")).get("token"));
   const scheduled = state === "scheduled";
-  const cancellationRedirect = `/account/privacy/cancel${searchParams.get("token") ? `?token=${encodeURIComponent(searchParams.get("token") ?? "")}` : ""}`;
+  useEffect(() => {
+    if (cancellationToken) window.history.replaceState({}, document.title, window.location.pathname + window.location.search);
+  }, [cancellationToken]);
+  const cancellationRedirect = `/account/privacy/cancel${cancellationToken ? `#token=${encodeURIComponent(cancellationToken)}` : ""}`;
   const requestDeletion = useReverification(api.requestAccountDeletion);
 
   const submit = async () => {
@@ -32,7 +35,7 @@ export function AccountDeletionState({ state }: { state: "confirmation" | "sched
     } finally { setBusy(false); }
   };
   const cancel = async () => {
-    const token = searchParams.get("token");
+    const token = cancellationToken;
     if (!token) { setError("This cancellation link is invalid or incomplete. Open the link from your verified email."); return; }
     setBusy(true); setError(null);
     try { await api.cancelAccountDeletion(token); router.replace("/account"); }

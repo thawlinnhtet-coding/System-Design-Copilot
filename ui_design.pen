@@ -2655,12 +2655,23 @@
               "width": "fill_container",
               "fill": "#DDF2EE",
               "cornerRadius": 4,
+              "gap": 8,
               "padding": [
                 10,
                 12
               ],
               "alignItems": "center",
               "children": [
+                {
+                  "type": "icon",
+                  "id": "V5gpV",
+                  "name": "Sidebar icon — Overview",
+                  "width": 16,
+                  "height": 16,
+                  "icon": "settings",
+                  "library": "lucide",
+                  "fill": "#0C6F68"
+                },
                 {
                   "type": "text",
                   "id": "F8dwpu",
@@ -2680,6 +2691,7 @@
               "width": "fill_container",
               "fill": "#FFFFFF",
               "cornerRadius": 4,
+              "gap": 8,
               "padding": [
                 10,
                 12
@@ -2687,13 +2699,60 @@
               "alignItems": "center",
               "children": [
                 {
+                  "type": "icon",
+                  "id": "gL7PD",
+                  "name": "Sidebar icon — Profile & security",
+                  "width": 16,
+                  "height": 16,
+                  "icon": "user-round",
+                  "library": "lucide",
+                  "fill": "#75807A"
+                },
+                {
                   "type": "text",
                   "id": "VY4Wv",
                   "name": "Sidebar label — Profile & security",
                   "fill": "#58645E",
                   "content": "Profile & security",
                   "fontFamily": "Inter",
-                  "fontSize": 14
+                  "fontSize": 14,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "DKYeY",
+              "name": "Sidebar item — Plan & usage",
+              "width": "fill_container",
+              "fill": "#FFFFFF",
+              "cornerRadius": 4,
+              "gap": 8,
+              "padding": [
+                10,
+                12
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "Wqm2g",
+                  "name": "Sidebar icon — Plan & usage",
+                  "width": 16,
+                  "height": 16,
+                  "icon": "credit-card",
+                  "library": "lucide",
+                  "fill": "#75807A"
+                },
+                {
+                  "type": "text",
+                  "id": "Ycxsy",
+                  "name": "Sidebar label — Plan & usage",
+                  "fill": "#58645E",
+                  "content": "Plan & usage",
+                  "fontFamily": "Inter",
+                  "fontSize": 14,
+                  "fontWeight": "normal"
                 }
               ]
             },
@@ -2704,6 +2763,7 @@
               "width": "fill_container",
               "fill": "#FFFFFF",
               "cornerRadius": 4,
+              "gap": 8,
               "padding": [
                 10,
                 12
@@ -2711,13 +2771,24 @@
               "alignItems": "center",
               "children": [
                 {
+                  "type": "icon",
+                  "id": "CNKjK",
+                  "name": "Sidebar icon — AI processing",
+                  "width": 16,
+                  "height": 16,
+                  "icon": "shield-check",
+                  "library": "lucide",
+                  "fill": "#75807A"
+                },
+                {
                   "type": "text",
                   "id": "G7M4ag",
                   "name": "Sidebar label — AI processing",
                   "fill": "#58645E",
                   "content": "AI processing",
                   "fontFamily": "Inter",
-                  "fontSize": 14
+                  "fontSize": 14,
+                  "fontWeight": "normal"
                 }
               ]
             },
@@ -2728,6 +2799,7 @@
               "width": "fill_container",
               "fill": "#FFFFFF",
               "cornerRadius": 4,
+              "gap": 8,
               "padding": [
                 10,
                 12
@@ -2735,13 +2807,24 @@
               "alignItems": "center",
               "children": [
                 {
+                  "type": "icon",
+                  "id": "lhWYN",
+                  "name": "Sidebar icon — Import & export",
+                  "width": 16,
+                  "height": 16,
+                  "icon": "arrow-up-down",
+                  "library": "lucide",
+                  "fill": "#75807A"
+                },
+                {
                   "type": "text",
                   "id": "z2DCcH",
                   "name": "Sidebar label — Import & export",
                   "fill": "#58645E",
                   "content": "Import & export",
                   "fontFamily": "Inter",
-                  "fontSize": 14
+                  "fontSize": 14,
+                  "fontWeight": "normal"
                 }
               ]
             },
@@ -2752,6 +2835,7 @@
               "width": "fill_container",
               "fill": "#FFFFFF",
               "cornerRadius": 4,
+              "gap": 8,
               "padding": [
                 10,
                 12
@@ -2759,13 +2843,24 @@
               "alignItems": "center",
               "children": [
                 {
+                  "type": "icon",
+                  "id": "OBKy1",
+                  "name": "Sidebar icon — Privacy & deletion",
+                  "width": 16,
+                  "height": 16,
+                  "icon": "lock-keyhole",
+                  "library": "lucide",
+                  "fill": "#75807A"
+                },
+                {
                   "type": "text",
                   "id": "fgDBs",
                   "name": "Sidebar label — Privacy & deletion",
                   "fill": "#58645E",
                   "content": "Privacy & deletion",
                   "fontFamily": "Inter",
-                  "fontSize": 14
+                  "fontSize": 14,
+                  "fontWeight": "normal"
                 }
               ]
             },
@@ -2775,18 +2870,6 @@
               "name": "Sidebar spacer",
               "width": "fill_container",
               "height": 16
-            },
-            {
-              "type": "text",
-              "id": "fSteY",
-              "name": "Sidebar account note",
-              "fill": "#7A847E",
-              "textGrowth": "fixed-width",
-              "width": "fill_container",
-              "content": "Changes apply to your personal account.",
-              "fontFamily": "Inter",
-              "fontSize": 12,
-              "fontWeight": "normal"
             }
           ]
         }
@@ -5058,8 +5141,7 @@
                   "type": "frame",
                   "id": "xtJVP",
                   "name": "Starter Challenge Copy",
-                  "width": "fill_container",
-                  "height": 270,
+                  "width": 900,
                   "layout": "vertical",
                   "gap": 12,
                   "padding": 28,
@@ -5127,11 +5209,10 @@
                   "type": "frame",
                   "id": "c674nw",
                   "name": "New User Practice Loop",
-                  "width": 380,
-                  "height": 230,
+                  "width": 360,
                   "fill": "$chrome",
                   "layout": "vertical",
-                  "gap": 12,
+                  "gap": 10,
                   "padding": 28,
                   "children": [
                     {
@@ -5150,7 +5231,7 @@
                       "name": "New User Loop Steps",
                       "fill": "$ink-dark",
                       "textGrowth": "fixed-width",
-                      "width": "fill_container",
+                      "width": 300,
                       "content": "Clarify → Design → Stress-test → Review",
                       "lineHeight": 1.35,
                       "fontFamily": "$font-display",
@@ -5162,7 +5243,10 @@
                       "id": "BPdED",
                       "name": "New User Loop Note",
                       "fill": "$ink-dark-muted",
+                      "textGrowth": "fixed-width",
+                      "width": 290,
                       "content": "Your work stays private and resumable.",
+                      "lineHeight": 1.45,
                       "fontFamily": "$font-body",
                       "fontSize": 13,
                       "fontWeight": "normal"
@@ -7182,15 +7266,54 @@
                   "gap": 12,
                   "children": [
                     {
-                      "type": "text",
-                      "id": "mJDvR",
-                      "name": "Recent Workspaces Label",
-                      "fill": "$ink-muted",
-                      "content": "RECENT WORKSPACES",
-                      "lineHeight": 1.3,
-                      "fontFamily": "$font-mono",
-                      "fontSize": 11,
-                      "fontWeight": "normal"
+                      "type": "frame",
+                      "id": "Adw8a",
+                      "name": "Recent Workspaces Header",
+                      "width": "fill_container",
+                      "justifyContent": "space_between",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "sGo9h",
+                          "name": "Recent Workspaces Label",
+                          "fill": "$ink-muted",
+                          "content": "RECENT WORKSPACES",
+                          "lineHeight": 1.3,
+                          "fontFamily": "$font-mono",
+                          "fontSize": 11,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "oo07v",
+                          "name": "Manage Workspaces Button",
+                          "height": 32,
+                          "fill": "$paper-raised",
+                          "cornerRadius": 3,
+                          "stroke": "$action",
+                          "strokeWidth": 1,
+                          "padding": [
+                            0,
+                            12
+                          ],
+                          "justifyContent": "center",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "fhcsw",
+                              "name": "Manage Workspaces Button Label",
+                              "fill": "$action",
+                              "content": "Manage all  →",
+                              "lineHeight": 1.3,
+                              "fontFamily": "$font-body",
+                              "fontSize": 12,
+                              "fontWeight": "600"
+                            }
+                          ]
+                        }
+                      ]
                     },
                     {
                       "type": "frame",
@@ -44484,603 +44607,13 @@
       "children": [
         {
           "type": "frame",
-          "id": "VQI8q",
-          "name": "State Board Header",
-          "width": "fill_container",
-          "fill": "$paper-raised",
-          "layout": "vertical",
-          "gap": 5,
-          "padding": [
-            18,
-            40
-          ],
-          "children": [
-            {
-              "type": "text",
-              "id": "LmgGN",
-              "name": "State Board Eyebrow",
-              "fill": "$action",
-              "content": "ACCOUNT / PROFILE & SECURITY",
-              "lineHeight": 1.4,
-              "fontFamily": "$font-mono",
-              "fontSize": 10,
-              "fontWeight": "normal"
-            },
-            {
-              "type": "text",
-              "id": "yBfA6",
-              "name": "State Board Title",
-              "fill": "$ink",
-              "textGrowth": "fixed-width",
-              "width": "fill_container",
-              "content": "Personal information & security",
-              "lineHeight": 1.1,
-              "fontFamily": "$font-display",
-              "fontSize": 28,
-              "fontWeight": "500"
-            },
-            {
-              "type": "text",
-              "id": "irqLN",
-              "name": "State Board Description",
-              "fill": "$ink-muted",
-              "textGrowth": "fixed-width",
-              "width": "fill_container",
-              "content": "Manage your identity and the browsers that can access your Workspaces.",
-              "lineHeight": 1.45,
-              "fontFamily": "$font-body",
-              "fontSize": 13,
-              "fontWeight": "normal"
-            }
-          ]
-        },
-        {
-          "type": "frame",
-          "id": "JKTfm",
-          "name": "Account Detail Body",
-          "width": "fill_container",
-          "height": "fill_container",
-          "children": [
-            {
-              "type": "frame",
-              "id": "hfN4C",
-              "name": "Account Detail Navigation",
-              "width": 220,
-              "fill": "$paper-raised",
-              "stroke": "$line",
-              "strokeWidth": {
-                "right": 1
-              },
-              "layout": "vertical",
-              "gap": 6,
-              "padding": [
-                24,
-                18
-              ],
-              "children": [
-                {
-                  "type": "frame",
-                  "id": "g5Av1B",
-                  "name": "Profile & sessions Detail Nav",
-                  "width": "fill_container",
-                  "fill": "$action-subtle",
-                  "cornerRadius": 3,
-                  "padding": [
-                    10,
-                    9
-                  ],
-                  "children": [
-                    {
-                      "type": "text",
-                      "id": "nQu1b",
-                      "name": "Profile & sessions Detail Nav Label",
-                      "fill": "$action",
-                      "content": "Profile & security",
-                      "lineHeight": 1.4,
-                      "fontFamily": "$font-body",
-                      "fontSize": 12,
-                      "fontWeight": "normal"
-                    }
-                  ]
-                },
-                {
-                  "type": "frame",
-                  "id": "Fr8L1",
-                  "name": "Plan & usage Detail Nav",
-                  "width": "fill_container",
-                  "fill": "$paper-raised",
-                  "cornerRadius": 3,
-                  "padding": [
-                    10,
-                    9
-                  ],
-                  "children": [
-                    {
-                      "type": "text",
-                      "id": "QW1QX",
-                      "name": "Plan & usage Detail Nav Label",
-                      "fill": "$ink-muted",
-                      "content": "Plan & usage",
-                      "lineHeight": 1.4,
-                      "fontFamily": "$font-body",
-                      "fontSize": 12,
-                      "fontWeight": "normal"
-                    }
-                  ]
-                },
-                {
-                  "type": "frame",
-                  "id": "a0ZIT2",
-                  "name": "AI processing Detail Nav",
-                  "width": "fill_container",
-                  "fill": "$paper-raised",
-                  "cornerRadius": 3,
-                  "padding": [
-                    10,
-                    9
-                  ],
-                  "children": [
-                    {
-                      "type": "text",
-                      "id": "Z6cGd",
-                      "name": "AI processing Detail Nav Label",
-                      "fill": "$ink-muted",
-                      "content": "AI processing",
-                      "lineHeight": 1.4,
-                      "fontFamily": "$font-body",
-                      "fontSize": 12,
-                      "fontWeight": "normal"
-                    }
-                  ]
-                },
-                {
-                  "type": "frame",
-                  "id": "hnaa9",
-                  "name": "Import & export Detail Nav",
-                  "width": "fill_container",
-                  "fill": "$paper-raised",
-                  "cornerRadius": 3,
-                  "padding": [
-                    10,
-                    9
-                  ],
-                  "children": [
-                    {
-                      "type": "text",
-                      "id": "LOot4",
-                      "name": "Import & export Detail Nav Label",
-                      "fill": "$ink-muted",
-                      "content": "Import & export",
-                      "lineHeight": 1.4,
-                      "fontFamily": "$font-body",
-                      "fontSize": 12,
-                      "fontWeight": "normal"
-                    }
-                  ]
-                },
-                {
-                  "type": "frame",
-                  "id": "LkjT9",
-                  "name": "Privacy & deletion Detail Nav",
-                  "width": "fill_container",
-                  "fill": "$paper-raised",
-                  "cornerRadius": 3,
-                  "padding": [
-                    10,
-                    9
-                  ],
-                  "children": [
-                    {
-                      "type": "text",
-                      "id": "iEByW",
-                      "name": "Privacy & deletion Detail Nav Label",
-                      "fill": "$ink-muted",
-                      "content": "Privacy & deletion",
-                      "lineHeight": 1.4,
-                      "fontFamily": "$font-body",
-                      "fontSize": 12,
-                      "fontWeight": "normal"
-                    }
-                  ]
-                }
-              ]
-            },
-            {
-              "type": "frame",
-              "id": "LKU9V",
-              "name": "Account Detail Content",
-              "width": "fill_container",
-              "layout": "vertical",
-              "gap": 14,
-              "padding": [
-                24,
-                40
-              ],
-              "children": [
-                {
-                  "type": "frame",
-                  "id": "GdGg1",
-                  "name": "Account Detail Top Row",
-                  "width": "fill_container",
-                  "gap": 14,
-                  "children": [
-                    {
-                      "type": "frame",
-                      "id": "Cza4k",
-                      "name": "Profile and Sessions Detail",
-                      "width": "fill_container",
-                      "fill": "$paper-raised",
-                      "cornerRadius": 5,
-                      "stroke": "$line",
-                      "strokeWidth": 1,
-                      "layout": "vertical",
-                      "gap": 8,
-                      "padding": 16,
-                      "children": [
-                        {
-                          "type": "text",
-                          "id": "s1Fzg4",
-                          "name": "Profile and Sessions Detail State",
-                          "fill": "$ink-muted",
-                          "content": "PERSONAL INFORMATION",
-                          "lineHeight": 1.4,
-                          "fontFamily": "$font-mono",
-                          "fontSize": 10,
-                          "fontWeight": "normal"
-                        },
-                        {
-                          "type": "text",
-                          "id": "ij9i1",
-                          "name": "Profile and Sessions Detail Title",
-                          "fill": "$ink",
-                          "textGrowth": "fixed-width",
-                          "width": "fill_container",
-                          "content": "Personal information",
-                          "lineHeight": 1.2,
-                          "fontFamily": "$font-display",
-                          "fontSize": 17,
-                          "fontWeight": "normal"
-                        },
-                        {
-                          "type": "frame",
-                          "id": "yeBMs",
-                          "name": "Verified email Account Detail Row",
-                          "width": "fill_container",
-                          "stroke": "$line",
-                          "strokeWidth": {
-                            "bottom": 1
-                          },
-                          "padding": [
-                            7,
-                            0
-                          ],
-                          "justifyContent": "space_between",
-                          "children": [
-                            {
-                              "type": "text",
-                              "id": "iGsP2",
-                              "name": "Verified email Detail Label",
-                              "fill": "$ink-muted",
-                              "content": "Email address",
-                              "lineHeight": 1.4,
-                              "fontFamily": "$font-body",
-                              "fontSize": 11,
-                              "fontWeight": "normal"
-                            },
-                            {
-                              "type": "text",
-                              "id": "aAIPi",
-                              "name": "Verified email Detail Value",
-                              "fill": "$ink",
-                              "content": "thaw@example.com · Verified",
-                              "lineHeight": 1.4,
-                              "fontFamily": "$font-body",
-                              "fontSize": 11,
-                              "fontWeight": "normal"
-                            }
-                          ]
-                        },
-                        {
-                          "type": "frame",
-                          "id": "y7pvdl",
-                          "name": "Current session Account Detail Row",
-                          "width": "fill_container",
-                          "stroke": "$line",
-                          "strokeWidth": {
-                            "bottom": 1
-                          },
-                          "padding": [
-                            7,
-                            0
-                          ],
-                          "justifyContent": "space_between",
-                          "children": [
-                            {
-                              "type": "text",
-                              "id": "LCgDC",
-                              "name": "Current session Detail Label",
-                              "fill": "$ink-muted",
-                              "content": "This device",
-                              "lineHeight": 1.4,
-                              "fontFamily": "$font-body",
-                              "fontSize": 11,
-                              "fontWeight": "normal"
-                            },
-                            {
-                              "type": "text",
-                              "id": "aH1zX",
-                              "name": "Current session Detail Value",
-                              "fill": "$ink",
-                              "content": "Current browser · Active now",
-                              "lineHeight": 1.4,
-                              "fontFamily": "$font-body",
-                              "fontSize": 11,
-                              "fontWeight": "normal"
-                            }
-                          ]
-                        },
-                        {
-                          "type": "frame",
-                          "id": "D2IqA",
-                          "name": "Other sessions Account Detail Row",
-                          "width": "fill_container",
-                          "stroke": "$line",
-                          "strokeWidth": {
-                            "bottom": 1
-                          },
-                          "padding": [
-                            7,
-                            0
-                          ],
-                          "justifyContent": "space_between",
-                          "children": [
-                            {
-                              "type": "text",
-                              "id": "jXYpW",
-                              "name": "Other sessions Detail Label",
-                              "fill": "$ink-muted",
-                              "content": "Other devices",
-                              "lineHeight": 1.4,
-                              "fontFamily": "$font-body",
-                              "fontSize": 11,
-                              "fontWeight": "normal"
-                            },
-                            {
-                              "type": "text",
-                              "id": "Hsetw",
-                              "name": "Other sessions Detail Value",
-                              "fill": "$ink",
-                              "content": "2 active",
-                              "lineHeight": 1.4,
-                              "fontFamily": "$font-body",
-                              "fontSize": 11,
-                              "fontWeight": "normal"
-                            }
-                          ]
-                        },
-                        {
-                          "type": "text",
-                          "id": "uIKWO",
-                          "name": "Manage Active Sessions",
-                          "fill": "$action",
-                          "content": "Manage active sessions  →",
-                          "lineHeight": 1.4,
-                          "fontFamily": "$font-body",
-                          "fontSize": 11,
-                          "fontWeight": "normal"
-                        },
-                        {
-                          "type": "frame",
-                          "id": "SSRNF",
-                          "name": "Password Security Row",
-                          "width": "fill_container",
-                          "stroke": "$line",
-                          "strokeWidth": {
-                            "bottom": 1
-                          },
-                          "padding": [
-                            10,
-                            0
-                          ],
-                          "justifyContent": "space_between",
-                          "children": [
-                            {
-                              "type": "text",
-                              "id": "u0BrzX",
-                              "name": "Password Security Label",
-                              "fill": "$ink-muted",
-                              "content": "Password",
-                              "fontFamily": "$font-body",
-                              "fontSize": 12,
-                              "fontWeight": "normal"
-                            },
-                            {
-                              "type": "text",
-                              "id": "ZFf9f",
-                              "name": "Change Password Action",
-                              "fill": "$action",
-                              "content": "Change password  →",
-                              "fontFamily": "$font-body",
-                              "fontSize": 12,
-                              "fontWeight": "500"
-                            }
-                          ]
-                        }
-                      ]
-                    }
-                  ]
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "type": "frame",
-          "id": "LHJu3",
-          "layoutPosition": "absolute",
-          "x": 0,
-          "y": 64,
-          "name": "Account settings sidebar — Profile & security",
-          "width": 270,
-          "height": 836,
-          "fill": "#FFFFFF",
-          "layout": "vertical",
-          "gap": 8,
-          "padding": [
-            28,
-            20
-          ],
-          "children": [
-            {
-              "type": "text",
-              "id": "QvWLC",
-              "name": "Sidebar section label",
-              "fill": "#75807A",
-              "content": "ACCOUNT SETTINGS",
-              "fontFamily": "Inter",
-              "fontSize": 11,
-              "fontWeight": "600",
-              "letterSpacing": 0.7
-            },
-            {
-              "type": "frame",
-              "id": "GQiH1",
-              "name": "Sidebar item — Overview",
-              "width": "fill_container",
-              "fill": "#FFFFFF",
-              "cornerRadius": 4,
-              "padding": [
-                10,
-                12
-              ],
-              "alignItems": "center",
-              "children": [
-                {
-                  "type": "text",
-                  "id": "EKn5B",
-                  "name": "Sidebar label — Overview",
-                  "fill": "#58645E",
-                  "content": "Overview",
-                  "fontFamily": "Inter",
-                  "fontSize": 14
-                }
-              ]
-            },
-            {
-              "type": "frame",
-              "id": "xaaoe",
-              "name": "Sidebar item — Profile & security",
-              "width": "fill_container",
-              "fill": "#DDF2EE",
-              "cornerRadius": 4,
-              "padding": [
-                10,
-                12
-              ],
-              "alignItems": "center",
-              "children": [
-                {
-                  "type": "text",
-                  "id": "YvTVZ",
-                  "name": "Sidebar label — Profile & security",
-                  "fill": "#0C6F68",
-                  "content": "Profile & security",
-                  "fontFamily": "Inter",
-                  "fontSize": 14,
-                  "fontWeight": "600"
-                }
-              ]
-            },
-            {
-              "type": "frame",
-              "id": "v48iHa",
-              "name": "Sidebar item — AI processing",
-              "width": "fill_container",
-              "fill": "#FFFFFF",
-              "cornerRadius": 4,
-              "padding": [
-                10,
-                12
-              ],
-              "alignItems": "center",
-              "children": [
-                {
-                  "type": "text",
-                  "id": "HyD3B",
-                  "name": "Sidebar label — AI processing",
-                  "fill": "#58645E",
-                  "content": "AI processing",
-                  "fontFamily": "Inter",
-                  "fontSize": 14
-                }
-              ]
-            },
-            {
-              "type": "frame",
-              "id": "s8Maq",
-              "name": "Sidebar item — Import & export",
-              "width": "fill_container",
-              "fill": "#FFFFFF",
-              "cornerRadius": 4,
-              "padding": [
-                10,
-                12
-              ],
-              "alignItems": "center",
-              "children": [
-                {
-                  "type": "text",
-                  "id": "wNPcS",
-                  "name": "Sidebar label — Import & export",
-                  "fill": "#58645E",
-                  "content": "Import & export",
-                  "fontFamily": "Inter",
-                  "fontSize": 14
-                }
-              ]
-            },
-            {
-              "type": "frame",
-              "id": "R8K47",
-              "name": "Sidebar item — Privacy & deletion",
-              "width": "fill_container",
-              "fill": "#FFFFFF",
-              "cornerRadius": 4,
-              "padding": [
-                10,
-                12
-              ],
-              "alignItems": "center",
-              "children": [
-                {
-                  "type": "text",
-                  "id": "X7osj",
-                  "name": "Sidebar label — Privacy & deletion",
-                  "fill": "#58645E",
-                  "content": "Privacy & deletion",
-                  "fontFamily": "Inter",
-                  "fontSize": 14
-                }
-              ]
-            },
-            {
-              "type": "frame",
-              "id": "yPF1l",
-              "name": "Sidebar spacer",
-              "width": "fill_container",
-              "height": 16
-            }
-          ]
-        },
-        {
-          "type": "frame",
           "id": "bD4xU",
           "layoutPosition": "absolute",
           "x": 270,
           "y": 64,
           "name": "Profile & security content",
           "width": 1170,
-          "height": 836,
+          "height": 960,
           "fill": "#F7F5EF",
           "layout": "vertical",
           "gap": 24,
@@ -45507,74 +45040,373 @@
         },
         {
           "type": "frame",
-          "id": "i5wiby",
+          "id": "YRToz",
           "layoutPosition": "absolute",
           "x": 0,
           "y": 0,
-          "name": "Shared application header",
+          "name": "Authenticated Global Navigation",
           "width": 1440,
           "height": 64,
-          "fill": "#17211F",
+          "fill": "$nav-graphite",
+          "stroke": "$nav-line",
+          "strokeWidth": {
+            "bottom": 1
+          },
           "padding": [
             0,
-            24
+            48
           ],
           "justifyContent": "space_between",
           "alignItems": "center",
           "children": [
             {
+              "id": "SJyVy",
+              "type": "ref",
+              "ref": "EnwHq",
+              "name": "Product Logo Inverse Lockup",
+              "width": 238,
+              "height": 38,
+              "padding": 0,
+              "fill": "#00000000",
+              "stroke": "#00000000",
+              "strokeWidth": 0
+            },
+            {
+              "type": "text",
+              "id": "l523V",
+              "x": 48,
+              "y": 21,
+              "name": "Product Wordmark",
+              "enabled": false,
+              "fill": "$ink-dark",
+              "content": "◆  System Design Copilot",
+              "lineHeight": 1.3,
+              "fontFamily": "$font-display",
+              "fontSize": 16,
+              "fontWeight": "normal"
+            },
+            {
               "type": "frame",
-              "id": "vjUhU",
-              "name": "Header navigation",
-              "gap": 24,
-              "alignItems": "center",
+              "id": "bP633",
+              "name": "Primary Navigation",
+              "gap": 30,
               "children": [
                 {
                   "type": "text",
-                  "id": "bZXyL",
-                  "name": "Header link — Practice",
-                  "fill": "#D9E2DF",
+                  "id": "zSWzk",
+                  "name": "Practice Navigation",
+                  "fill": "$ink-dark-muted",
                   "content": "Practice",
-                  "fontFamily": "Inter",
+                  "lineHeight": 1.3,
+                  "fontFamily": "$font-body",
                   "fontSize": 13,
                   "fontWeight": "normal"
                 },
                 {
                   "type": "text",
-                  "id": "zS2SN",
-                  "name": "Header link — Develop",
-                  "fill": "#D9E2DF",
-                  "content": "Develop",
-                  "fontFamily": "Inter",
+                  "id": "dTdvB",
+                  "name": "Challenges Navigation",
+                  "fill": "$ink-dark-muted",
+                  "content": "Challenges",
+                  "lineHeight": 1.3,
+                  "fontFamily": "$font-body",
                   "fontSize": 13,
                   "fontWeight": "normal"
                 },
                 {
                   "type": "text",
-                  "id": "XrRld",
-                  "name": "Header link — Progress",
-                  "fill": "#D9E2DF",
+                  "id": "tv2Xk",
+                  "name": "Progress Navigation",
+                  "fill": "$ink-dark-muted",
                   "content": "Progress",
-                  "fontFamily": "Inter",
+                  "lineHeight": 1.3,
+                  "fontFamily": "$font-body",
                   "fontSize": 13,
                   "fontWeight": "normal"
                 }
               ]
             },
             {
-              "id": "DYDX6",
-              "type": "ref",
-              "ref": "qvZfh",
-              "name": "Account menu"
+              "type": "text",
+              "id": "Z8GFkW",
+              "x": 1272,
+              "y": 25.5,
+              "name": "Account Menu",
+              "enabled": false,
+              "fill": "$scenario",
+              "content": "TL  ·  PERSONAL BETA",
+              "lineHeight": 1.3,
+              "fontFamily": "$font-mono",
+              "fontSize": 11,
+              "fontWeight": "normal"
             },
             {
-              "id": "nQkh2",
+              "id": "UlTLL",
               "type": "ref",
-              "ref": "EnwHq",
-              "name": "Product logo inverse",
-              "layoutPosition": "absolute",
-              "x": 24,
-              "y": 18
+              "ref": "qvZfh",
+              "name": "Account Menu Control",
+              "width": 184,
+              "height": 40,
+              "padding": [
+                4,
+                8
+              ],
+              "fill": "#00000000",
+              "stroke": "#00000000",
+              "strokeWidth": 0
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "qN4t2",
+          "layoutPosition": "absolute",
+          "x": 0,
+          "y": 64,
+          "name": "Account settings sidebar — Profile & security",
+          "width": 270,
+          "height": 960,
+          "fill": "#FFFFFF",
+          "layout": "vertical",
+          "gap": 8,
+          "padding": [
+            28,
+            20
+          ],
+          "children": [
+            {
+              "type": "text",
+              "id": "Jk3OH",
+              "name": "Sidebar section label",
+              "fill": "#75807A",
+              "content": "ACCOUNT SETTINGS",
+              "fontFamily": "Inter",
+              "fontSize": 11,
+              "fontWeight": "600",
+              "letterSpacing": 0.7
+            },
+            {
+              "type": "frame",
+              "id": "hH04Z",
+              "name": "Sidebar item — Overview",
+              "width": "fill_container",
+              "fill": "#FFFFFF",
+              "cornerRadius": 4,
+              "gap": 8,
+              "padding": [
+                10,
+                12
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "i27fL6",
+                  "name": "Sidebar icon — Overview",
+                  "width": 16,
+                  "height": 16,
+                  "icon": "settings",
+                  "library": "lucide",
+                  "fill": "#75807A"
+                },
+                {
+                  "type": "text",
+                  "id": "WsV2J",
+                  "name": "Sidebar label — Overview",
+                  "fill": "#58645E",
+                  "content": "Overview",
+                  "fontFamily": "Inter",
+                  "fontSize": 14,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "rQ97I",
+              "name": "Sidebar item — Profile & security",
+              "width": "fill_container",
+              "fill": "#DDF2EE",
+              "cornerRadius": 4,
+              "gap": 8,
+              "padding": [
+                10,
+                12
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "VCcON",
+                  "name": "Sidebar icon — Profile & security",
+                  "width": 16,
+                  "height": 16,
+                  "icon": "user-round",
+                  "library": "lucide",
+                  "fill": "#0C6F68"
+                },
+                {
+                  "type": "text",
+                  "id": "UA5f8",
+                  "name": "Sidebar label — Profile & security",
+                  "fill": "#0C6F68",
+                  "content": "Profile & security",
+                  "fontFamily": "Inter",
+                  "fontSize": 14,
+                  "fontWeight": "600"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "frRot",
+              "name": "Sidebar item — Plan & usage",
+              "width": "fill_container",
+              "fill": "#FFFFFF",
+              "cornerRadius": 4,
+              "gap": 8,
+              "padding": [
+                10,
+                12
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "x90UZb",
+                  "name": "Sidebar icon — Plan & usage",
+                  "width": 16,
+                  "height": 16,
+                  "icon": "credit-card",
+                  "library": "lucide",
+                  "fill": "#75807A"
+                },
+                {
+                  "type": "text",
+                  "id": "E65mg",
+                  "name": "Sidebar label — Plan & usage",
+                  "fill": "#58645E",
+                  "content": "Plan & usage",
+                  "fontFamily": "Inter",
+                  "fontSize": 14,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "u6iig",
+              "name": "Sidebar item — AI processing",
+              "width": "fill_container",
+              "fill": "#FFFFFF",
+              "cornerRadius": 4,
+              "gap": 8,
+              "padding": [
+                10,
+                12
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "kDxiz",
+                  "name": "Sidebar icon — AI processing",
+                  "width": 16,
+                  "height": 16,
+                  "icon": "shield-check",
+                  "library": "lucide",
+                  "fill": "#75807A"
+                },
+                {
+                  "type": "text",
+                  "id": "UVkPJ",
+                  "name": "Sidebar label — AI processing",
+                  "fill": "#58645E",
+                  "content": "AI processing",
+                  "fontFamily": "Inter",
+                  "fontSize": 14,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "RxNi7",
+              "name": "Sidebar item — Import & export",
+              "width": "fill_container",
+              "fill": "#FFFFFF",
+              "cornerRadius": 4,
+              "gap": 8,
+              "padding": [
+                10,
+                12
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "zVcFA",
+                  "name": "Sidebar icon — Import & export",
+                  "width": 16,
+                  "height": 16,
+                  "icon": "arrow-up-down",
+                  "library": "lucide",
+                  "fill": "#75807A"
+                },
+                {
+                  "type": "text",
+                  "id": "v85FoU",
+                  "name": "Sidebar label — Import & export",
+                  "fill": "#58645E",
+                  "content": "Import & export",
+                  "fontFamily": "Inter",
+                  "fontSize": 14,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "kJlzH",
+              "name": "Sidebar item — Privacy & deletion",
+              "width": "fill_container",
+              "fill": "#FFFFFF",
+              "cornerRadius": 4,
+              "gap": 8,
+              "padding": [
+                10,
+                12
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "xBi0A",
+                  "name": "Sidebar icon — Privacy & deletion",
+                  "width": 16,
+                  "height": 16,
+                  "icon": "lock-keyhole",
+                  "library": "lucide",
+                  "fill": "#75807A"
+                },
+                {
+                  "type": "text",
+                  "id": "G97PUl",
+                  "name": "Sidebar label — Privacy & deletion",
+                  "fill": "#58645E",
+                  "content": "Privacy & deletion",
+                  "fontFamily": "Inter",
+                  "fontSize": 14,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "RQDjY",
+              "name": "Sidebar spacer",
+              "width": "fill_container",
+              "height": 16
             }
           ]
         }
@@ -69827,6 +69659,7 @@
               "width": "fill_container",
               "fill": "#FFFFFF",
               "cornerRadius": 4,
+              "gap": 8,
               "padding": [
                 10,
                 12
@@ -69834,13 +69667,24 @@
               "alignItems": "center",
               "children": [
                 {
+                  "type": "icon",
+                  "id": "E26I6",
+                  "name": "Sidebar icon — Overview",
+                  "width": 16,
+                  "height": 16,
+                  "icon": "settings",
+                  "library": "lucide",
+                  "fill": "#75807A"
+                },
+                {
                   "type": "text",
                   "id": "q0UdW",
                   "name": "Sidebar label — Overview",
                   "fill": "#58645E",
                   "content": "Overview",
                   "fontFamily": "Inter",
-                  "fontSize": 14
+                  "fontSize": 14,
+                  "fontWeight": "normal"
                 }
               ]
             },
@@ -69851,12 +69695,23 @@
               "width": "fill_container",
               "fill": "#DDF2EE",
               "cornerRadius": 4,
+              "gap": 8,
               "padding": [
                 10,
                 12
               ],
               "alignItems": "center",
               "children": [
+                {
+                  "type": "icon",
+                  "id": "qJ5i6",
+                  "name": "Sidebar icon — Profile & security",
+                  "width": 16,
+                  "height": 16,
+                  "icon": "user-round",
+                  "library": "lucide",
+                  "fill": "#0C6F68"
+                },
                 {
                   "type": "text",
                   "id": "VTl07",
@@ -69871,11 +69726,12 @@
             },
             {
               "type": "frame",
-              "id": "ZLe1Q",
-              "name": "Sidebar item — AI processing",
+              "id": "hDSpV",
+              "name": "Sidebar item — Plan & usage",
               "width": "fill_container",
               "fill": "#FFFFFF",
               "cornerRadius": 4,
+              "gap": 8,
               "padding": [
                 10,
                 12
@@ -69883,13 +69739,60 @@
               "alignItems": "center",
               "children": [
                 {
+                  "type": "icon",
+                  "id": "fpWKD",
+                  "name": "Sidebar icon — Plan & usage",
+                  "width": 16,
+                  "height": 16,
+                  "icon": "credit-card",
+                  "library": "lucide",
+                  "fill": "#75807A"
+                },
+                {
+                  "type": "text",
+                  "id": "OfyLz",
+                  "name": "Sidebar label — Plan & usage",
+                  "fill": "#58645E",
+                  "content": "Plan & usage",
+                  "fontFamily": "Inter",
+                  "fontSize": 14,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "ZLe1Q",
+              "name": "Sidebar item — AI processing",
+              "width": "fill_container",
+              "fill": "#FFFFFF",
+              "cornerRadius": 4,
+              "gap": 8,
+              "padding": [
+                10,
+                12
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "zUAfd",
+                  "name": "Sidebar icon — AI processing",
+                  "width": 16,
+                  "height": 16,
+                  "icon": "shield-check",
+                  "library": "lucide",
+                  "fill": "#75807A"
+                },
+                {
                   "type": "text",
                   "id": "xnnSb",
                   "name": "Sidebar label — AI processing",
                   "fill": "#58645E",
                   "content": "AI processing",
                   "fontFamily": "Inter",
-                  "fontSize": 14
+                  "fontSize": 14,
+                  "fontWeight": "normal"
                 }
               ]
             },
@@ -69900,6 +69803,7 @@
               "width": "fill_container",
               "fill": "#FFFFFF",
               "cornerRadius": 4,
+              "gap": 8,
               "padding": [
                 10,
                 12
@@ -69907,13 +69811,24 @@
               "alignItems": "center",
               "children": [
                 {
+                  "type": "icon",
+                  "id": "L55Uz",
+                  "name": "Sidebar icon — Import & export",
+                  "width": 16,
+                  "height": 16,
+                  "icon": "arrow-up-down",
+                  "library": "lucide",
+                  "fill": "#75807A"
+                },
+                {
                   "type": "text",
                   "id": "Lb1zI",
                   "name": "Sidebar label — Import & export",
                   "fill": "#58645E",
                   "content": "Import & export",
                   "fontFamily": "Inter",
-                  "fontSize": 14
+                  "fontSize": 14,
+                  "fontWeight": "normal"
                 }
               ]
             },
@@ -69924,6 +69839,7 @@
               "width": "fill_container",
               "fill": "#FFFFFF",
               "cornerRadius": 4,
+              "gap": 8,
               "padding": [
                 10,
                 12
@@ -69931,13 +69847,24 @@
               "alignItems": "center",
               "children": [
                 {
+                  "type": "icon",
+                  "id": "nSo6H",
+                  "name": "Sidebar icon — Privacy & deletion",
+                  "width": 16,
+                  "height": 16,
+                  "icon": "lock-keyhole",
+                  "library": "lucide",
+                  "fill": "#75807A"
+                },
+                {
                   "type": "text",
                   "id": "G8GFS",
                   "name": "Sidebar label — Privacy & deletion",
                   "fill": "#58645E",
                   "content": "Privacy & deletion",
                   "fontFamily": "Inter",
-                  "fontSize": 14
+                  "fontSize": 14,
+                  "fontWeight": "normal"
                 }
               ]
             },
@@ -69947,18 +69874,6 @@
               "name": "Sidebar spacer",
               "width": "fill_container",
               "height": 16
-            },
-            {
-              "type": "text",
-              "id": "Oi4u4",
-              "name": "Sidebar account note",
-              "fill": "#7A847E",
-              "textGrowth": "fixed-width",
-              "width": "fill_container",
-              "content": "Changes apply to your personal account.",
-              "fontFamily": "Inter",
-              "fontSize": 12,
-              "fontWeight": "normal"
             }
           ]
         }
@@ -71120,6 +71035,7 @@
               "width": "fill_container",
               "fill": "#FFFFFF",
               "cornerRadius": 4,
+              "gap": 8,
               "padding": [
                 10,
                 12
@@ -71127,13 +71043,24 @@
               "alignItems": "center",
               "children": [
                 {
+                  "type": "icon",
+                  "id": "imNhe",
+                  "name": "Sidebar icon — Overview",
+                  "width": 16,
+                  "height": 16,
+                  "icon": "settings",
+                  "library": "lucide",
+                  "fill": "#75807A"
+                },
+                {
                   "type": "text",
                   "id": "P46RR0",
                   "name": "Sidebar label — Overview",
                   "fill": "#58645E",
                   "content": "Overview",
                   "fontFamily": "Inter",
-                  "fontSize": 14
+                  "fontSize": 14,
+                  "fontWeight": "normal"
                 }
               ]
             },
@@ -71144,6 +71071,7 @@
               "width": "fill_container",
               "fill": "#FFFFFF",
               "cornerRadius": 4,
+              "gap": 8,
               "padding": [
                 10,
                 12
@@ -71151,13 +71079,60 @@
               "alignItems": "center",
               "children": [
                 {
+                  "type": "icon",
+                  "id": "ZieA7",
+                  "name": "Sidebar icon — Profile & security",
+                  "width": 16,
+                  "height": 16,
+                  "icon": "user-round",
+                  "library": "lucide",
+                  "fill": "#75807A"
+                },
+                {
                   "type": "text",
                   "id": "dhpQI",
                   "name": "Sidebar label — Profile & security",
                   "fill": "#58645E",
                   "content": "Profile & security",
                   "fontFamily": "Inter",
-                  "fontSize": 14
+                  "fontSize": 14,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "B1cgR",
+              "name": "Sidebar item — Plan & usage",
+              "width": "fill_container",
+              "fill": "#FFFFFF",
+              "cornerRadius": 4,
+              "gap": 8,
+              "padding": [
+                10,
+                12
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "EY8oN",
+                  "name": "Sidebar icon — Plan & usage",
+                  "width": 16,
+                  "height": 16,
+                  "icon": "credit-card",
+                  "library": "lucide",
+                  "fill": "#75807A"
+                },
+                {
+                  "type": "text",
+                  "id": "uWPPk",
+                  "name": "Sidebar label — Plan & usage",
+                  "fill": "#58645E",
+                  "content": "Plan & usage",
+                  "fontFamily": "Inter",
+                  "fontSize": 14,
+                  "fontWeight": "normal"
                 }
               ]
             },
@@ -71168,12 +71143,23 @@
               "width": "fill_container",
               "fill": "#DDF2EE",
               "cornerRadius": 4,
+              "gap": 8,
               "padding": [
                 10,
                 12
               ],
               "alignItems": "center",
               "children": [
+                {
+                  "type": "icon",
+                  "id": "tcneV",
+                  "name": "Sidebar icon — AI processing",
+                  "width": 16,
+                  "height": 16,
+                  "icon": "shield-check",
+                  "library": "lucide",
+                  "fill": "#0C6F68"
+                },
                 {
                   "type": "text",
                   "id": "NHz45",
@@ -71193,6 +71179,7 @@
               "width": "fill_container",
               "fill": "#FFFFFF",
               "cornerRadius": 4,
+              "gap": 8,
               "padding": [
                 10,
                 12
@@ -71200,13 +71187,24 @@
               "alignItems": "center",
               "children": [
                 {
+                  "type": "icon",
+                  "id": "EaEuy",
+                  "name": "Sidebar icon — Import & export",
+                  "width": 16,
+                  "height": 16,
+                  "icon": "arrow-up-down",
+                  "library": "lucide",
+                  "fill": "#75807A"
+                },
+                {
                   "type": "text",
                   "id": "tunez",
                   "name": "Sidebar label — Import & export",
                   "fill": "#58645E",
                   "content": "Import & export",
                   "fontFamily": "Inter",
-                  "fontSize": 14
+                  "fontSize": 14,
+                  "fontWeight": "normal"
                 }
               ]
             },
@@ -71217,6 +71215,7 @@
               "width": "fill_container",
               "fill": "#FFFFFF",
               "cornerRadius": 4,
+              "gap": 8,
               "padding": [
                 10,
                 12
@@ -71224,13 +71223,24 @@
               "alignItems": "center",
               "children": [
                 {
+                  "type": "icon",
+                  "id": "SsOmN",
+                  "name": "Sidebar icon — Privacy & deletion",
+                  "width": 16,
+                  "height": 16,
+                  "icon": "lock-keyhole",
+                  "library": "lucide",
+                  "fill": "#75807A"
+                },
+                {
                   "type": "text",
                   "id": "yzkKf",
                   "name": "Sidebar label — Privacy & deletion",
                   "fill": "#58645E",
                   "content": "Privacy & deletion",
                   "fontFamily": "Inter",
-                  "fontSize": 14
+                  "fontSize": 14,
+                  "fontWeight": "normal"
                 }
               ]
             },
@@ -71240,18 +71250,6 @@
               "name": "Sidebar spacer",
               "width": "fill_container",
               "height": 16
-            },
-            {
-              "type": "text",
-              "id": "E8Wvj",
-              "name": "Sidebar account note",
-              "fill": "#7A847E",
-              "textGrowth": "fixed-width",
-              "width": "fill_container",
-              "content": "Changes apply to your personal account.",
-              "fontFamily": "Inter",
-              "fontSize": 12,
-              "fontWeight": "normal"
             }
           ]
         }
@@ -72413,6 +72411,7 @@
               "width": "fill_container",
               "fill": "#FFFFFF",
               "cornerRadius": 4,
+              "gap": 8,
               "padding": [
                 10,
                 12
@@ -72420,13 +72419,24 @@
               "alignItems": "center",
               "children": [
                 {
+                  "type": "icon",
+                  "id": "yi817",
+                  "name": "Sidebar icon — Overview",
+                  "width": 16,
+                  "height": 16,
+                  "icon": "settings",
+                  "library": "lucide",
+                  "fill": "#75807A"
+                },
+                {
                   "type": "text",
                   "id": "B9GRFC",
                   "name": "Sidebar label — Overview",
                   "fill": "#58645E",
                   "content": "Overview",
                   "fontFamily": "Inter",
-                  "fontSize": 14
+                  "fontSize": 14,
+                  "fontWeight": "normal"
                 }
               ]
             },
@@ -72437,6 +72447,7 @@
               "width": "fill_container",
               "fill": "#FFFFFF",
               "cornerRadius": 4,
+              "gap": 8,
               "padding": [
                 10,
                 12
@@ -72444,13 +72455,60 @@
               "alignItems": "center",
               "children": [
                 {
+                  "type": "icon",
+                  "id": "alk41",
+                  "name": "Sidebar icon — Profile & security",
+                  "width": 16,
+                  "height": 16,
+                  "icon": "user-round",
+                  "library": "lucide",
+                  "fill": "#75807A"
+                },
+                {
                   "type": "text",
                   "id": "gmNUB",
                   "name": "Sidebar label — Profile & security",
                   "fill": "#58645E",
                   "content": "Profile & security",
                   "fontFamily": "Inter",
-                  "fontSize": 14
+                  "fontSize": 14,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "mvLbV",
+              "name": "Sidebar item — Plan & usage",
+              "width": "fill_container",
+              "fill": "#FFFFFF",
+              "cornerRadius": 4,
+              "gap": 8,
+              "padding": [
+                10,
+                12
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "c9RJEe",
+                  "name": "Sidebar icon — Plan & usage",
+                  "width": 16,
+                  "height": 16,
+                  "icon": "credit-card",
+                  "library": "lucide",
+                  "fill": "#75807A"
+                },
+                {
+                  "type": "text",
+                  "id": "n3GK9",
+                  "name": "Sidebar label — Plan & usage",
+                  "fill": "#58645E",
+                  "content": "Plan & usage",
+                  "fontFamily": "Inter",
+                  "fontSize": 14,
+                  "fontWeight": "normal"
                 }
               ]
             },
@@ -72461,6 +72519,7 @@
               "width": "fill_container",
               "fill": "#FFFFFF",
               "cornerRadius": 4,
+              "gap": 8,
               "padding": [
                 10,
                 12
@@ -72468,13 +72527,24 @@
               "alignItems": "center",
               "children": [
                 {
+                  "type": "icon",
+                  "id": "HCAC5",
+                  "name": "Sidebar icon — AI processing",
+                  "width": 16,
+                  "height": 16,
+                  "icon": "shield-check",
+                  "library": "lucide",
+                  "fill": "#75807A"
+                },
+                {
                   "type": "text",
                   "id": "IA7mQ",
                   "name": "Sidebar label — AI processing",
                   "fill": "#58645E",
                   "content": "AI processing",
                   "fontFamily": "Inter",
-                  "fontSize": 14
+                  "fontSize": 14,
+                  "fontWeight": "normal"
                 }
               ]
             },
@@ -72485,12 +72555,23 @@
               "width": "fill_container",
               "fill": "#DDF2EE",
               "cornerRadius": 4,
+              "gap": 8,
               "padding": [
                 10,
                 12
               ],
               "alignItems": "center",
               "children": [
+                {
+                  "type": "icon",
+                  "id": "f7HNEp",
+                  "name": "Sidebar icon — Import & export",
+                  "width": 16,
+                  "height": 16,
+                  "icon": "arrow-up-down",
+                  "library": "lucide",
+                  "fill": "#0C6F68"
+                },
                 {
                   "type": "text",
                   "id": "r6kg5",
@@ -72510,6 +72591,7 @@
               "width": "fill_container",
               "fill": "#FFFFFF",
               "cornerRadius": 4,
+              "gap": 8,
               "padding": [
                 10,
                 12
@@ -72517,13 +72599,24 @@
               "alignItems": "center",
               "children": [
                 {
+                  "type": "icon",
+                  "id": "DfKaU",
+                  "name": "Sidebar icon — Privacy & deletion",
+                  "width": 16,
+                  "height": 16,
+                  "icon": "lock-keyhole",
+                  "library": "lucide",
+                  "fill": "#75807A"
+                },
+                {
                   "type": "text",
                   "id": "a5j2mz",
                   "name": "Sidebar label — Privacy & deletion",
                   "fill": "#58645E",
                   "content": "Privacy & deletion",
                   "fontFamily": "Inter",
-                  "fontSize": 14
+                  "fontSize": 14,
+                  "fontWeight": "normal"
                 }
               ]
             },
@@ -72533,18 +72626,6 @@
               "name": "Sidebar spacer",
               "width": "fill_container",
               "height": 16
-            },
-            {
-              "type": "text",
-              "id": "GqwBD",
-              "name": "Sidebar account note",
-              "fill": "#7A847E",
-              "textGrowth": "fixed-width",
-              "width": "fill_container",
-              "content": "Changes apply to your personal account.",
-              "fontFamily": "Inter",
-              "fontSize": 12,
-              "fontWeight": "normal"
             }
           ]
         }
@@ -73383,12 +73464,23 @@
               "width": "fill_container",
               "fill": "#DDF2EE",
               "cornerRadius": 4,
+              "gap": 8,
               "padding": [
                 10,
                 12
               ],
               "alignItems": "center",
               "children": [
+                {
+                  "type": "icon",
+                  "id": "hhH4O",
+                  "name": "Sidebar icon — Overview",
+                  "width": 16,
+                  "height": 16,
+                  "icon": "settings",
+                  "library": "lucide",
+                  "fill": "#0C6F68"
+                },
                 {
                   "type": "text",
                   "id": "ORKPK",
@@ -73408,6 +73500,7 @@
               "width": "fill_container",
               "fill": "#FFFFFF",
               "cornerRadius": 4,
+              "gap": 8,
               "padding": [
                 10,
                 12
@@ -73415,13 +73508,60 @@
               "alignItems": "center",
               "children": [
                 {
+                  "type": "icon",
+                  "id": "qXPxk",
+                  "name": "Sidebar icon — Profile & security",
+                  "width": 16,
+                  "height": 16,
+                  "icon": "user-round",
+                  "library": "lucide",
+                  "fill": "#75807A"
+                },
+                {
                   "type": "text",
                   "id": "W1AVX",
                   "name": "Sidebar label — Profile & security",
                   "fill": "#58645E",
                   "content": "Profile & security",
                   "fontFamily": "Inter",
-                  "fontSize": 14
+                  "fontSize": 14,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "Y0pHwA",
+              "name": "Sidebar item — Plan & usage",
+              "width": "fill_container",
+              "fill": "#FFFFFF",
+              "cornerRadius": 4,
+              "gap": 8,
+              "padding": [
+                10,
+                12
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "v17fQ",
+                  "name": "Sidebar icon — Plan & usage",
+                  "width": 16,
+                  "height": 16,
+                  "icon": "credit-card",
+                  "library": "lucide",
+                  "fill": "#75807A"
+                },
+                {
+                  "type": "text",
+                  "id": "O8i4C",
+                  "name": "Sidebar label — Plan & usage",
+                  "fill": "#58645E",
+                  "content": "Plan & usage",
+                  "fontFamily": "Inter",
+                  "fontSize": 14,
+                  "fontWeight": "normal"
                 }
               ]
             },
@@ -73432,6 +73572,7 @@
               "width": "fill_container",
               "fill": "#FFFFFF",
               "cornerRadius": 4,
+              "gap": 8,
               "padding": [
                 10,
                 12
@@ -73439,13 +73580,24 @@
               "alignItems": "center",
               "children": [
                 {
+                  "type": "icon",
+                  "id": "V3tNY",
+                  "name": "Sidebar icon — AI processing",
+                  "width": 16,
+                  "height": 16,
+                  "icon": "shield-check",
+                  "library": "lucide",
+                  "fill": "#75807A"
+                },
+                {
                   "type": "text",
                   "id": "XtA9Y",
                   "name": "Sidebar label — AI processing",
                   "fill": "#58645E",
                   "content": "AI processing",
                   "fontFamily": "Inter",
-                  "fontSize": 14
+                  "fontSize": 14,
+                  "fontWeight": "normal"
                 }
               ]
             },
@@ -73456,6 +73608,7 @@
               "width": "fill_container",
               "fill": "#FFFFFF",
               "cornerRadius": 4,
+              "gap": 8,
               "padding": [
                 10,
                 12
@@ -73463,13 +73616,24 @@
               "alignItems": "center",
               "children": [
                 {
+                  "type": "icon",
+                  "id": "qk69v",
+                  "name": "Sidebar icon — Import & export",
+                  "width": 16,
+                  "height": 16,
+                  "icon": "arrow-up-down",
+                  "library": "lucide",
+                  "fill": "#75807A"
+                },
+                {
                   "type": "text",
                   "id": "uxACM",
                   "name": "Sidebar label — Import & export",
                   "fill": "#58645E",
                   "content": "Import & export",
                   "fontFamily": "Inter",
-                  "fontSize": 14
+                  "fontSize": 14,
+                  "fontWeight": "normal"
                 }
               ]
             },
@@ -73480,6 +73644,7 @@
               "width": "fill_container",
               "fill": "#FFFFFF",
               "cornerRadius": 4,
+              "gap": 8,
               "padding": [
                 10,
                 12
@@ -73487,13 +73652,24 @@
               "alignItems": "center",
               "children": [
                 {
+                  "type": "icon",
+                  "id": "NnnXI",
+                  "name": "Sidebar icon — Privacy & deletion",
+                  "width": 16,
+                  "height": 16,
+                  "icon": "lock-keyhole",
+                  "library": "lucide",
+                  "fill": "#75807A"
+                },
+                {
                   "type": "text",
                   "id": "uxIbv",
                   "name": "Sidebar label — Privacy & deletion",
                   "fill": "#58645E",
                   "content": "Privacy & deletion",
                   "fontFamily": "Inter",
-                  "fontSize": 14
+                  "fontSize": 14,
+                  "fontWeight": "normal"
                 }
               ]
             },
@@ -73503,18 +73679,6 @@
               "name": "Sidebar spacer",
               "width": "fill_container",
               "height": 16
-            },
-            {
-              "type": "text",
-              "id": "lq43Z",
-              "name": "Sidebar account note",
-              "fill": "#7A847E",
-              "textGrowth": "fixed-width",
-              "width": "fill_container",
-              "content": "Changes apply to your personal account.",
-              "fontFamily": "Inter",
-              "fontSize": 12,
-              "fontWeight": "normal"
             }
           ]
         },
@@ -73553,6 +73717,7 @@
               "width": "fill_container",
               "fill": "#FFFFFF",
               "cornerRadius": 4,
+              "gap": 8,
               "padding": [
                 10,
                 12
@@ -73560,13 +73725,24 @@
               "alignItems": "center",
               "children": [
                 {
+                  "type": "icon",
+                  "id": "B8n6qJ",
+                  "name": "Sidebar icon — Overview",
+                  "width": 16,
+                  "height": 16,
+                  "icon": "settings",
+                  "library": "lucide",
+                  "fill": "#75807A"
+                },
+                {
                   "type": "text",
                   "id": "EMzB7",
                   "name": "Sidebar label — Overview",
                   "fill": "#58645E",
                   "content": "Overview",
                   "fontFamily": "Inter",
-                  "fontSize": 14
+                  "fontSize": 14,
+                  "fontWeight": "normal"
                 }
               ]
             },
@@ -73577,6 +73753,7 @@
               "width": "fill_container",
               "fill": "#FFFFFF",
               "cornerRadius": 4,
+              "gap": 8,
               "padding": [
                 10,
                 12
@@ -73584,13 +73761,60 @@
               "alignItems": "center",
               "children": [
                 {
+                  "type": "icon",
+                  "id": "eO4GN",
+                  "name": "Sidebar icon — Profile & security",
+                  "width": 16,
+                  "height": 16,
+                  "icon": "user-round",
+                  "library": "lucide",
+                  "fill": "#75807A"
+                },
+                {
                   "type": "text",
                   "id": "k65Xc",
                   "name": "Sidebar label — Profile & security",
                   "fill": "#58645E",
                   "content": "Profile & security",
                   "fontFamily": "Inter",
-                  "fontSize": 14
+                  "fontSize": 14,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "iCawz",
+              "name": "Sidebar item — Plan & usage",
+              "width": "fill_container",
+              "fill": "#FFFFFF",
+              "cornerRadius": 4,
+              "gap": 8,
+              "padding": [
+                10,
+                12
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "bIJCe",
+                  "name": "Sidebar icon — Plan & usage",
+                  "width": 16,
+                  "height": 16,
+                  "icon": "credit-card",
+                  "library": "lucide",
+                  "fill": "#75807A"
+                },
+                {
+                  "type": "text",
+                  "id": "ObqPv",
+                  "name": "Sidebar label — Plan & usage",
+                  "fill": "#58645E",
+                  "content": "Plan & usage",
+                  "fontFamily": "Inter",
+                  "fontSize": 14,
+                  "fontWeight": "normal"
                 }
               ]
             },
@@ -73601,6 +73825,7 @@
               "width": "fill_container",
               "fill": "#FFFFFF",
               "cornerRadius": 4,
+              "gap": 8,
               "padding": [
                 10,
                 12
@@ -73608,13 +73833,24 @@
               "alignItems": "center",
               "children": [
                 {
+                  "type": "icon",
+                  "id": "Ku59v",
+                  "name": "Sidebar icon — AI processing",
+                  "width": 16,
+                  "height": 16,
+                  "icon": "shield-check",
+                  "library": "lucide",
+                  "fill": "#75807A"
+                },
+                {
                   "type": "text",
                   "id": "f5a61M",
                   "name": "Sidebar label — AI processing",
                   "fill": "#58645E",
                   "content": "AI processing",
                   "fontFamily": "Inter",
-                  "fontSize": 14
+                  "fontSize": 14,
+                  "fontWeight": "normal"
                 }
               ]
             },
@@ -73625,6 +73861,7 @@
               "width": "fill_container",
               "fill": "#FFFFFF",
               "cornerRadius": 4,
+              "gap": 8,
               "padding": [
                 10,
                 12
@@ -73632,13 +73869,24 @@
               "alignItems": "center",
               "children": [
                 {
+                  "type": "icon",
+                  "id": "Z4mTpK",
+                  "name": "Sidebar icon — Import & export",
+                  "width": 16,
+                  "height": 16,
+                  "icon": "arrow-up-down",
+                  "library": "lucide",
+                  "fill": "#75807A"
+                },
+                {
                   "type": "text",
                   "id": "boc0l",
                   "name": "Sidebar label — Import & export",
                   "fill": "#58645E",
                   "content": "Import & export",
                   "fontFamily": "Inter",
-                  "fontSize": 14
+                  "fontSize": 14,
+                  "fontWeight": "normal"
                 }
               ]
             },
@@ -73649,12 +73897,23 @@
               "width": "fill_container",
               "fill": "#DDF2EE",
               "cornerRadius": 4,
+              "gap": 8,
               "padding": [
                 10,
                 12
               ],
               "alignItems": "center",
               "children": [
+                {
+                  "type": "icon",
+                  "id": "W8IR6y",
+                  "name": "Sidebar icon — Privacy & deletion",
+                  "width": 16,
+                  "height": 16,
+                  "icon": "lock-keyhole",
+                  "library": "lucide",
+                  "fill": "#0C6F68"
+                },
                 {
                   "type": "text",
                   "id": "fyKkP",
@@ -73673,18 +73932,6 @@
               "name": "Sidebar spacer",
               "width": "fill_container",
               "height": 16
-            },
-            {
-              "type": "text",
-              "id": "d2UMxU",
-              "name": "Sidebar account note",
-              "fill": "#7A847E",
-              "textGrowth": "fixed-width",
-              "width": "fill_container",
-              "content": "Changes apply to your personal account.",
-              "fontFamily": "Inter",
-              "fontSize": 12,
-              "fontWeight": "normal"
             }
           ]
         },
@@ -74707,12 +74954,23 @@
               "width": "fill_container",
               "fill": "#DDF2EE",
               "cornerRadius": 4,
+              "gap": 8,
               "padding": [
                 10,
                 12
               ],
               "alignItems": "center",
               "children": [
+                {
+                  "type": "icon",
+                  "id": "V4nhjt",
+                  "name": "Sidebar icon — Overview",
+                  "width": 16,
+                  "height": 16,
+                  "icon": "settings",
+                  "library": "lucide",
+                  "fill": "#0C6F68"
+                },
                 {
                   "type": "text",
                   "id": "M3ibm1",
@@ -74732,6 +74990,7 @@
               "width": "fill_container",
               "fill": "#FFFFFF",
               "cornerRadius": 4,
+              "gap": 8,
               "padding": [
                 10,
                 12
@@ -74739,13 +74998,60 @@
               "alignItems": "center",
               "children": [
                 {
+                  "type": "icon",
+                  "id": "XpC3T",
+                  "name": "Sidebar icon — Profile & security",
+                  "width": 16,
+                  "height": 16,
+                  "icon": "user-round",
+                  "library": "lucide",
+                  "fill": "#75807A"
+                },
+                {
                   "type": "text",
                   "id": "LnOg7",
                   "name": "Sidebar label — Profile & security",
                   "fill": "#58645E",
                   "content": "Profile & security",
                   "fontFamily": "Inter",
-                  "fontSize": 14
+                  "fontSize": 14,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "Skjcm",
+              "name": "Sidebar item — Plan & usage",
+              "width": "fill_container",
+              "fill": "#FFFFFF",
+              "cornerRadius": 4,
+              "gap": 8,
+              "padding": [
+                10,
+                12
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "Ye1PG",
+                  "name": "Sidebar icon — Plan & usage",
+                  "width": 16,
+                  "height": 16,
+                  "icon": "credit-card",
+                  "library": "lucide",
+                  "fill": "#75807A"
+                },
+                {
+                  "type": "text",
+                  "id": "yOEI2",
+                  "name": "Sidebar label — Plan & usage",
+                  "fill": "#58645E",
+                  "content": "Plan & usage",
+                  "fontFamily": "Inter",
+                  "fontSize": 14,
+                  "fontWeight": "normal"
                 }
               ]
             },
@@ -74756,6 +75062,7 @@
               "width": "fill_container",
               "fill": "#FFFFFF",
               "cornerRadius": 4,
+              "gap": 8,
               "padding": [
                 10,
                 12
@@ -74763,13 +75070,24 @@
               "alignItems": "center",
               "children": [
                 {
+                  "type": "icon",
+                  "id": "m7aor",
+                  "name": "Sidebar icon — AI processing",
+                  "width": 16,
+                  "height": 16,
+                  "icon": "shield-check",
+                  "library": "lucide",
+                  "fill": "#75807A"
+                },
+                {
                   "type": "text",
                   "id": "oxs6E",
                   "name": "Sidebar label — AI processing",
                   "fill": "#58645E",
                   "content": "AI processing",
                   "fontFamily": "Inter",
-                  "fontSize": 14
+                  "fontSize": 14,
+                  "fontWeight": "normal"
                 }
               ]
             },
@@ -74780,6 +75098,7 @@
               "width": "fill_container",
               "fill": "#FFFFFF",
               "cornerRadius": 4,
+              "gap": 8,
               "padding": [
                 10,
                 12
@@ -74787,13 +75106,24 @@
               "alignItems": "center",
               "children": [
                 {
+                  "type": "icon",
+                  "id": "Ei9Oi",
+                  "name": "Sidebar icon — Import & export",
+                  "width": 16,
+                  "height": 16,
+                  "icon": "arrow-up-down",
+                  "library": "lucide",
+                  "fill": "#75807A"
+                },
+                {
                   "type": "text",
                   "id": "QBeEn",
                   "name": "Sidebar label — Import & export",
                   "fill": "#58645E",
                   "content": "Import & export",
                   "fontFamily": "Inter",
-                  "fontSize": 14
+                  "fontSize": 14,
+                  "fontWeight": "normal"
                 }
               ]
             },
@@ -74804,6 +75134,7 @@
               "width": "fill_container",
               "fill": "#FFFFFF",
               "cornerRadius": 4,
+              "gap": 8,
               "padding": [
                 10,
                 12
@@ -74811,13 +75142,24 @@
               "alignItems": "center",
               "children": [
                 {
+                  "type": "icon",
+                  "id": "Q6NbF",
+                  "name": "Sidebar icon — Privacy & deletion",
+                  "width": 16,
+                  "height": 16,
+                  "icon": "lock-keyhole",
+                  "library": "lucide",
+                  "fill": "#75807A"
+                },
+                {
                   "type": "text",
                   "id": "qfqpd",
                   "name": "Sidebar label — Privacy & deletion",
                   "fill": "#58645E",
                   "content": "Privacy & deletion",
                   "fontFamily": "Inter",
-                  "fontSize": 14
+                  "fontSize": 14,
+                  "fontWeight": "normal"
                 }
               ]
             },
@@ -74827,18 +75169,6 @@
               "name": "Sidebar spacer",
               "width": "fill_container",
               "height": 16
-            },
-            {
-              "type": "text",
-              "id": "I29My",
-              "name": "Sidebar account note",
-              "fill": "#7A847E",
-              "textGrowth": "fixed-width",
-              "width": "fill_container",
-              "content": "Changes apply to your personal account.",
-              "fontFamily": "Inter",
-              "fontSize": 12,
-              "fontWeight": "normal"
             }
           ]
         },
@@ -74877,6 +75207,7 @@
               "width": "fill_container",
               "fill": "#FFFFFF",
               "cornerRadius": 4,
+              "gap": 8,
               "padding": [
                 10,
                 12
@@ -74884,13 +75215,24 @@
               "alignItems": "center",
               "children": [
                 {
+                  "type": "icon",
+                  "id": "O9a2O",
+                  "name": "Sidebar icon — Overview",
+                  "width": 16,
+                  "height": 16,
+                  "icon": "settings",
+                  "library": "lucide",
+                  "fill": "#75807A"
+                },
+                {
                   "type": "text",
                   "id": "ArgaC",
                   "name": "Sidebar label — Overview",
                   "fill": "#58645E",
                   "content": "Overview",
                   "fontFamily": "Inter",
-                  "fontSize": 14
+                  "fontSize": 14,
+                  "fontWeight": "normal"
                 }
               ]
             },
@@ -74901,6 +75243,7 @@
               "width": "fill_container",
               "fill": "#FFFFFF",
               "cornerRadius": 4,
+              "gap": 8,
               "padding": [
                 10,
                 12
@@ -74908,13 +75251,60 @@
               "alignItems": "center",
               "children": [
                 {
+                  "type": "icon",
+                  "id": "uUtBV",
+                  "name": "Sidebar icon — Profile & security",
+                  "width": 16,
+                  "height": 16,
+                  "icon": "user-round",
+                  "library": "lucide",
+                  "fill": "#75807A"
+                },
+                {
                   "type": "text",
                   "id": "dGqG2",
                   "name": "Sidebar label — Profile & security",
                   "fill": "#58645E",
                   "content": "Profile & security",
                   "fontFamily": "Inter",
-                  "fontSize": 14
+                  "fontSize": 14,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "U6J3A1",
+              "name": "Sidebar item — Plan & usage",
+              "width": "fill_container",
+              "fill": "#FFFFFF",
+              "cornerRadius": 4,
+              "gap": 8,
+              "padding": [
+                10,
+                12
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "aIQpR",
+                  "name": "Sidebar icon — Plan & usage",
+                  "width": 16,
+                  "height": 16,
+                  "icon": "credit-card",
+                  "library": "lucide",
+                  "fill": "#75807A"
+                },
+                {
+                  "type": "text",
+                  "id": "Kmwrt",
+                  "name": "Sidebar label — Plan & usage",
+                  "fill": "#58645E",
+                  "content": "Plan & usage",
+                  "fontFamily": "Inter",
+                  "fontSize": 14,
+                  "fontWeight": "normal"
                 }
               ]
             },
@@ -74925,6 +75315,7 @@
               "width": "fill_container",
               "fill": "#FFFFFF",
               "cornerRadius": 4,
+              "gap": 8,
               "padding": [
                 10,
                 12
@@ -74932,13 +75323,24 @@
               "alignItems": "center",
               "children": [
                 {
+                  "type": "icon",
+                  "id": "p0vl80",
+                  "name": "Sidebar icon — AI processing",
+                  "width": 16,
+                  "height": 16,
+                  "icon": "shield-check",
+                  "library": "lucide",
+                  "fill": "#75807A"
+                },
+                {
                   "type": "text",
                   "id": "cL1YP",
                   "name": "Sidebar label — AI processing",
                   "fill": "#58645E",
                   "content": "AI processing",
                   "fontFamily": "Inter",
-                  "fontSize": 14
+                  "fontSize": 14,
+                  "fontWeight": "normal"
                 }
               ]
             },
@@ -74949,6 +75351,7 @@
               "width": "fill_container",
               "fill": "#FFFFFF",
               "cornerRadius": 4,
+              "gap": 8,
               "padding": [
                 10,
                 12
@@ -74956,13 +75359,24 @@
               "alignItems": "center",
               "children": [
                 {
+                  "type": "icon",
+                  "id": "q08sSq",
+                  "name": "Sidebar icon — Import & export",
+                  "width": 16,
+                  "height": 16,
+                  "icon": "arrow-up-down",
+                  "library": "lucide",
+                  "fill": "#75807A"
+                },
+                {
                   "type": "text",
                   "id": "s5Adlh",
                   "name": "Sidebar label — Import & export",
                   "fill": "#58645E",
                   "content": "Import & export",
                   "fontFamily": "Inter",
-                  "fontSize": 14
+                  "fontSize": 14,
+                  "fontWeight": "normal"
                 }
               ]
             },
@@ -74973,12 +75387,23 @@
               "width": "fill_container",
               "fill": "#DDF2EE",
               "cornerRadius": 4,
+              "gap": 8,
               "padding": [
                 10,
                 12
               ],
               "alignItems": "center",
               "children": [
+                {
+                  "type": "icon",
+                  "id": "BunFs",
+                  "name": "Sidebar icon — Privacy & deletion",
+                  "width": 16,
+                  "height": 16,
+                  "icon": "lock-keyhole",
+                  "library": "lucide",
+                  "fill": "#0C6F68"
+                },
                 {
                   "type": "text",
                   "id": "iIPEt",
@@ -74997,18 +75422,6 @@
               "name": "Sidebar spacer",
               "width": "fill_container",
               "height": 16
-            },
-            {
-              "type": "text",
-              "id": "DjitP",
-              "name": "Sidebar account note",
-              "fill": "#7A847E",
-              "textGrowth": "fixed-width",
-              "width": "fill_container",
-              "content": "Changes apply to your personal account.",
-              "fontFamily": "Inter",
-              "fontSize": 12,
-              "fontWeight": "normal"
             }
           ]
         },
@@ -75994,12 +76407,23 @@
               "width": "fill_container",
               "fill": "#DDF2EE",
               "cornerRadius": 4,
+              "gap": 8,
               "padding": [
                 10,
                 12
               ],
               "alignItems": "center",
               "children": [
+                {
+                  "type": "icon",
+                  "id": "WJtXx",
+                  "name": "Sidebar icon — Overview",
+                  "width": 16,
+                  "height": 16,
+                  "icon": "settings",
+                  "library": "lucide",
+                  "fill": "#0C6F68"
+                },
                 {
                   "type": "text",
                   "id": "Plvp4",
@@ -76019,6 +76443,7 @@
               "width": "fill_container",
               "fill": "#FFFFFF",
               "cornerRadius": 4,
+              "gap": 8,
               "padding": [
                 10,
                 12
@@ -76026,13 +76451,60 @@
               "alignItems": "center",
               "children": [
                 {
+                  "type": "icon",
+                  "id": "GrA1u",
+                  "name": "Sidebar icon — Profile & security",
+                  "width": 16,
+                  "height": 16,
+                  "icon": "user-round",
+                  "library": "lucide",
+                  "fill": "#75807A"
+                },
+                {
                   "type": "text",
                   "id": "L9JX4",
                   "name": "Sidebar label — Profile & security",
                   "fill": "#58645E",
                   "content": "Profile & security",
                   "fontFamily": "Inter",
-                  "fontSize": 14
+                  "fontSize": 14,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "wOVBY",
+              "name": "Sidebar item — Plan & usage",
+              "width": "fill_container",
+              "fill": "#FFFFFF",
+              "cornerRadius": 4,
+              "gap": 8,
+              "padding": [
+                10,
+                12
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "ZHEEj",
+                  "name": "Sidebar icon — Plan & usage",
+                  "width": 16,
+                  "height": 16,
+                  "icon": "credit-card",
+                  "library": "lucide",
+                  "fill": "#75807A"
+                },
+                {
+                  "type": "text",
+                  "id": "Z0XnP",
+                  "name": "Sidebar label — Plan & usage",
+                  "fill": "#58645E",
+                  "content": "Plan & usage",
+                  "fontFamily": "Inter",
+                  "fontSize": 14,
+                  "fontWeight": "normal"
                 }
               ]
             },
@@ -76043,6 +76515,7 @@
               "width": "fill_container",
               "fill": "#FFFFFF",
               "cornerRadius": 4,
+              "gap": 8,
               "padding": [
                 10,
                 12
@@ -76050,13 +76523,24 @@
               "alignItems": "center",
               "children": [
                 {
+                  "type": "icon",
+                  "id": "y9X9ba",
+                  "name": "Sidebar icon — AI processing",
+                  "width": 16,
+                  "height": 16,
+                  "icon": "shield-check",
+                  "library": "lucide",
+                  "fill": "#75807A"
+                },
+                {
                   "type": "text",
                   "id": "ruGQQ",
                   "name": "Sidebar label — AI processing",
                   "fill": "#58645E",
                   "content": "AI processing",
                   "fontFamily": "Inter",
-                  "fontSize": 14
+                  "fontSize": 14,
+                  "fontWeight": "normal"
                 }
               ]
             },
@@ -76067,6 +76551,7 @@
               "width": "fill_container",
               "fill": "#FFFFFF",
               "cornerRadius": 4,
+              "gap": 8,
               "padding": [
                 10,
                 12
@@ -76074,13 +76559,24 @@
               "alignItems": "center",
               "children": [
                 {
+                  "type": "icon",
+                  "id": "TikWU",
+                  "name": "Sidebar icon — Import & export",
+                  "width": 16,
+                  "height": 16,
+                  "icon": "arrow-up-down",
+                  "library": "lucide",
+                  "fill": "#75807A"
+                },
+                {
                   "type": "text",
                   "id": "VGmfE",
                   "name": "Sidebar label — Import & export",
                   "fill": "#58645E",
                   "content": "Import & export",
                   "fontFamily": "Inter",
-                  "fontSize": 14
+                  "fontSize": 14,
+                  "fontWeight": "normal"
                 }
               ]
             },
@@ -76091,6 +76587,7 @@
               "width": "fill_container",
               "fill": "#FFFFFF",
               "cornerRadius": 4,
+              "gap": 8,
               "padding": [
                 10,
                 12
@@ -76098,13 +76595,24 @@
               "alignItems": "center",
               "children": [
                 {
+                  "type": "icon",
+                  "id": "L4IzJ",
+                  "name": "Sidebar icon — Privacy & deletion",
+                  "width": 16,
+                  "height": 16,
+                  "icon": "lock-keyhole",
+                  "library": "lucide",
+                  "fill": "#75807A"
+                },
+                {
                   "type": "text",
                   "id": "SHew5",
                   "name": "Sidebar label — Privacy & deletion",
                   "fill": "#58645E",
                   "content": "Privacy & deletion",
                   "fontFamily": "Inter",
-                  "fontSize": 14
+                  "fontSize": 14,
+                  "fontWeight": "normal"
                 }
               ]
             },
@@ -76114,18 +76622,6 @@
               "name": "Sidebar spacer",
               "width": "fill_container",
               "height": 16
-            },
-            {
-              "type": "text",
-              "id": "L9YTVF",
-              "name": "Sidebar account note",
-              "fill": "#7A847E",
-              "textGrowth": "fixed-width",
-              "width": "fill_container",
-              "content": "Changes apply to your personal account.",
-              "fontFamily": "Inter",
-              "fontSize": 12,
-              "fontWeight": "normal"
             }
           ]
         },
@@ -76164,6 +76660,7 @@
               "width": "fill_container",
               "fill": "#FFFFFF",
               "cornerRadius": 4,
+              "gap": 8,
               "padding": [
                 10,
                 12
@@ -76171,13 +76668,24 @@
               "alignItems": "center",
               "children": [
                 {
+                  "type": "icon",
+                  "id": "a4vw08",
+                  "name": "Sidebar icon — Overview",
+                  "width": 16,
+                  "height": 16,
+                  "icon": "settings",
+                  "library": "lucide",
+                  "fill": "#75807A"
+                },
+                {
                   "type": "text",
                   "id": "mIQCX",
                   "name": "Sidebar label — Overview",
                   "fill": "#58645E",
                   "content": "Overview",
                   "fontFamily": "Inter",
-                  "fontSize": 14
+                  "fontSize": 14,
+                  "fontWeight": "normal"
                 }
               ]
             },
@@ -76188,6 +76696,7 @@
               "width": "fill_container",
               "fill": "#FFFFFF",
               "cornerRadius": 4,
+              "gap": 8,
               "padding": [
                 10,
                 12
@@ -76195,13 +76704,60 @@
               "alignItems": "center",
               "children": [
                 {
+                  "type": "icon",
+                  "id": "IE0lT",
+                  "name": "Sidebar icon — Profile & security",
+                  "width": 16,
+                  "height": 16,
+                  "icon": "user-round",
+                  "library": "lucide",
+                  "fill": "#75807A"
+                },
+                {
                   "type": "text",
                   "id": "HFV4E",
                   "name": "Sidebar label — Profile & security",
                   "fill": "#58645E",
                   "content": "Profile & security",
                   "fontFamily": "Inter",
-                  "fontSize": 14
+                  "fontSize": 14,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "YxsxB",
+              "name": "Sidebar item — Plan & usage",
+              "width": "fill_container",
+              "fill": "#FFFFFF",
+              "cornerRadius": 4,
+              "gap": 8,
+              "padding": [
+                10,
+                12
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "U7kPX",
+                  "name": "Sidebar icon — Plan & usage",
+                  "width": 16,
+                  "height": 16,
+                  "icon": "credit-card",
+                  "library": "lucide",
+                  "fill": "#75807A"
+                },
+                {
+                  "type": "text",
+                  "id": "z4dxKm",
+                  "name": "Sidebar label — Plan & usage",
+                  "fill": "#58645E",
+                  "content": "Plan & usage",
+                  "fontFamily": "Inter",
+                  "fontSize": 14,
+                  "fontWeight": "normal"
                 }
               ]
             },
@@ -76212,6 +76768,7 @@
               "width": "fill_container",
               "fill": "#FFFFFF",
               "cornerRadius": 4,
+              "gap": 8,
               "padding": [
                 10,
                 12
@@ -76219,13 +76776,24 @@
               "alignItems": "center",
               "children": [
                 {
+                  "type": "icon",
+                  "id": "iTj0b",
+                  "name": "Sidebar icon — AI processing",
+                  "width": 16,
+                  "height": 16,
+                  "icon": "shield-check",
+                  "library": "lucide",
+                  "fill": "#75807A"
+                },
+                {
                   "type": "text",
                   "id": "wRss8",
                   "name": "Sidebar label — AI processing",
                   "fill": "#58645E",
                   "content": "AI processing",
                   "fontFamily": "Inter",
-                  "fontSize": 14
+                  "fontSize": 14,
+                  "fontWeight": "normal"
                 }
               ]
             },
@@ -76236,6 +76804,7 @@
               "width": "fill_container",
               "fill": "#FFFFFF",
               "cornerRadius": 4,
+              "gap": 8,
               "padding": [
                 10,
                 12
@@ -76243,13 +76812,24 @@
               "alignItems": "center",
               "children": [
                 {
+                  "type": "icon",
+                  "id": "qmmLG",
+                  "name": "Sidebar icon — Import & export",
+                  "width": 16,
+                  "height": 16,
+                  "icon": "arrow-up-down",
+                  "library": "lucide",
+                  "fill": "#75807A"
+                },
+                {
                   "type": "text",
                   "id": "Aex8i",
                   "name": "Sidebar label — Import & export",
                   "fill": "#58645E",
                   "content": "Import & export",
                   "fontFamily": "Inter",
-                  "fontSize": 14
+                  "fontSize": 14,
+                  "fontWeight": "normal"
                 }
               ]
             },
@@ -76260,12 +76840,23 @@
               "width": "fill_container",
               "fill": "#DDF2EE",
               "cornerRadius": 4,
+              "gap": 8,
               "padding": [
                 10,
                 12
               ],
               "alignItems": "center",
               "children": [
+                {
+                  "type": "icon",
+                  "id": "P5qceC",
+                  "name": "Sidebar icon — Privacy & deletion",
+                  "width": 16,
+                  "height": 16,
+                  "icon": "lock-keyhole",
+                  "library": "lucide",
+                  "fill": "#0C6F68"
+                },
                 {
                   "type": "text",
                   "id": "lybqk",
@@ -76284,18 +76875,6 @@
               "name": "Sidebar spacer",
               "width": "fill_container",
               "height": 16
-            },
-            {
-              "type": "text",
-              "id": "yr95N",
-              "name": "Sidebar account note",
-              "fill": "#7A847E",
-              "textGrowth": "fixed-width",
-              "width": "fill_container",
-              "content": "Changes apply to your personal account.",
-              "fontFamily": "Inter",
-              "fontSize": 12,
-              "fontWeight": "normal"
             }
           ]
         },
@@ -76562,6 +77141,638 @@
                   ]
                 }
               ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "wyLJZ",
+      "x": 16920,
+      "y": 10220,
+      "name": "Workspace Lifecycle — Management",
+      "clip": true,
+      "width": 1440,
+      "height": 900,
+      "fill": "$paper",
+      "layout": "vertical",
+      "children": [
+        {
+          "type": "frame",
+          "id": "hg2az",
+          "name": "Authenticated Global Navigation",
+          "width": "fill_container",
+          "height": 72,
+          "fill": "$nav-graphite",
+          "stroke": "$nav-line",
+          "strokeWidth": {
+            "bottom": 1
+          },
+          "padding": [
+            0,
+            48
+          ],
+          "justifyContent": "space_between",
+          "alignItems": "center",
+          "children": [
+            {
+              "id": "OVDTv",
+              "type": "ref",
+              "ref": "EnwHq",
+              "name": "Product Logo Inverse Lockup",
+              "width": 238,
+              "height": 38
+            },
+            {
+              "type": "frame",
+              "id": "Bgct7",
+              "name": "Primary Navigation",
+              "gap": 32,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "Ruj8T",
+                  "name": "Practice Navigation Link",
+                  "fill": "$ink-dark-muted",
+                  "content": "Practice",
+                  "lineHeight": 1.3,
+                  "fontFamily": "$font-body",
+                  "fontSize": 14,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "bpdcb",
+                  "name": "Challenges Navigation Link",
+                  "fill": "$ink-dark-muted",
+                  "content": "Challenges",
+                  "lineHeight": 1.3,
+                  "fontFamily": "$font-body",
+                  "fontSize": 14,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "MRDqB",
+                  "name": "Progress Navigation Link",
+                  "fill": "$ink-dark-muted",
+                  "content": "Progress",
+                  "lineHeight": 1.3,
+                  "fontFamily": "$font-body",
+                  "fontSize": 14,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "id": "xbyBy",
+              "type": "ref",
+              "ref": "qvZfh",
+              "name": "Account Menu Control",
+              "width": 184,
+              "height": 40
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "yTw8f",
+          "name": "Workspace Management Main",
+          "width": "fill_container",
+          "height": "fill_container",
+          "layout": "vertical",
+          "gap": 28,
+          "padding": [
+            42,
+            64
+          ],
+          "children": [
+            {
+              "type": "frame",
+              "id": "QbEU2",
+              "name": "Workspace Management Introduction",
+              "width": "fill_container",
+              "gap": 24,
+              "justifyContent": "space_between",
+              "alignItems": "end",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "GNSV4",
+                  "name": "Workspace Management Heading Copy",
+                  "width": 720,
+                  "layout": "vertical",
+                  "gap": 10,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "a8RaOw",
+                      "name": "Workspace Management Eyebrow",
+                      "fill": "$ink-muted",
+                      "content": "WORKSPACE / MANAGEMENT",
+                      "lineHeight": 1.3,
+                      "fontFamily": "$font-mono",
+                      "fontSize": 11,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "uxc6D",
+                      "name": "Workspace Management Title",
+                      "fill": "$ink",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Your Workspaces.",
+                      "lineHeight": 1.05,
+                      "fontFamily": "$font-display",
+                      "fontSize": 42,
+                      "fontWeight": "500"
+                    },
+                    {
+                      "type": "text",
+                      "id": "y4gKE4",
+                      "name": "Workspace Management Description",
+                      "fill": "$ink-muted",
+                      "textGrowth": "fixed-width",
+                      "width": 680,
+                      "content": "Keep active practice in view. Archive what is paused, then restore it when the problem becomes useful again.",
+                      "lineHeight": 1.5,
+                      "fontFamily": "$font-body",
+                      "fontSize": 15,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "tCwIW",
+                  "name": "Create Workspace Button",
+                  "height": 44,
+                  "fill": "$action",
+                  "cornerRadius": 3,
+                  "stroke": "$action",
+                  "strokeWidth": 1,
+                  "padding": [
+                    0,
+                    18
+                  ],
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "HMb21",
+                      "name": "Create Workspace Button Label",
+                      "fill": "$ink-dark",
+                      "content": "New Workspace",
+                      "lineHeight": 1.3,
+                      "fontFamily": "$font-body",
+                      "fontSize": 14,
+                      "fontWeight": "600"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "U2wmeq",
+              "name": "Workspace Lifecycle Content",
+              "width": "fill_container",
+              "justifyContent": "space_between",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "SREl0",
+                  "name": "Workspace Inventory",
+                  "width": 860,
+                  "fill": "$paper-raised",
+                  "stroke": "$line",
+                  "strokeWidth": 1,
+                  "layout": "vertical",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "kukHv",
+                      "name": "Workspace Inventory Header",
+                      "width": "fill_container",
+                      "stroke": "$line",
+                      "strokeWidth": {
+                        "bottom": 1
+                      },
+                      "padding": 28,
+                      "justifyContent": "space_between",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "q1JGI",
+                          "name": "Inventory Header Copy",
+                          "layout": "vertical",
+                          "gap": 4,
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "w8ZBwY",
+                              "name": "Inventory Eyebrow",
+                              "fill": "$ink-muted",
+                              "content": "YOUR WORKSPACES",
+                              "lineHeight": 1.3,
+                              "fontFamily": "$font-mono",
+                              "fontSize": 11,
+                              "fontWeight": "normal"
+                            },
+                            {
+                              "type": "text",
+                              "id": "AjwHw",
+                              "name": "Inventory Title",
+                              "fill": "$ink",
+                              "content": "Active and archived work",
+                              "lineHeight": 1.3,
+                              "fontFamily": "$font-display",
+                              "fontSize": 24,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "K1hQE9",
+                          "name": "Active Workspace Count",
+                          "fill": "$paper",
+                          "cornerRadius": 3,
+                          "stroke": "$line",
+                          "strokeWidth": 1,
+                          "padding": [
+                            5,
+                            8
+                          ],
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "sINiP",
+                              "name": "Active Workspace Count Label",
+                              "fill": "$ink-muted",
+                              "content": "2 ACTIVE",
+                              "lineHeight": 1.3,
+                              "fontFamily": "$font-mono",
+                              "fontSize": 10,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "C15Kv",
+                      "name": "Active Workspaces Section",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "L8KYZS",
+                          "name": "Active Workspaces Label Row",
+                          "width": "fill_container",
+                          "padding": [
+                            12,
+                            28,
+                            8,
+                            28
+                          ],
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "KUMvU",
+                              "name": "Active Workspaces Label",
+                              "fill": "$ink-muted",
+                              "content": "ACTIVE WORKSPACES",
+                              "lineHeight": 1.3,
+                              "fontFamily": "$font-mono",
+                              "fontSize": 10,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "n9ZfcI",
+                          "name": "Active Workspace Row",
+                          "width": "fill_container",
+                          "stroke": "$line",
+                          "strokeWidth": {
+                            "bottom": 1
+                          },
+                          "padding": [
+                            12,
+                            28
+                          ],
+                          "justifyContent": "space_between",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "zPV4d",
+                              "name": "Active Workspace Copy",
+                              "layout": "vertical",
+                              "gap": 3,
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "VcHFf",
+                                  "name": "Active Workspace Name",
+                                  "fill": "$ink",
+                                  "content": "Reliable notification platform",
+                                  "lineHeight": 1.3,
+                                  "fontFamily": "$font-body",
+                                  "fontSize": 14,
+                                  "fontWeight": "normal"
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "Va6Ah",
+                                  "name": "Active Workspace Progress",
+                                  "fill": "$ink-muted",
+                                  "content": "CLARIFY  ·  38%  ·  SAVED 8 MIN AGO",
+                                  "lineHeight": 1.3,
+                                  "fontFamily": "$font-mono",
+                                  "fontSize": 11,
+                                  "fontWeight": "normal"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "sujau",
+                              "name": "Active Workspace Actions",
+                              "gap": 18,
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "KCvh6",
+                                  "name": "Open Workspace Action",
+                                  "fill": "$action",
+                                  "content": "Open",
+                                  "lineHeight": 1.3,
+                                  "fontFamily": "$font-body",
+                                  "fontSize": 14,
+                                  "fontWeight": "normal"
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "EmoDD",
+                                  "name": "Archive Workspace Action",
+                                  "gap": 6,
+                                  "alignItems": "center",
+                                  "children": [
+                                    {
+                                      "type": "icon",
+                                      "id": "EoUCc",
+                                      "name": "Archive Icon",
+                                      "width": 14,
+                                      "height": 14,
+                                      "icon": "archive",
+                                      "library": "lucide",
+                                      "fill": "$ink-muted"
+                                    },
+                                    {
+                                      "type": "text",
+                                      "id": "xQXRy",
+                                      "name": "Archive Workspace Action Label",
+                                      "fill": "$ink-muted",
+                                      "content": "Archive",
+                                      "lineHeight": 1.3,
+                                      "fontFamily": "$font-body",
+                                      "fontSize": 14,
+                                      "fontWeight": "normal"
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "FCQBh",
+                      "name": "Archived Workspaces Section",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "bsvu6",
+                          "name": "Archived Workspaces Label Row",
+                          "width": "fill_container",
+                          "padding": [
+                            16,
+                            28,
+                            8,
+                            28
+                          ],
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "M1h2r",
+                              "name": "Archived Workspaces Label",
+                              "fill": "$ink-muted",
+                              "content": "ARCHIVED WORKSPACES",
+                              "lineHeight": 1.3,
+                              "fontFamily": "$font-mono",
+                              "fontSize": 10,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "U1EN20",
+                          "name": "Archived Workspace Row",
+                          "width": "fill_container",
+                          "stroke": "$line",
+                          "strokeWidth": {
+                            "bottom": 1
+                          },
+                          "padding": [
+                            12,
+                            28
+                          ],
+                          "justifyContent": "space_between",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "akr1a",
+                              "name": "Archived Workspace Copy",
+                              "layout": "vertical",
+                              "gap": 3,
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "mtWM7",
+                                  "name": "Archived Workspace Name",
+                                  "fill": "$ink",
+                                  "content": "Image-processing pipeline",
+                                  "lineHeight": 1.3,
+                                  "fontFamily": "$font-body",
+                                  "fontSize": 14,
+                                  "fontWeight": "normal"
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "kFZgO",
+                                  "name": "Archived Workspace Status",
+                                  "fill": "$ink-muted",
+                                  "content": "ARCHIVED  ·  4 DEC 2025",
+                                  "lineHeight": 1.3,
+                                  "fontFamily": "$font-mono",
+                                  "fontSize": 11,
+                                  "fontWeight": "normal"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "TL8BW",
+                              "name": "Archived Workspace Actions",
+                              "gap": 18,
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "frame",
+                                  "id": "tP9hg",
+                                  "name": "Restore Workspace Action",
+                                  "gap": 6,
+                                  "alignItems": "center",
+                                  "children": [
+                                    {
+                                      "type": "icon",
+                                      "id": "W3dbUq",
+                                      "name": "Restore Icon",
+                                      "width": 14,
+                                      "height": 14,
+                                      "icon": "rotate-ccw",
+                                      "library": "lucide",
+                                      "fill": "$action"
+                                    },
+                                    {
+                                      "type": "text",
+                                      "id": "JWB0F",
+                                      "name": "Restore Workspace Action Label",
+                                      "fill": "$action",
+                                      "content": "Restore",
+                                      "lineHeight": 1.3,
+                                      "fontFamily": "$font-body",
+                                      "fontSize": 14,
+                                      "fontWeight": "normal"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "B6HqlA",
+                                  "name": "Delete Workspace Action",
+                                  "gap": 6,
+                                  "alignItems": "center",
+                                  "children": [
+                                    {
+                                      "type": "icon",
+                                      "id": "B00P0",
+                                      "name": "Delete Icon",
+                                      "width": 14,
+                                      "height": 14,
+                                      "icon": "trash-2",
+                                      "library": "lucide",
+                                      "fill": "#000000"
+                                    },
+                                    {
+                                      "type": "text",
+                                      "id": "czkjg",
+                                      "name": "Delete Workspace Action Label",
+                                      "fill": "#000000",
+                                      "content": "Delete",
+                                      "lineHeight": 1.3,
+                                      "fontFamily": "$font-body",
+                                      "fontSize": 14,
+                                      "fontWeight": "normal"
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "smaqj",
+                  "name": "Workspace Lifecycle Note",
+                  "width": 360,
+                  "fill": "$chrome",
+                  "layout": "vertical",
+                  "gap": 12,
+                  "padding": 28,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "pO2XY",
+                      "name": "Lifecycle Label",
+                      "fill": "$ink-dark-muted",
+                      "content": "WORKSPACE STATUS",
+                      "lineHeight": 1.3,
+                      "fontFamily": "$font-mono",
+                      "fontSize": 11,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "z4F8n",
+                      "name": "Lifecycle Steps",
+                      "fill": "$ink-dark",
+                      "textGrowth": "fixed-width",
+                      "width": 300,
+                      "content": "One active problem at a time.",
+                      "lineHeight": 1.35,
+                      "fontFamily": "$font-display",
+                      "fontSize": 22,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "AuM1B",
+                      "name": "Lifecycle Note",
+                      "fill": "$ink-dark-muted",
+                      "textGrowth": "fixed-width",
+                      "width": 290,
+                      "content": "Archive paused work to keep Practice focused. Restoring brings the Workspace back exactly where you left it.",
+                      "lineHeight": 1.45,
+                      "fontFamily": "$font-body",
+                      "fontSize": 13,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "id": "sADWd",
+              "name": "Back to Practice Link",
+              "fill": "$action",
+              "content": "←  BACK TO PRACTICE",
+              "lineHeight": 1.3,
+              "fontFamily": "$font-mono",
+              "fontSize": 11,
+              "fontWeight": "normal"
             }
           ]
         }

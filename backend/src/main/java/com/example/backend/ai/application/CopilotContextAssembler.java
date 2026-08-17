@@ -13,6 +13,7 @@ import java.util.UUID;
 public class CopilotContextAssembler {
 
 	private static final int MAX_FIELD_LENGTH = 2_000;
+	private static final int MAX_ITEMS = 50;
 	private final CopilotWorkspaceContextProvider workspaces;
 	private final ReasoningService reasoning;
 	private final ArchitectureDocumentService architecture;
@@ -43,24 +44,24 @@ public class CopilotContextAssembler {
 	private JsonNode safeReasoning(ReasoningService.ReasoningResponse source) {
 		var node = objectMapper.createObjectNode();
 		var requirements = node.putArray("requirements");
-		for (var value : source.requirements()) { var item = requirements.addObject(); item.put("kind", value.kind()); item.put("statement", bounded(value.statement())); item.put("target", bounded(value.measurableTarget())); }
+		for (var value : source.requirements().stream().limit(MAX_ITEMS).toList()) { var item = requirements.addObject(); item.put("kind", bounded(value.kind())); item.put("statement", bounded(value.statement())); item.put("target", bounded(value.measurableTarget())); }
 		var assumptions = node.putArray("assumptions");
-		for (var value : source.assumptions()) { var item = assumptions.addObject(); item.put("category", value.category()); item.put("value", bounded(value.quantitativeValue())); item.put("unit", bounded(value.unit())); item.put("rationale", bounded(value.rationale())); }
+		for (var value : source.assumptions().stream().limit(MAX_ITEMS).toList()) { var item = assumptions.addObject(); item.put("category", bounded(value.category())); item.put("value", bounded(value.quantitativeValue())); item.put("unit", bounded(value.unit())); item.put("rationale", bounded(value.rationale())); }
 		var decisions = node.putArray("decisions");
-		for (var value : source.decisions()) { var item = decisions.addObject(); item.put("title", bounded(value.title())); item.put("chosenOption", bounded(value.chosenOption())); item.put("rationale", bounded(value.rationale())); item.put("risks", bounded(value.risks())); }
+		for (var value : source.decisions().stream().limit(MAX_ITEMS).toList()) { var item = decisions.addObject(); item.put("title", bounded(value.title())); item.put("chosenOption", bounded(value.chosenOption())); item.put("rationale", bounded(value.rationale())); item.put("risks", bounded(value.risks())); }
 		var questions = node.putArray("openQuestions");
-		for (var value : source.questions()) { var item = questions.addObject(); item.put("question", bounded(value.question())); item.put("whyItMatters", bounded(value.whyItMatters())); }
+		for (var value : source.questions().stream().limit(MAX_ITEMS).toList()) { var item = questions.addObject(); item.put("question", bounded(value.question())); item.put("whyItMatters", bounded(value.whyItMatters())); }
 		return node;
 	}
 
 	private JsonNode safeArchitecture(JsonNode source) {
 		var node = objectMapper.createObjectNode();
 		var components = node.putArray("components");
-		for (var value : source.path("components")) { var item = components.addObject(); copy(value, item, "id", "category", "type", "label", "boundaryId"); item.set("properties", value.path("properties")); }
+		int componentCount = 0; for (var value : source.path("components")) { if (componentCount++ >= MAX_ITEMS) break; var item = components.addObject(); copy(value, item, "id", "category", "type", "label", "boundaryId"); item.set("properties", boundedNode(value.path("properties"), 0)); }
 		var connections = node.putArray("connections");
-		for (var value : source.path("connections")) { var item = connections.addObject(); copy(value, item, "id", "fromComponentId", "toComponentId", "intent", "protocol", "guarantee", "notes"); }
+		int connectionCount = 0; for (var value : source.path("connections")) { if (connectionCount++ >= MAX_ITEMS) break; var item = connections.addObject(); copy(value, item, "id", "fromComponentId", "toComponentId", "intent", "protocol", "guarantee", "notes"); }
 		var boundaries = node.putArray("boundaries");
-		for (var value : source.path("boundaries")) { var item = boundaries.addObject(); copy(value, item, "id", "label", "type", "parentBoundaryId"); item.set("componentIds", value.path("componentIds")); }
+		int boundaryCount = 0; for (var value : source.path("boundaries")) { if (boundaryCount++ >= MAX_ITEMS) break; var item = boundaries.addObject(); copy(value, item, "id", "label", "type", "parentBoundaryId"); item.set("componentIds", boundedNode(value.path("componentIds"), 0)); }
 		return node;
 	}
 
@@ -69,8 +70,8 @@ public class CopilotContextAssembler {
 			var source = objectMapper.readTree(snapshot);
 			var node = objectMapper.createObjectNode();
 			copy(source, node, "version", "title", "description", "problemStatement", "difficulty", "estimatedMinutes");
-			node.set("initialConstraints", source.path("initialConstraints"));
-			node.set("skillCoverage", source.path("skillCoverage"));
+			node.set("initialConstraints", boundedNode(source.path("initialConstraints"), 0));
+			node.set("skillCoverage", boundedNode(source.path("skillCoverage"), 0));
 			return node;
 		} catch (RuntimeException exception) {
 			throw new IllegalStateException("Stored Challenge snapshot is invalid", exception);
@@ -82,4 +83,12 @@ public class CopilotContextAssembler {
 	}
 
 	private String bounded(String value) { return value == null ? "" : value.substring(0, Math.min(value.length(), MAX_FIELD_LENGTH)); }
+	private JsonNode boundedNode(JsonNode value, int depth) {
+		if (value == null || value.isNull() || depth > 3) return objectMapper.nullNode();
+		if (value.isTextual()) return objectMapper.getNodeFactory().textNode(bounded(value.asText()));
+		if (value.isNumber() || value.isBoolean()) return value;
+		if (value.isArray()) { var result = objectMapper.createArrayNode(); int count = 0; for (var child : value) { if (count++ >= MAX_ITEMS) break; result.add(boundedNode(child, depth + 1)); } return result; }
+		if (value.isObject()) { var result = objectMapper.createObjectNode(); int count = 0; for (var field : value.properties()) { if (count++ >= MAX_ITEMS) break; result.set(field.getKey(), boundedNode(field.getValue(), depth + 1)); } return result; }
+		return objectMapper.nullNode();
+	}
 }

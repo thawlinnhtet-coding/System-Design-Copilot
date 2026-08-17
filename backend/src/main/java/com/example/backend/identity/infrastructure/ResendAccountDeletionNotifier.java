@@ -24,7 +24,7 @@ class ResendAccountDeletionNotifier implements AccountDeletionNotifier {
 	public void sendCancellationLink(String verifiedEmail, String cancellationToken, Instant recoveryEndsAt) {
 		if (properties.resendApiKey() == null || properties.resendApiKey().isBlank() || properties.resendFromEmail() == null || properties.resendFromEmail().isBlank()) throw new AccountDeletionProviderException();
 		try {
-			var link = properties.cancellationBaseUrl() + "?token=" + java.net.URLEncoder.encode(cancellationToken, java.nio.charset.StandardCharsets.UTF_8);
+			var link = properties.cancellationBaseUrl() + "#token=" + java.net.URLEncoder.encode(cancellationToken, java.nio.charset.StandardCharsets.UTF_8);
 			var deadline = DateTimeFormatter.ISO_OFFSET_DATE_TIME.withZone(ZoneOffset.UTC).format(recoveryEndsAt);
 			var body = json.writeValueAsString(Map.of("from", properties.resendFromEmail(), "to", java.util.List.of(verifiedEmail),
 					"subject", "Cancel your System Design Copilot account deletion", "text", "Your account deletion is scheduled. Sign in, then cancel before " + deadline + ": " + link));

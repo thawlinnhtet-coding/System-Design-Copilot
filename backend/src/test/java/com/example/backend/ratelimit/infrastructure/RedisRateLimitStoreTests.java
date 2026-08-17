@@ -21,9 +21,20 @@ class RedisRateLimitStoreTests {
 	void disabledConcurrencyCounterReleasesLeases() {
 		var store = new RedisRateLimitStore(null, new RedisRateLimitProperties(false));
 
-		assertThat(store.acquireConcurrency("test", "user", 1, Duration.ofMinutes(2)).allowed()).isTrue();
+		var first = store.acquireConcurrency("test", "user", 1, Duration.ofMinutes(2));
+		assertThat(first.allowed()).isTrue();
 		assertThat(store.acquireConcurrency("test", "user", 1, Duration.ofMinutes(2)).allowed()).isFalse();
-		store.releaseConcurrency("test", "user");
+		store.releaseConcurrency("test", "user", first.leaseToken());
 		assertThat(store.acquireConcurrency("test", "user", 1, Duration.ofMinutes(2)).allowed()).isTrue();
+	}
+
+	@Test
+	void releasingAnExpiredLeaseCannotReleaseAReplacementLease() {
+		var store = new RedisRateLimitStore(null, new RedisRateLimitProperties(false));
+		var first = store.acquireConcurrency("test", "replacement", 1, Duration.ZERO);
+		var replacement = store.acquireConcurrency("test", "replacement", 1, Duration.ofMinutes(2));
+		store.releaseConcurrency("test", "replacement", first.leaseToken());
+		assertThat(replacement.allowed()).isTrue();
+		assertThat(store.acquireConcurrency("test", "replacement", 1, Duration.ofMinutes(2)).allowed()).isFalse();
 	}
 }

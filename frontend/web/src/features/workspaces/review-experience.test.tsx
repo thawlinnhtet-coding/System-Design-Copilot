@@ -42,6 +42,6 @@ describe("ReviewExperience", () => {
     fireEvent.click(screen.getByRole("button", { name: "Retry this revision" }));
     expect(retry).toHaveBeenCalledWith("review-3");
     fireEvent.click(screen.getByRole("button", { name: "Compare" }));
-    expect(screen.getByText(/Comparison selected. The API adapter will load both immutable Review records/)).toBeVisible();
+    expect(screen.getByRole("region", { name: "Review comparison" })).toHaveTextContent("Selected immutable comparison");
   });
 });

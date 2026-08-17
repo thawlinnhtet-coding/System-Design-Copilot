@@ -70,7 +70,7 @@ public class PublicBetaAbuseProtectionFilter extends OncePerRequestFilter {
 		try {
 			filterChain.doFilter(request, response);
 		} finally {
-			limits.releaseConcurrency("user-concurrent", subject);
+			limits.releaseConcurrency("user-concurrent", subject, concurrency.leaseToken());
 		}
 	}
 

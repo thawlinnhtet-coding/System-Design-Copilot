@@ -16,6 +16,15 @@ spring:
       url: "${REDIS_URL:redis://localhost:6379}"
       connect-timeout: "${REDIS_CONNECT_TIMEOUT:500ms}"
       timeout: "${REDIS_COMMAND_TIMEOUT:500ms}"
+  rabbitmq:
+    host: "${RABBITMQ_HOST:localhost}"
+    port: "${RABBITMQ_PORT:5672}"
+    username: "${RABBITMQ_USERNAME:guest}"
+    password: "${RABBITMQ_PASSWORD:guest}"
+    publisher-confirm-type: correlated
+    publisher-returns: true
+    template:
+      mandatory: true
   ai:
     openai:
       base-url: "${OPENROUTER_BASE_URL:https://openrouter.ai/api/v1}"

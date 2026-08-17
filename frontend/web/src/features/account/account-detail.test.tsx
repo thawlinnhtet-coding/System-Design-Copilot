@@ -42,6 +42,7 @@ describe("AccountDetail", () => {
 		expect(screen.getByRole("button", { name: "Manage all sessions" })).toBeVisible();
     expect(screen.getByRole("button", { name: "Manage sign-in" })).toBeVisible();
     expect(screen.getByText("Two-factor authentication")).toBeVisible();
+    expect(screen.getByRole("link", { name: "← ACCOUNT SETTINGS" })).toHaveAttribute("href", "/account");
   });
 
 	it("directs an unverified user to Clerk before enabling AI processing", async () => {
@@ -68,6 +69,7 @@ describe("AccountDetail", () => {
     expect(await screen.findByText("Free personal beta")).toBeVisible();
     expect(screen.getByText("Active Workspaces")).toBeVisible();
     expect(screen.getByText("5 / 5 this month")).toBeVisible();
+    expect(screen.getByRole("link", { name: "← ACCOUNT SETTINGS" })).toHaveAttribute("href", "/account");
   });
 
   it("renders the Pro state with secure billing management", async () => {

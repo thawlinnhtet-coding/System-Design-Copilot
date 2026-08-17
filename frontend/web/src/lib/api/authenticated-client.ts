@@ -103,6 +103,14 @@ export function useAuthenticatedApiClient() {
       });
     }
 
+    async function optionalRequest(path: string, init: RequestInit = {}) {
+      const token = await getToken({ template: tokenTemplate });
+      const headers = new Headers(init.headers);
+      if (token) headers.set("Authorization", `Bearer ${token}`);
+      headers.set("Accept", "application/json");
+      return fetch(`${apiBaseUrl}${path}`, { ...init, headers });
+    }
+
     async function json<T>(path: string, init?: RequestInit): Promise<T> {
       const response = await request(path, init);
       if (!response.ok) {
@@ -111,6 +119,16 @@ export function useAuthenticatedApiClient() {
         throw new ApiRequestError(response.status, details);
       }
 
+      return response.json() as Promise<T>;
+    }
+
+    async function optionalJson<T>(path: string, init?: RequestInit): Promise<T> {
+      const response = await optionalRequest(path, init);
+      if (!response.ok) {
+        let details: Record<string, unknown> | undefined;
+        try { details = await response.json() as Record<string, unknown>; } catch { /* response may be empty */ }
+        throw new ApiRequestError(response.status, details);
+      }
       return response.json() as Promise<T>;
     }
 
@@ -149,7 +167,7 @@ export function useAuthenticatedApiClient() {
         return json<PortableValidationResponse>(`/api/v1/workspaces/${id}/portable-export`);
       },
       getChallenge(slug: string): Promise<ChallengeDetail> {
-        return json<ChallengeDetail>(`/api/v1/challenges/${encodeURIComponent(slug)}`);
+				return optionalJson<ChallengeDetail>(`/api/v1/challenges/${encodeURIComponent(slug)}`);
       },
       startChallenge(slug: string): Promise<WorkspaceSummary> {
         return json<WorkspaceSummary>(`/api/v1/challenges/${encodeURIComponent(slug)}/workspaces`, { method: "POST" });
@@ -359,7 +377,7 @@ export function useAuthenticatedApiClient() {
 				});
 			},
 			async cancelAccountDeletion(token: string): Promise<void> {
-				const response = await request(`/api/v1/me/account-deletion/cancel?token=${encodeURIComponent(token)}`, { method: "POST" });
+				const response = await request("/api/v1/me/account-deletion/cancel", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ token }) });
 				if (!response.ok) throw new ApiRequestError(response.status, await response.json().catch(() => undefined));
 			},
 		askCopilot(workspaceId: string, body: CopilotTurnRequest): Promise<CopilotTurn> {

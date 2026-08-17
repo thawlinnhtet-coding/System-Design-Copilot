@@ -5,5 +5,6 @@ public enum ReviewStatus {
 	PROCESSING,
 	COMPLETED,
 	RETRYING,
-	FAILED
+	FAILED,
+	FAILED_FINAL
 }

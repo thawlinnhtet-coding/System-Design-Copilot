@@ -42,14 +42,14 @@ public class ChallengeService {
 
 	@Transactional(readOnly = true)
 	public ChallengeDetail detail(UUID userId, String slug) {
-		entitlementService.requireCuratedChallengeAccess(userId);
+		if (userId != null) entitlementService.requireCuratedChallengeAccess(userId);
 		var version = publishedVersion(slug);
 		var challenge = challengeRepository.findById(version.getChallengeId()).orElseThrow(ChallengeNotFoundException::new);
-		var attempts = workspaceService.list(userId).stream()
+		var attempts = userId == null ? List.<ChallengeAttempt>of() : workspaceService.list(userId).stream()
 				.filter(workspace -> version.getId().equals(workspace.challengeVersionId()))
 				.map(workspace -> new ChallengeAttempt(workspace.id(), workspace.name(), workspace.status(), workspace.updatedAt()))
 				.toList();
-		return new ChallengeDetail(challenge.getSlug(), challenge.getTopic(), version.getId(), version.getVersion(), version.getTitle(), version.getDescription(), version.getProblemStatement(), version.getDifficulty().name(), version.getEstimatedMinutes(), readStrings(version.getTopicPacks()), readStrings(version.getInitialConstraints()), readSkills(version.getSkillCoverage()), readStrings(version.getScenarioPreview()), attempts);
+		return new ChallengeDetail(challenge.getSlug(), challenge.getTopic(), version.getId(), version.getVersion(), version.getTitle(), version.getDescription(), userId == null ? "Sign in to access the full problem statement and practice constraints." : version.getProblemStatement(), version.getDifficulty().name(), version.getEstimatedMinutes(), readStrings(version.getTopicPacks()), userId == null ? List.of() : readStrings(version.getInitialConstraints()), readSkills(version.getSkillCoverage()), userId == null ? List.of() : readStrings(version.getScenarioPreview()), attempts);
 	}
 
 	@Transactional

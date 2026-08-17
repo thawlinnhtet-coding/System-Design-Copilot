@@ -63,7 +63,9 @@ export function AccountSettings() {
 
           <div className="hidden flex-col gap-[22px] lg:flex">
             <header className="flex flex-col gap-[10px]">
-              <p className="font-mono text-[11px] leading-[1.3] text-signal">ACCOUNT / SETTINGS OVERVIEW</p>
+              <Link className="w-fit font-mono text-[11px] leading-[1.3] text-signal hover:underline focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-focus" href="/practice">
+                ← RETURN TO PRACTICE / ACCOUNT SETTINGS OVERVIEW
+              </Link>
               <h1 className="font-display text-[38px] font-medium leading-[1.08] tracking-[-0.035em]">Account settings</h1>
               <p className="max-w-[720px] text-sm leading-[1.5] text-text-muted">See the status of your account, then open one focused settings section when you need to make a change.</p>
             </header>
@@ -149,7 +151,9 @@ function MobileAccountNavigation({ plan, activeWorkspaces, session, consentLabel
 
   return (
     <div className="flex flex-col gap-[9px] px-[15px] py-[18px]">
-      <p className="font-mono text-[11px] leading-[1.4] text-signal">ACCOUNT / SETTINGS OVERVIEW</p>
+      <Link className="w-fit font-mono text-[11px] leading-[1.4] text-signal hover:underline focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-focus" href="/practice">
+        ← RETURN TO PRACTICE / ACCOUNT SETTINGS OVERVIEW
+      </Link>
       <h1 className="font-display text-[28px] leading-[1.2] tracking-[-0.025em] text-foreground">Account settings</h1>
       <p className="max-w-[520px] text-sm leading-6 text-text-muted">See the status of your account, then open one focused settings section when you need to make a change.</p>
       <div className="mt-2 flex flex-col">

@@ -102,6 +102,7 @@ export function ReviewExperience({ adapter = {}, workspaceId, readOnly = false }
 
     {error ? <p className="mt-5 border-l-2 border-danger pl-4 text-sm text-danger" role="alert">{error}</p> : null}
     {review.state === "COMPLETED" ? <CompletedReview adapter={activeAdapter} review={review} /> : <ReviewStatus adapter={activeAdapter} review={review} retrying={isRetrying} />}
+    {comparisonId ? <ReviewComparison current={review} comparison={activeAdapter.history?.find((item) => item.id === comparisonId)} /> : null}
 
     <ReviewHistory current={review} history={activeAdapter.history ?? []} comparisonId={comparisonId} onSelectComparison={setComparisonId} />
   </section>;
@@ -143,8 +144,15 @@ function CompletedReview({ adapter, review }: { adapter: ReviewExperienceAdapter
 
 function ReviewHistory({ current, history, comparisonId, onSelectComparison }: { current: ReviewExperienceView; history: ReviewExperienceView[]; comparisonId: string | null; onSelectComparison: (id: string | null) => void }) {
   const completed = history.filter((item) => item.state === "COMPLETED" && item.id !== current.id);
-  return <section className="mt-12 border-t border-line pt-8"><SectionLabel>Review history and comparison</SectionLabel><p className="mt-2 text-sm leading-6 text-text-muted">Reviews remain immutable checkpoints scoped to this Workspace. Select one completed Review to prepare a comparison; no Workspace content changes.</p><ol className="mt-5 divide-y divide-line border-y border-line">{[current, ...history.filter((item) => item.id !== current.id)].map((item) => <li className="flex flex-wrap items-center justify-between gap-3 py-4" key={item.id}><div><p className="text-sm font-semibold">Revision {item.revision.id}</p><p className="mt-1 font-mono text-xs text-text-muted">{item.state.replace("_", " ")} · document v{item.revision.documentVersion}</p></div>{item.state === "COMPLETED" && item.id !== current.id ? <button className="min-h-10 text-sm font-semibold text-signal hover:underline" onClick={() => onSelectComparison(comparisonId === item.id ? null : item.id)} type="button">{comparisonId === item.id ? "Comparison selected" : "Compare"}</button> : null}</li>)}</ol>{completed.length === 0 ? <p className="mt-4 text-sm text-text-muted">Complete a second Review in this Workspace to compare evidence and dimensions.</p> : comparisonId ? <p className="mt-4 border-l-2 border-signal pl-4 text-sm text-text-muted">Comparison selected. The API adapter will load both immutable Review records when #14 is integrated.</p> : null}</section>;
+  return <section className="mt-12 border-t border-line pt-8"><SectionLabel>Review history and comparison</SectionLabel><p className="mt-2 text-sm leading-6 text-text-muted">Reviews remain immutable checkpoints scoped to this Workspace. Select one completed Review to compare evidence and dimensions; no Workspace content changes.</p><ol className="mt-5 divide-y divide-line border-y border-line">{[current, ...history.filter((item) => item.id !== current.id)].map((item) => <li className="flex flex-wrap items-center justify-between gap-3 py-4" key={item.id}><div><p className="text-sm font-semibold">Revision {item.revision.id}</p><p className="mt-1 font-mono text-xs text-text-muted">{item.state.replace("_", " ")} · document v{item.revision.documentVersion}</p></div>{item.state === "COMPLETED" && item.id !== current.id ? <button className="min-h-10 text-sm font-semibold text-signal hover:underline" onClick={() => onSelectComparison(comparisonId === item.id ? null : item.id)} type="button">{comparisonId === item.id ? "Hide comparison" : "Compare"}</button> : null}</li>)}</ol>{completed.length === 0 ? <p className="mt-4 text-sm text-text-muted">Complete a second Review in this Workspace to compare evidence and dimensions.</p> : null}</section>;
 }
+
+function ReviewComparison({ current, comparison }: { current: ReviewExperienceView; comparison?: ReviewExperienceView }) {
+  if (!comparison) return null;
+  return <section className="mt-10 border border-line bg-surface p-5" aria-label="Review comparison"><SectionLabel>Selected immutable comparison</SectionLabel><div className="mt-4 grid gap-6 sm:grid-cols-2"><ComparisonReviewColumn label="Current revision" review={current} /><ComparisonReviewColumn label="Selected revision" review={comparison} /></div></section>;
+}
+
+function ComparisonReviewColumn({ label, review }: { label: string; review: ReviewExperienceView }) { return <div><p className="text-sm font-semibold">{label}</p><p className="mt-1 font-mono text-[10px] text-text-muted">{review.revision.id}</p><div className="mt-4 divide-y divide-line border-y border-line">{(review.dimensions ?? []).map((dimension) => <div className="flex justify-between gap-3 py-2 text-xs" key={dimension.label}><span>{dimension.label}</span><span className="font-mono text-text-muted">{dimension.score}/5</span></div>)}</div><p className="mt-4 text-xs text-text-muted">{review.findings?.length ?? 0} findings · {review.risks?.length ?? 0} risks</p></div>; }
 
 function TextList({ label, items = [], ordered = false }: { label: string; items?: string[]; ordered?: boolean }) { const List = ordered ? "ol" : "ul"; return <section><SectionLabel>{label}</SectionLabel>{items.length ? <List className={`mt-3 space-y-3 text-sm leading-6 text-foreground ${ordered ? "list-decimal pl-5" : ""}`}>{items.map((item) => <li className={ordered ? "pl-1" : "border-l-2 border-line pl-3"} key={item}>{item}</li>)}</List> : <p className="mt-3 text-sm text-text-muted">No {label.toLowerCase()} were returned.</p>}</section>; }
 function SectionLabel({ children }: { children: ReactNode }) { return <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-text-muted">{children}</p>; }
@@ -159,7 +167,7 @@ function toView(value: ReviewDetails | ReviewSubmission): ReviewExperienceView {
   const findings = Array.isArray(output?.findings) ? output.findings as Array<Record<string, unknown>> : [];
   return {
     id: value.id ?? "pending-review",
-    state: reviewState(value.status),
+    state: reviewState(value.status, value.errorCode),
     revision: { id: value.revisionId, createdAt: value.createdAt },
     interpretation: stringValue(output?.summary),
     risks: findings.map((finding) => stringValue(finding.message)).filter((item): item is string => Boolean(item)),
@@ -174,13 +182,14 @@ function toView(value: ReviewDetails | ReviewSubmission): ReviewExperienceView {
     uncertainty: typeof output?.uncertainty === "number" ? [`The Review reported ${(output.uncertainty * 100).toFixed(0)}% uncertainty; inspect its evidence before acting.`] : [],
     nextActions: findings.length ? ["Inspect the linked evidence and manually record the next decision."] : [],
     dimensions: reviewDimensions.map((label) => ({ label, score: scoreFor(label, scores), evidence: "Score derived from this immutable Review checkpoint." })).filter((item) => item.score > 0),
+    strengths: Array.isArray(output?.strengths) ? output.strengths.filter((item): item is string => typeof item === "string") : [],
     failureMessage: value.errorCode ? `Review processing reported: ${value.errorCode.replaceAll("_", " ")}.` : undefined,
   };
 }
 
-function reviewState(status: string | undefined): ReviewRequestState { return status === "COMPLETED" ? "COMPLETED" : status === "FAILED" ? "FAILED_RETRYABLE" : status === "PROCESSING" || status === "RETRYING" ? "PROCESSING" : "PENDING"; }
+function reviewState(status: string | undefined, errorCode?: string | null): ReviewRequestState { return status === "COMPLETED" ? "COMPLETED" : status === "FAILED_FINAL" || (status === "FAILED" && (errorCode === "invalid_review_output" || errorCode === "review_quota_exceeded")) ? "FAILED_FINAL" : status === "FAILED" ? "FAILED_RETRYABLE" : status === "PROCESSING" || status === "RETRYING" ? "PROCESSING" : "PENDING"; }
 function stringValue(value: unknown) { return typeof value === "string" && value.trim() ? value : undefined; }
 function severityValue(value: unknown): ReviewFindingView["severity"] { const severity = stringValue(value)?.toLowerCase(); return severity === "critical" || severity === "high" || severity === "medium" || severity === "low" || severity === "observation" ? severity : "observation"; }
 function evidenceLabel(finding: Record<string, unknown>) { const evidence = Array.isArray(finding.evidence) ? finding.evidence[0] : undefined; return evidence && typeof evidence === "object" ? stringValue((evidence as Record<string, unknown>).sourceId) : undefined; }
-function scoreFor(label: string, scores: Record<string, unknown>) { const key = { "Requirements alignment": "requirementsAndEstimation", "Scalability and capacity": "scalingAndPerformance", "Reliability and failure handling": "reliabilityAndFailureHandling", "Data model and consistency": "dataModelingAndConsistency", "Performance and bottlenecks": "scalingAndPerformance", "Security and operability": "securityAndPrivacy", "Trade-off reasoning": "tradeoffCommunication" }[label]; const value = key ? scores[key] : undefined; return typeof value === "number" ? value : 0; }
+function scoreFor(label: string, scores: Record<string, unknown>) { const key = { "Requirements alignment": "requirementsAlignment", "Scalability and capacity": "scalabilityAndCapacity", "Reliability and failure handling": "reliabilityAndFailureHandling", "Data model and consistency": "dataModelingAndConsistency", "Performance and bottlenecks": "performanceAndBottlenecks", "Security and operability": "securityAndOperability", "Trade-off reasoning": "tradeoffCommunication" }[label]; const value = key ? scores[key] : undefined; return typeof value === "number" ? value : 0; }
 function copyFinding(finding: ReviewFindingView) { void navigator.clipboard?.writeText(`${finding.title}\n${finding.impact}\n${finding.recommendation}`); }

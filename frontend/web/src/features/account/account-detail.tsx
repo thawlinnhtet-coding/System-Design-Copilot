@@ -88,6 +88,9 @@ export function AccountDetail({ section }: { section: Exclude<AccountSection, "o
 function DetailHeader({ title, description }: { title: string; description: string }) {
   return (
     <header className="mb-6 flex flex-col gap-2">
+      <Link className="w-fit font-mono text-[11px] leading-[1.3] text-signal hover:underline focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-focus" href="/account">
+        ← ACCOUNT SETTINGS
+      </Link>
       <h1 className="font-display text-[30px] font-semibold leading-[1.1] tracking-[-0.025em] text-foreground">{title}</h1>
       <p className="text-sm leading-[1.45] text-text-muted">{description}</p>
     </header>
@@ -153,7 +156,9 @@ function PlanDetail({ usage, loaded, loadError, onRetry }: { usage: CurrentEntit
 
   return (
     <div className="flex flex-col gap-5">
-      <p className="font-mono text-[11px] leading-[1.3] text-signal">ACCOUNT / PLAN &amp; USAGE</p>
+      <Link className="w-fit font-mono text-[11px] leading-[1.3] text-signal hover:underline focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-focus" href="/account">
+        ← ACCOUNT SETTINGS
+      </Link>
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="flex flex-col gap-1.5">
           <h1 className="font-display text-[38px] font-medium leading-[1.08] tracking-[-0.035em]">{isCanceling ? `Your Pro plan continues through ${formatRenewal(paidThrough)}.` : isPro ? "Your Pro plan." : "Plan and usage"}</h1>

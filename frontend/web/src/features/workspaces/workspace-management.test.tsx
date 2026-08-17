@@ -24,11 +24,13 @@ describe("WorkspaceManagement", () => {
 
   it("separates active and archived workspaces and requires the exact name before deletion", async () => {
     api.getWorkspaces.mockResolvedValue([
-      { id: "active-1", name: "Notifications", status: "ACTIVE", progressPercent: 38, saveState: "SAVED" },
-      { id: "archived-1", name: "Image pipeline", status: "ARCHIVED", progressPercent: 61, saveState: "SAVED" },
+      { id: "active-1", name: "Notifications", type: "CHALLENGE", source: "CURATED_CHALLENGE", status: "ACTIVE", progressPercent: 38, saveState: "SAVED" },
+      { id: "archived-1", name: "Image pipeline", type: "CHALLENGE", source: "CURATED_CHALLENGE", status: "ARCHIVED", progressPercent: 61, saveState: "SAVED" },
     ]);
     renderWithProviders(<WorkspaceManagement />);
     expect(await screen.findByText("Notifications")).toBeVisible();
+    expect(screen.queryByText(/CHALLENGE.*CURATED CHALLENGE/)).not.toBeInTheDocument();
+    expect(screen.getByText("38% COMPLETE · SAVED")).toBeVisible();
     expect(screen.getByRole("link", { name: "BACK TO PRACTICE" })).toHaveAttribute("href", "/practice");
     expect(screen.getByText("Image pipeline")).toBeVisible();
     fireEvent.click(screen.getByRole("button", { name: "Delete" }));

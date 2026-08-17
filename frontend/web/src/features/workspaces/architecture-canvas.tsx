@@ -93,6 +93,7 @@ function ArchitectureCanvasInner({ workspaceId, readOnly, viewport, onViewportCh
     setSaveError(null);
     try {
       const response = await api.saveArchitectureDocument(workspaceId, current.version, current.document);
+      if (useArchitectureEditorStore.getState().workspaceId !== workspaceId) return false;
       markSaved(response.version, response.document);
       setSaveState("saved");
       setConflictSnapshot(null);

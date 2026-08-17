@@ -26,10 +26,9 @@ public class ChallengeController {
 	@Operation(summary = "List published Challenge catalog metadata")
 	public List<ChallengeService.ChallengeSummary> catalog() { return challengeService.catalog(); }
 	@GetMapping("/{slug}")
-	@SecurityRequirement(name = "clerkBearerAuth")
-	@Operation(summary = "Get the entitled published Challenge Version detail")
+	@Operation(summary = "Get published Challenge detail; premium practice content is redacted for visitors")
 	public ChallengeService.ChallengeDetail detail(@AuthenticationPrincipal Jwt jwt, @PathVariable String slug) {
-		return challengeService.detail(currentUserService.getOrCreate(jwt.getSubject()).id(), slug);
+		return challengeService.detail(jwt == null ? null : currentUserService.getOrCreate(jwt.getSubject()).id(), slug);
 	}
 	@PostMapping("/{slug}/workspaces")
 	@ResponseStatus(HttpStatus.CREATED)

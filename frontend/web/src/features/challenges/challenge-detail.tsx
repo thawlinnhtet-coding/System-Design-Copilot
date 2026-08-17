@@ -18,7 +18,7 @@ export function ChallengeDetail({ slug }: { slug: string }) {
   const detail = useQuery({
     queryKey: ["challenge", slug],
     queryFn: () => api.getChallenge(slug),
-    enabled: isLoaded && isSignedIn,
+    enabled: isLoaded,
   });
 
   async function start() {
@@ -38,15 +38,6 @@ export function ChallengeDetail({ slug }: { slug: string }) {
   }
 
   if (!isLoaded) return <p className="text-sm text-text-muted" role="status">Checking access...</p>;
-  if (!isSignedIn) {
-    return (
-      <div className="border border-line bg-surface p-6 sm:p-8">
-        <h1 className="font-display text-3xl font-semibold">Sign in to inspect this Challenge.</h1>
-        <p className="mt-3 max-w-xl text-sm leading-6 text-text-muted">The catalog is public, while the problem statement and practice context are available inside your account.</p>
-        <Link className={`${challengeButton} mt-6 border-signal bg-signal text-text-on-dark`} href={`/sign-in?returnTo=${encodeURIComponent(`/challenges/${slug}`)}`}>Sign in to continue</Link>
-      </div>
-    );
-  }
   if (detail.isPending) return <p className="text-sm text-text-muted" role="status">Loading Challenge...</p>;
   if (detail.isError) return <p className="border border-danger/30 bg-danger/10 px-4 py-3 text-sm text-danger" role="alert">This Challenge is unavailable or no longer published.</p>;
 
@@ -74,9 +65,7 @@ export function ChallengeDetail({ slug }: { slug: string }) {
           <div><p className="text-xs text-text-muted">Skill coverage</p><ul className="mt-2 grid gap-2 text-sm">{(challenge.skillCoverage ?? []).map((skill) => <li className="flex justify-between gap-3" key={skill.name}><span>{skill.name}</span><span className="font-mono text-[10px] uppercase text-signal">{skill.level}</span></li>)}</ul></div>
         </div>
         {error ? <p className="mt-5 border border-danger/30 bg-danger/10 px-3 py-2 text-xs text-danger" role="alert">{error}</p> : null}
-        <button className={`${challengeButton} mt-6 w-full border-signal bg-signal text-text-on-dark hover:brightness-110`} disabled={starting} onClick={() => void start()} type="button">{starting ? "Starting..." : latestAttempt?.id ? "Continue practice" : "Start practice"}</button>
-        {latestAttempt?.id ? <button className={`${challengeButton} mt-3 w-full border-line text-foreground hover:bg-surface-alt`} disabled={starting} onClick={() => void start()} type="button">Start new attempt</button> : null}
-        <p className="mt-3 text-xs leading-5 text-text-muted">Starting creates a new private Workspace. Existing attempts are never overwritten.</p>
+        {isSignedIn ? <>{latestAttempt?.id ? <Link className={`${challengeButton} mt-6 w-full border-signal bg-signal text-text-on-dark hover:brightness-110`} href={`/workspace/${latestAttempt.id}`}>Continue practice</Link> : <button className={`${challengeButton} mt-6 w-full border-signal bg-signal text-text-on-dark hover:brightness-110`} disabled={starting} onClick={() => void start()} type="button">{starting ? "Starting..." : "Start practice"}</button>}{latestAttempt?.id ? <button className={`${challengeButton} mt-3 w-full border-line text-foreground hover:bg-surface-alt`} disabled={starting} onClick={() => void start()} type="button">{starting ? "Starting..." : "Start new attempt"}</button> : null}<p className="mt-3 text-xs leading-5 text-text-muted">{latestAttempt?.id ? "Continue opens your latest private Workspace. Starting a new attempt creates another Workspace." : "Starting creates a new private Workspace."}</p></> : <Link className={`${challengeButton} mt-6 w-full border-signal bg-signal text-text-on-dark`} href={`/sign-in?returnTo=${encodeURIComponent(`/challenges/${slug}`)}`}>Sign in to start practice</Link>}
       </aside>
     </div>
   );

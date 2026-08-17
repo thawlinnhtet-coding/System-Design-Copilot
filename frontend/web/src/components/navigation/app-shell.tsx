@@ -24,13 +24,13 @@ export function AppShell({ children, fullBleed = false, compactHeader = false }:
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <header className={`relative z-30 box-border border-b border-[#34403c] bg-chrome-850 text-text-on-dark ${compactHeader ? "h-[64px]" : "h-[72px]"}`}>
+      <header className={`relative z-30 box-border border-b border-[#39413e] bg-chrome-800 text-text-on-dark ${compactHeader ? "h-[64px]" : "h-[72px]"}`}>
         <div className="mx-auto flex h-full w-full items-center justify-between px-5 sm:px-8 lg:px-12">
           <Link href="/practice" aria-label="Go to Practice" className="rounded-[3px] focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-focus">
             <BrandMark tone="chrome" />
           </Link>
 
-          <nav aria-label="Primary navigation" className="hidden items-center gap-8 md:flex">
+        <nav aria-label="Primary navigation" className="hidden items-center gap-8 md:flex">
             {primaryNavigation.map(({ href, label }) => (
               <Link aria-current={isActive(href) ? "page" : undefined} className={`text-sm transition-colors ${isActive(href) ? "text-text-on-dark" : "text-text-on-dark-secondary hover:text-text-on-dark"}`} href={href} key={href}>
                 {label}
@@ -88,8 +88,8 @@ function AccountMenu({ isOpen, onToggle }: { isOpen: boolean; onToggle: () => vo
   return (
     <div className="relative hidden md:block">
       <button aria-expanded={isOpen} aria-haspopup="menu" aria-label={isOpen ? "Close account menu" : "Open account menu"} className="flex h-10 w-[184px] items-center gap-2.5 rounded-[5px] px-2 text-left hover:bg-white/5" onClick={onToggle} type="button">
-        <span className="flex size-8 shrink-0 items-center justify-center rounded-full border border-signal bg-[#203633]">
-          <UserRound aria-hidden="true" className="text-text-on-dark" size={17} strokeWidth={1.4} />
+        <span className="flex size-9 shrink-0 items-center justify-center rounded-full border border-signal bg-[#203633]">
+          <UserRound aria-hidden="true" className="text-text-on-dark" size={18} strokeWidth={1.4} />
         </span>
         <span className="flex min-w-0 flex-1 flex-col gap-0.5">
           <span className="text-xs font-medium text-text-on-dark">Account</span>

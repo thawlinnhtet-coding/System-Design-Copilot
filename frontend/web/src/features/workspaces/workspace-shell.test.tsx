@@ -10,6 +10,7 @@ vi.mock("@clerk/nextjs", () => ({ SignInButton: ({ children }: { children: React
 vi.mock("@/lib/api/authenticated-client", () => ({ useAuthenticatedApiClient: () => api }));
 vi.mock("./workspace-reasoning", () => ({ WorkspaceReasoning: () => <div>Reasoning</div> }));
 vi.mock("./architecture-canvas", () => ({ ArchitectureCanvas: () => <div>Canvas</div> }));
+vi.mock("./copilot-panel", () => ({ CopilotPanel: () => <div>Copilot</div> }));
 
 describe("WorkspaceShell", () => {
   beforeEach(() => {

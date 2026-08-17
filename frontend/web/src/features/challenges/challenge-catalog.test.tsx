@@ -1,4 +1,4 @@
-import { fireEvent, screen, waitFor } from "@testing-library/react";
+import { fireEvent, screen } from "@testing-library/react";
 import { vi } from "vitest";
 import { renderWithProviders } from "@/test/setup";
 import { ChallengeCatalog } from "./challenge-catalog";
@@ -6,8 +6,6 @@ import { ChallengeCatalog } from "./challenge-catalog";
 const session = vi.hoisted(() => ({ isLoaded: true, isSignedIn: true }));
 const api = vi.hoisted(() => ({ getWorkspaces: vi.fn(), startChallenge: vi.fn() }));
 const publicApi = vi.hoisted(() => ({ getChallenges: vi.fn() }));
-const router = vi.hoisted(() => ({ push: vi.fn() }));
-
 vi.mock("@clerk/nextjs", () => ({ useAuth: () => session }));
 vi.mock("@/lib/api/authenticated-client", () => ({
   ApiRequestError: class ApiRequestError extends Error {
@@ -16,7 +14,6 @@ vi.mock("@/lib/api/authenticated-client", () => ({
   useAuthenticatedApiClient: () => api,
 }));
 vi.mock("@/lib/api/public-client", () => publicApi);
-vi.mock("next/navigation", () => ({ useRouter: () => router }));
 
 describe("ChallengeCatalog", () => {
   beforeEach(() => {
@@ -32,39 +29,46 @@ describe("ChallengeCatalog", () => {
     ]);
   });
 
-  it("starts a curated Challenge as a typed independent Workspace", async () => {
+  it("opens the public Challenge Detail page without starting a Workspace", async () => {
     api.getWorkspaces.mockResolvedValue([]);
-    api.startChallenge.mockResolvedValue({ id: "challenge-workspace-1" });
 
     renderWithProviders(<ChallengeCatalog />);
 
-    const start = (await screen.findAllByRole("button", { name: "Start Challenge" }))[0];
-    fireEvent.click(start);
-
-    await waitFor(() => expect(api.startChallenge).toHaveBeenCalledWith("url-shortener"));
+    expect(await screen.findByRole("link", { name: "Open Design a reliable URL shortener" })).toHaveAttribute("href", "/challenges/url-shortener");
+    expect(screen.queryByRole("button", { name: "Clear filters" })).not.toBeInTheDocument();
+    expect(api.startChallenge).not.toHaveBeenCalled();
   });
 
-  it("keeps the latest attempt resumable and offers a separate new attempt", async () => {
+  it("marks a Challenge with an existing attempt as in progress", async () => {
     api.getWorkspaces.mockResolvedValue([
       { id: "attempt-1", name: "Design a reliable URL shortener", type: "CHALLENGE", source: "CURATED_CHALLENGE", challengeVersionId: "url-v1" },
     ]);
-    api.startChallenge.mockResolvedValue({ id: "attempt-2" });
 
     renderWithProviders(<ChallengeCatalog />);
 
-    expect(await screen.findByRole("link", { name: "Resume latest" })).toHaveAttribute("href", "/workspace/attempt-1");
-    fireEvent.click(screen.getByRole("button", { name: "Start new attempt" }));
-    await waitFor(() => expect(api.startChallenge).toHaveBeenCalledTimes(1));
+    expect(await screen.findByText("IN PROGRESS · FOUNDATION")).toBeInTheDocument();
   });
 
-  it("preserves the Challenge destination for signed-out visitors", async () => {
+  it("keeps the public Challenge Detail page available to signed-out visitors", async () => {
     session.isSignedIn = false;
 
     renderWithProviders(<ChallengeCatalog />);
 
-    expect((await screen.findAllByRole("link", { name: "Sign in to start" }))[0]).toHaveAttribute(
-      "href",
-      "/sign-in?returnTo=%2Fchallenges%2Furl-shortener",
-    );
+    expect(await screen.findByRole("link", { name: "Open Design a reliable URL shortener" })).toHaveAttribute("href", "/challenges/url-shortener");
+  });
+
+  it("announces filtered results and resets an empty result set", async () => {
+    api.getWorkspaces.mockResolvedValue([]);
+
+    renderWithProviders(<ChallengeCatalog />);
+
+    fireEvent.change(await screen.findByRole("combobox", { name: "Filter by difficulty" }), { target: { value: "ADVANCED" } });
+    expect(await screen.findByText("Showing 1 of 3 challenges")).toBeInTheDocument();
+
+    fireEvent.change(screen.getByRole("textbox", { name: "Search challenges" }), { target: { value: "does-not-exist" } });
+    expect(await screen.findByText("No Challenges match these filters.")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Reset challenge filters" }));
+
+    expect(await screen.findByText("Showing 3 of 3 challenges")).toBeInTheDocument();
   });
 });

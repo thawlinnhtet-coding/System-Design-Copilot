@@ -13,7 +13,7 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -43,7 +43,7 @@ public class AccountDeletionController {
 		return response(service.request(user, email));
 	}
 	@PostMapping("/cancel") @ResponseStatus(HttpStatus.NO_CONTENT) @Operation(summary = "Cancel an Account Deletion Request")
-	public void cancel(@AuthenticationPrincipal Jwt jwt, @RequestParam String token) { service.cancel(jwt.getSubject(), token); }
+	public void cancel(@AuthenticationPrincipal Jwt jwt, @RequestBody CancelAccountDeletionRequest request) { service.cancel(jwt.getSubject(), request.token()); }
 	private void requireRecentAuthentication(Jwt jwt) {
 		var value = jwt.getClaim("fva");
 		if (!(value instanceof java.util.List<?> ages) || ages.isEmpty()) throw new RecentAuthenticationRequiredException();
@@ -52,4 +52,5 @@ public class AccountDeletionController {
 	}
 	private AccountDeletionResponse response(AccountDeletionService.DeletionStatus status) { return new AccountDeletionResponse(status.scheduled(), status.requestedAt(), status.recoveryEndsAt()); }
 	public record AccountDeletionResponse(boolean scheduled, Instant requestedAt, Instant recoveryEndsAt) { }
+	public record CancelAccountDeletionRequest(String token) { }
 }

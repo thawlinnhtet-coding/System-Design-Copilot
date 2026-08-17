@@ -53,10 +53,36 @@ describe("ChallengeDetail", () => {
     expect(router.push).toHaveBeenCalledWith("/workspace/workspace-1");
   });
 
-  it("asks signed-out visitors to sign in before showing protected detail", () => {
+  it("shows safe detail to signed-out visitors and asks them to sign in before practice", async () => {
     session.isSignedIn = false;
     renderWithProviders(<ChallengeDetail slug="url-shortener" />);
-    expect(screen.getByRole("heading", { name: "Sign in to inspect this Challenge." })).toBeVisible();
-    expect(api.getChallenge).not.toHaveBeenCalled();
+    expect(await screen.findByRole("heading", { name: "Design a reliable URL shortener" })).toBeVisible();
+    expect(screen.getByRole("link", { name: "Sign in to start practice" })).toBeVisible();
+    expect(api.getChallenge).toHaveBeenCalledWith("url-shortener");
+  });
+
+  it("continues the latest attempt without creating another Workspace", async () => {
+    api.getChallenge.mockResolvedValue({
+      slug: "url-shortener",
+      topic: "URL shortener",
+      versionId: "url-v1",
+      version: 1,
+      title: "Design a reliable URL shortener",
+      description: "Keep redirects fast and durable.",
+      problemStatement: "Build a service that creates short links and redirects users reliably.",
+      difficulty: "FOUNDATION",
+      estimatedMinutes: 30,
+      topicPacks: ["request paths"],
+      initialConstraints: ["100M redirects per day"],
+      skillCoverage: [{ name: "request shaping", level: "introduce" }],
+      scenarioPreview: ["A regional cache is degraded."],
+      attempts: [{ id: "attempt-1", name: "Existing attempt", status: "ACTIVE" }],
+    });
+
+    renderWithProviders(<ChallengeDetail slug="url-shortener" />);
+
+    expect(await screen.findByRole("link", { name: "Continue practice" })).toHaveAttribute("href", "/workspace/attempt-1");
+    expect(screen.getByRole("button", { name: "Start new attempt" })).toBeVisible();
+    expect(api.startChallenge).not.toHaveBeenCalled();
   });
 });

@@ -46,6 +46,8 @@ describe("AccountSettings", () => {
     expect(screen.getByText("Thaw Linn Htet")).toBeVisible();
     expect(screen.getByText("PROFILE SUMMARY")).toBeVisible();
     expect(screen.getByText("ACCESS & SESSIONS")).toBeVisible();
+    expect(screen.getAllByRole("link", { name: /RETURN TO PRACTICE/ })).toHaveLength(2);
+    expect(screen.getAllByRole("link", { name: /RETURN TO PRACTICE/ })[0]).toHaveAttribute("href", "/practice");
     expect(screen.getByText("thaw@example.com · Verified")).toBeVisible();
     expect(screen.getByRole("link", { name: "Open Profile & security →" })).toHaveAttribute("href", "/account/profile");
   });
