@@ -44,29 +44,78 @@ export function ChallengeDetail({ slug }: { slug: string }) {
   const challenge = detail.data;
   const attempts = challenge.attempts ?? [];
   const latestAttempt = attempts[0];
+  const olderAttempts = attempts.slice(1);
+  const skillNames = challenge.skillCoverage.map((skill) => skill.name);
+  const scenarioCount = challenge.scenarioPreview.length;
+
   return (
-    <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_280px]">
-      <div>
-        <Link className="font-mono text-[10px] uppercase tracking-[0.16em] text-signal" href="/challenges">← Back to Challenges</Link>
-        <div className="mt-6 flex flex-wrap gap-3 font-mono text-[10px] uppercase tracking-[0.14em] text-text-muted">
-          <span className="text-signal">{challenge.difficulty}</span><span>{challenge.estimatedMinutes} MIN</span><span>{challenge.topic}</span>
-        </div>
-        <h1 className="mt-3 max-w-3xl font-display text-4xl font-semibold tracking-tight sm:text-5xl">{challenge.title}</h1>
-        <p className="mt-4 max-w-3xl text-base leading-7 text-text-muted">{challenge.description}</p>
-        <section className="mt-10 border-t border-line pt-7"><h2 className="font-display text-2xl font-semibold">Problem statement</h2><p className="mt-4 whitespace-pre-line text-sm leading-7 text-text-muted">{challenge.problemStatement}</p></section>
-        <section className="mt-10 border-t border-line pt-7"><h2 className="font-display text-2xl font-semibold">Initial constraints</h2><ul className="mt-4 grid gap-3 text-sm leading-6 text-text-muted">{(challenge.initialConstraints ?? []).map((constraint) => <li className="border-l-2 border-signal pl-4" key={constraint}>{constraint}</li>)}</ul></section>
-        <section className="mt-10 border-t border-line pt-7"><h2 className="font-display text-2xl font-semibold">Scenario preview</h2><ul className="mt-4 grid gap-3 text-sm leading-6 text-text-muted">{(challenge.scenarioPreview ?? []).map((scenario) => <li className="border-l-2 border-line pl-4" key={scenario}>{scenario}</li>)}</ul></section>
-        {attempts.length ? <section className="mt-10 border-t border-line pt-7"><h2 className="font-display text-2xl font-semibold">Existing attempts</h2><ul className="mt-4 grid gap-2">{attempts.map((attempt) => attempt.id ? <li className="flex items-center justify-between gap-4 border-b border-line py-3 text-sm" key={attempt.id}><span><span className="block text-foreground">{attempt.name ?? "Challenge Workspace"}</span><span className="text-xs text-text-muted">{attempt.status ?? "ACTIVE"}</span></span><Link className="font-semibold text-signal hover:underline" href={`/workspace/${attempt.id}`}>Continue</Link></li> : null)}</ul></section> : null}
-      </div>
-      <aside className="h-fit border border-line bg-surface p-5 lg:sticky lg:top-8">
-        <h2 className="font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-text-muted">Practice map</h2>
-        <div className="mt-5 grid gap-4">
-          <div><p className="text-xs text-text-muted">Topic Packs</p><ol className="mt-2 grid gap-2 text-sm">{(challenge.topicPacks ?? []).map((pack, index) => <li className="flex gap-2" key={pack}><span className="font-mono text-xs text-signal">0{index + 1}</span><span>{pack}</span></li>)}</ol></div>
-          <div><p className="text-xs text-text-muted">Skill coverage</p><ul className="mt-2 grid gap-2 text-sm">{(challenge.skillCoverage ?? []).map((skill) => <li className="flex justify-between gap-3" key={skill.name}><span>{skill.name}</span><span className="font-mono text-[10px] uppercase text-signal">{skill.level}</span></li>)}</ul></div>
-        </div>
-        {error ? <p className="mt-5 border border-danger/30 bg-danger/10 px-3 py-2 text-xs text-danger" role="alert">{error}</p> : null}
-        {isSignedIn ? <>{latestAttempt?.id ? <Link className={`${challengeButton} mt-6 w-full border-signal bg-signal text-text-on-dark hover:brightness-110`} href={`/workspace/${latestAttempt.id}`}>Continue practice</Link> : <button className={`${challengeButton} mt-6 w-full border-signal bg-signal text-text-on-dark hover:brightness-110`} disabled={starting} onClick={() => void start()} type="button">{starting ? "Starting..." : "Start practice"}</button>}{latestAttempt?.id ? <button className={`${challengeButton} mt-3 w-full border-line text-foreground hover:bg-surface-alt`} disabled={starting} onClick={() => void start()} type="button">{starting ? "Starting..." : "Start new attempt"}</button> : null}<p className="mt-3 text-xs leading-5 text-text-muted">{latestAttempt?.id ? "Continue opens your latest private Workspace. Starting a new attempt creates another Workspace." : "Starting creates a new private Workspace."}</p></> : <Link className={`${challengeButton} mt-6 w-full border-signal bg-signal text-text-on-dark`} href={`/sign-in?returnTo=${encodeURIComponent(`/challenges/${slug}`)}`}>Sign in to start practice</Link>}
+    <div className="grid gap-12 pt-[2px] lg:grid-cols-[minmax(0,1fr)_360px] lg:gap-16">
+      <article className="flex min-w-0 flex-col gap-5">
+        <p className="font-mono text-[11px] leading-4 text-text-muted">CHALLENGES / {challenge.topic.toUpperCase()} / {String(challenge.version).padStart(2, "0")}</p>
+        <h1 className="font-display text-[36px] font-medium leading-[1.05] tracking-[-0.03em] sm:text-[42px]">{challenge.title}</h1>
+        <p className="max-w-3xl text-[18px] leading-[1.45] text-foreground">{challenge.description}</p>
+        <div className="h-px w-full bg-line" />
+
+        <section className="grid gap-3">
+          <h2 className="font-mono text-[11px] leading-4 text-text-muted">OBJECTIVE</h2>
+          <p className="max-w-3xl whitespace-pre-line text-[15px] leading-[1.55] text-text-muted">{challenge.problemStatement}</p>
+        </section>
+
+        <section className="grid gap-3">
+          <h2 className="font-mono text-[11px] leading-4 text-text-muted">INITIAL CONSTRAINTS</h2>
+          <ul className="grid gap-1 text-[14px] leading-[1.45] text-foreground">
+            {challenge.initialConstraints.map((constraint) => <li className="flex gap-3 px-0 py-2" key={constraint}><span aria-hidden="true" className="font-mono text-[11px] text-text-muted">—</span><span>{constraint}</span></li>)}
+          </ul>
+        </section>
+
+        <section className="grid gap-3">
+          <h2 className="font-mono text-[11px] leading-4 text-text-muted">REASONING AREAS</h2>
+          <div className="grid gap-4">
+            <div className="grid gap-2">
+              <p className="font-mono text-[10px] leading-4 text-text-muted">FOCUS AREAS</p>
+              <div className="flex flex-wrap gap-2">{challenge.topicPacks.map((pack) => <span className="rounded-[3px] bg-signal-soft px-2.5 py-1.5 text-[12px] text-signal" key={pack}>{pack}</span>)}</div>
+            </div>
+            <div className="grid gap-2">
+              <p className="font-mono text-[10px] leading-4 text-text-muted">SKILLS PRACTICED</p>
+              <div className="flex flex-wrap gap-2">{skillNames.map((skill) => <span className="rounded-[3px] bg-signal-soft px-2.5 py-1.5 text-[12px] text-signal" key={skill}>{skill}</span>)}</div>
+            </div>
+          </div>
+        </section>
+
+      </article>
+
+      <aside className="flex h-fit flex-col gap-[18px] lg:sticky lg:top-8">
+        <section className="grid gap-3 border border-line bg-surface p-6">
+          <p className="font-mono text-[11px] leading-4 text-text-muted">CHALLENGE {String(challenge.version).padStart(2, "0")}</p>
+          <h2 className="font-display text-[22px] font-medium leading-tight">{formatDifficulty(challenge.difficulty)}</h2>
+          <MetadataRow label="Estimated time" value={`${challenge.estimatedMinutes} minutes`} />
+          <MetadataRow label="Skill focus" value={skillNames.join(", ") || challenge.topic} />
+          <MetadataRow label="Scenario preview" value={`${scenarioCount} pressure point${scenarioCount === 1 ? "" : "s"}`} />
+          <MetadataRow label="Attempt state" value={latestAttempt?.status ?? "Not started"} />
+          <MetadataRow label="Challenge version" value={`Version ${challenge.version}`} />
+          {error ? <p className="border border-danger/30 bg-danger/10 px-3 py-2 text-xs leading-5 text-danger" role="alert">{error}</p> : null}
+          {isSignedIn ? <>{latestAttempt?.id ? <Link className={`${challengeButton} mt-2 w-full border-signal bg-signal text-text-on-dark hover:brightness-110`} href={`/workspace/${latestAttempt.id}`}>Continue practice</Link> : <button className={`${challengeButton} mt-2 w-full border-signal bg-signal text-text-on-dark hover:brightness-110`} disabled={starting} onClick={() => void start()} type="button">{starting ? "Starting..." : "Start practice"}</button>}{latestAttempt?.id ? <button className={`${challengeButton} mt-0 w-full border-line text-foreground hover:bg-surface-alt`} disabled={starting} onClick={() => void start()} type="button">{starting ? "Starting..." : "Start new attempt"}</button> : null}<p className="text-xs leading-5 text-text-muted">{latestAttempt?.id ? "Continue opens your latest private Workspace. Starting a new attempt creates another Workspace." : "Starting creates a new private Workspace."}</p></> : <><Link className={`${challengeButton} mt-2 w-full border-signal bg-signal text-text-on-dark`} href={`/sign-in?returnTo=${encodeURIComponent(`/challenges/${slug}`)}`}>Sign in to start practice</Link><p className="text-xs leading-5 text-text-muted">Sign in or create an account. Your selected Challenge will be preserved.</p></>}
+        </section>
+
+        <section className="grid gap-3 bg-chrome-800 p-6 text-text-on-dark">
+          <p className="font-mono text-[11px] leading-4 text-text-on-dark-secondary">SCENARIO PREVIEW</p>
+          <h2 className="font-display text-xl font-medium leading-tight">A changed condition arrives later.</h2>
+          <p className="text-[13px] leading-[1.45] text-text-on-dark-secondary">A later scenario will change one condition in this system. This preview gives you a hint without revealing the response.</p>
+        </section>
+
+        <section className="grid gap-2 border border-line bg-surface p-[18px]">
+          <h2 className="font-display text-lg font-medium">Existing attempts</h2>
+          {olderAttempts.length ? <ul className="grid gap-2">{olderAttempts.map((attempt) => attempt.id ? <li className="flex items-center justify-between gap-4 border-t border-line pt-2 text-sm first:border-t-0 first:pt-0" key={attempt.id}><span><span className="block text-foreground">{attempt.name ?? "Challenge Workspace"}</span><span className="text-xs text-text-muted">{attempt.status ?? "ACTIVE"}</span></span><Link className="font-semibold text-signal hover:underline" href={`/workspace/${attempt.id}`}>Continue</Link></li> : null)}</ul> : <p className="text-[13px] leading-5 text-text-muted">{latestAttempt?.id ? "No other attempts yet." : "No private attempts yet."}</p>}
+        </section>
       </aside>
     </div>
   );
+}
+
+function MetadataRow({ label, value }: { label: string; value: string }) {
+  return <div className="flex items-start justify-between gap-4 border-t border-line py-[9px] text-[13px] leading-5"><span className="text-text-muted">{label}</span><span className="max-w-[55%] text-right text-foreground">{value}</span></div>;
+}
+
+function formatDifficulty(value: string) {
+  return value.toLowerCase().replace(/_/g, " ").replace(/^\w/, (character) => character.toUpperCase());
 }

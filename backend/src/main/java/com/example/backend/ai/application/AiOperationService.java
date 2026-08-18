@@ -10,6 +10,8 @@ import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicBoolean;
+import reactor.core.publisher.Flux;
 
 /** Shared application boundary for future Copilot and Review operations. */
 @Service
@@ -118,6 +120,41 @@ public class AiOperationService {
 				.orElse(null);
 	}
 
+	public Flux<AiStreamChunk> stream(UUID operationId, UUID userId, AiProfile profile, AiBoundedContext context, BigDecimal estimatedCostUsd, String promptVersion) {
+		authorizer.requireAuthorized(userId, context.workspaceId());
+		var model = providerBoundary.profile(profile).model();
+		var startedAt = Instant.now(clock);
+		operationStore.requireDailyBudgetAvailable(startedAt, estimatedCostUsd, providerBoundary.budgetPolicy());
+		var content = new StringBuilder();
+		var finalized = new AtomicBoolean();
+		return provider.stream(providerBoundary.request(profile, context.text()))
+				.map(response -> {
+					var delta = response.content() == null ? "" : response.content();
+					content.append(delta);
+					if (content.length() > 100_000) throw new UnavailableException();
+					return new AiStreamChunk(operationId, delta, safeModel(response.model(), model));
+				})
+				.filter(chunk -> !chunk.content().isBlank())
+				.concatWith(Flux.defer(() -> {
+					if (content.isEmpty()) return Flux.error(new UnavailableException());
+					if (finalized.compareAndSet(false, true)) finalizeAccepted(operationId, userId, context.workspaceId(), profile, model, promptVersion, estimatedCostUsd, content.toString(), startedAt);
+					return Flux.empty();
+				}))
+				.doOnError(exception -> {
+					if (finalized.compareAndSet(false, true)) finalizeFailure(operationId, userId, context.workspaceId(), profile, model, promptVersion, estimatedCostUsd, startedAt, exception);
+				});
+	}
+
+	private void finalizeAccepted(UUID operationId, UUID userId, UUID workspaceId, AiProfile profile, String model, String promptVersion, BigDecimal estimatedCostUsd, String content, Instant startedAt) {
+		var completedAt = Instant.now(clock);
+		operationAudit.record(new AiOperation(operationId, userId, workspaceId, profile, AiOperationStatus.ACCEPTED, model, null, promptVersion, null, null, null, estimatedCostUsd, estimatedCostUsd, latencyMillis(startedAt, completedAt), null, content, startedAt, completedAt));
+	}
+
+	private void finalizeFailure(UUID operationId, UUID userId, UUID workspaceId, AiProfile profile, String model, String promptVersion, BigDecimal estimatedCostUsd, Instant startedAt, Throwable exception) {
+		var completedAt = Instant.now(clock);
+		operationAudit.record(new AiOperation(operationId, userId, workspaceId, profile, AiOperationStatus.PROVIDER_FAILED, model, null, promptVersion, null, null, null, estimatedCostUsd, estimatedCostUsd, latencyMillis(startedAt, completedAt), "ai_provider_unavailable", null, startedAt, completedAt));
+	}
+
 	private String outcomeCode(UnavailableException exception) {
 		return exception instanceof AiProviderExceptions.NoEligibleProviderException
 				? "ai_no_eligible_provider" : "ai_provider_unavailable";
@@ -145,4 +182,6 @@ public class AiOperationService {
 
 	public record AiOperationResult(UUID operationId, AiProfile profile, String model, String content) {
 	}
+
+	public record AiStreamChunk(UUID operationId, String content, String model) { }
 }

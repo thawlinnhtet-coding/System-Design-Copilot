@@ -1808,7 +1808,7 @@
                       "fill": "$ink",
                       "textGrowth": "fixed-width",
                       "width": "fill_container",
-                      "content": "Choose a Challenge where consistency requirements compete with latency.",
+                      "content": "Practice this trade-off in another Challenge.  BROWSE CHALLENGES →",
                       "lineHeight": 1.5,
                       "fontFamily": "$font-body",
                       "fontSize": 15,
@@ -2128,8 +2128,8 @@
                   "type": "text",
                   "id": "ovR4j",
                   "name": "Account Eyebrow",
-                  "fill": "$action",
-                  "content": "ACCOUNT / SETTINGS OVERVIEW",
+                  "fill": "#0F766E",
+                  "content": "← RETURN TO PRACTICE / ACCOUNT SETTINGS OVERVIEW",
                   "lineHeight": 1.3,
                   "fontFamily": "$font-mono",
                   "fontSize": 11,
@@ -6959,30 +6959,69 @@
                 },
                 {
                   "type": "frame",
-                  "id": "AprGc",
-                  "name": "Start Custom Design Button",
-                  "height": 44,
-                  "fill": "$action",
-                  "cornerRadius": 3,
-                  "stroke": "$action",
-                  "strokeWidth": 1,
-                  "padding": [
-                    0,
-                    18
-                  ],
-                  "justifyContent": "center",
+                  "id": "DHZ4K",
+                  "name": "Practice Actions",
+                  "gap": 10,
+                  "justifyContent": "end",
                   "alignItems": "center",
                   "children": [
                     {
-                      "type": "text",
-                      "id": "v1TIU",
-                      "name": "Start Custom Design Button Label",
-                      "fill": "$ink-dark",
-                      "content": "Start custom design",
-                      "lineHeight": 1.3,
-                      "fontFamily": "$font-body",
-                      "fontSize": 14,
-                      "fontWeight": "600"
+                      "type": "frame",
+                      "id": "AprGc",
+                      "name": "Start Custom Design Button",
+                      "height": 44,
+                      "fill": "#FBF9F3",
+                      "cornerRadius": 3,
+                      "stroke": "#D7D2C7",
+                      "strokeWidth": 1,
+                      "padding": [
+                        0,
+                        18
+                      ],
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "v1TIU",
+                          "name": "Start Custom Design Button Label",
+                          "fill": "#0F766E",
+                          "content": "Start custom design",
+                          "lineHeight": 1.3,
+                          "fontFamily": "$font-body",
+                          "fontSize": 14,
+                          "fontWeight": "600"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "qWahC",
+                      "name": "Review Existing Architecture Button",
+                      "height": 44,
+                      "fill": "#FBF9F3",
+                      "cornerRadius": 3,
+                      "stroke": "#D7D2C7",
+                      "strokeWidth": 1,
+                      "padding": [
+                        0,
+                        18
+                      ],
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "qWSmK",
+                          "name": "Review Existing Architecture Button Label",
+                          "fill": "#0F766E",
+                          "content": "Review existing architecture",
+                          "lineHeight": 1.286,
+                          "fontFamily": "IBM Plex Sans",
+                          "fontSize": 14,
+                          "fontWeight": "600"
+                        }
+                      ]
                     }
                   ]
                 }
@@ -7566,8 +7605,8 @@
                   "type": "text",
                   "id": "cPEyebrow",
                   "name": "Custom Design Eyebrow",
-                  "fill": "$ink-muted",
-                  "content": "PRACTICE / CUSTOM DESIGN",
+                  "fill": "#0F766E",
+                  "content": "← BACK TO PRACTICE / CUSTOM DESIGN",
                   "lineHeight": 1.3,
                   "fontFamily": "$font-mono",
                   "fontSize": 11,
@@ -7624,26 +7663,6 @@
                   "name": "Custom Design Creation Path",
                   "fill": "$action",
                   "content": "CUSTOM DESIGN",
-                  "fontFamily": "$font-mono",
-                  "fontSize": 11,
-                  "fontWeight": "normal"
-                },
-                {
-                  "type": "text",
-                  "id": "cPManualPath",
-                  "name": "Manual Recreation Creation Path",
-                  "fill": "$ink-muted",
-                  "content": "MANUAL RECREATION",
-                  "fontFamily": "$font-mono",
-                  "fontSize": 11,
-                  "fontWeight": "normal"
-                },
-                {
-                  "type": "text",
-                  "id": "cPImportPath",
-                  "name": "Import Package Creation Path",
-                  "fill": "$ink-muted",
-                  "content": "IMPORT PACKAGE",
                   "fontFamily": "$font-mono",
                   "fontSize": 11,
                   "fontWeight": "normal"
@@ -12128,7 +12147,7 @@
                   "fill": "$ink-muted",
                   "textGrowth": "fixed-width",
                   "width": "fill_container",
-                  "content": "Turn the brief into Requirements, Assumptions, estimates, and unresolved questions.",
+                  "content": "Start with the brief, write one requirement in plain language, then add an assumption or question only if it changes the design.",
                   "lineHeight": 1.5,
                   "fontFamily": "$font-body",
                   "fontSize": 14,
@@ -12147,7 +12166,7 @@
                   "id": "c61ic",
                   "name": "Brief Section Label",
                   "fill": "$ink-muted",
-                  "content": "PROBLEM BRIEF",
+                  "content": "CHALLENGE BRIEF",
                   "lineHeight": 1.3,
                   "fontFamily": "$font-mono",
                   "fontSize": 11,
@@ -12171,7 +12190,7 @@
                   "id": "ddCQL",
                   "name": "Requirements Section Label",
                   "fill": "$ink-muted",
-                  "content": "REQUIREMENTS",
+                  "content": "YOUR DESIGN CHECKLIST",
                   "lineHeight": 1.3,
                   "fontFamily": "$font-mono",
                   "fontSize": 11,
@@ -12338,7 +12357,7 @@
                   "id": "NdMsD",
                   "name": "Unresolved Questions Label",
                   "fill": "$ink-muted",
-                  "content": "UNRESOLVED QUESTIONS",
+                  "content": "OPTIONAL / OPEN QUESTIONS",
                   "lineHeight": 1.3,
                   "fontFamily": "$font-mono",
                   "fontSize": 11,
@@ -12419,7 +12438,7 @@
                     {
                       "type": "frame",
                       "id": "kMdLd",
-                      "name": "＋ Estimate Action",
+                      "name": "Continue to Design Action",
                       "fill": "$paper-raised",
                       "cornerRadius": 3,
                       "stroke": "$line",
@@ -12432,9 +12451,9 @@
                         {
                           "type": "text",
                           "id": "v2gMBr",
-                          "name": "＋ Estimate Label",
+                          "name": "Continue to Design Label",
                           "fill": "$ink",
-                          "content": "＋ Estimate",
+                          "content": "Continue to Design",
                           "lineHeight": 1.4,
                           "fontFamily": "$font-body",
                           "fontSize": 12,
@@ -12534,9 +12553,9 @@
                     {
                       "type": "text",
                       "id": "v9IV3",
-                      "name": "Inspector Tab",
-                      "fill": "$ink-muted",
-                      "content": "Inspector",
+              "name": "Inspector Tab",
+              "fill": "$action",
+              "content": "Inspector",
                       "lineHeight": 1.3,
                       "fontFamily": "$font-body",
                       "fontSize": 12,
@@ -12545,9 +12564,9 @@
                     {
                       "type": "text",
                       "id": "je7u6",
-                      "name": "Copilot Tab",
-                      "fill": "$action",
-                      "content": "Copilot  ·  2",
+              "name": "Copilot Tab",
+              "fill": "$ink-muted",
+              "content": "Copilot",
                       "lineHeight": 1.3,
                       "fontFamily": "$font-body",
                       "fontSize": 12,
@@ -12568,7 +12587,7 @@
                   "id": "YpWFl",
                   "name": "Context Panel Label",
                   "fill": "$ink-muted",
-                  "content": "COPILOT QUESTION",
+                  "content": "CLARIFY / INSPECTOR",
                   "lineHeight": 1.3,
                   "fontFamily": "$font-mono",
                   "fontSize": 11,
@@ -12581,7 +12600,7 @@
                   "fill": "$ink",
                   "textGrowth": "fixed-width",
                   "width": "fill_container",
-                  "content": "What is still implicit?",
+                  "content": "Start with one requirement.",
                   "lineHeight": 1.2,
                   "fontFamily": "$font-display",
                   "fontSize": 22,
@@ -12594,7 +12613,7 @@
                   "fill": "$ink-muted",
                   "textGrowth": "fixed-width",
                   "width": "fill_container",
-                  "content": "Which stated Requirement would fail first if the primary provider were unavailable for thirty minutes?",
+                  "content": "Read the brief, write one requirement in plain language, and open Copilot when you want a second opinion.",
                   "lineHeight": 1.55,
                   "fontFamily": "$font-body",
                   "fontSize": 13,
@@ -12605,7 +12624,7 @@
                   "id": "L04xg",
                   "name": "Context Panel Action",
                   "fill": "$action",
-                  "content": "Answer in this document  →",
+                  "content": "Open Copilot  →",
                   "lineHeight": 1.3,
                   "fontFamily": "$font-body",
                   "fontSize": 13,
@@ -40990,7 +41009,7 @@
                       "id": "wIxPW",
                       "name": "Copilot Panel Tab",
                       "fill": "$ink-muted",
-                      "content": "Copilot · 2",
+                  "content": "Copilot",
                       "lineHeight": 1.4,
                       "fontFamily": "$font-body",
                       "fontSize": 12,
@@ -41284,7 +41303,7 @@
                   "fill": "$ink-muted",
                   "textGrowth": "fixed-width",
                   "width": "fill_container",
-                  "content": "When closed: Copilot · 2 remains a quiet entry point; the document returns to full width.",
+              "content": "When closed: Copilot remains a quiet entry point; the document returns to full width.",
                   "lineHeight": 1.4,
                   "fontFamily": "$font-mono",
                   "fontSize": 10,
@@ -44632,6 +44651,17 @@
               "layout": "vertical",
               "gap": 8,
               "children": [
+                {
+                  "type": "text",
+                  "id": "Hx4Dt",
+                  "name": "Account Settings Back Link",
+                  "fill": "#0F766E",
+                  "content": "← ACCOUNT SETTINGS",
+                  "lineHeight": 1.3,
+                  "fontFamily": "IBM Plex Mono",
+                  "fontSize": 11,
+                  "fontWeight": "normal"
+                },
                 {
                   "type": "text",
                   "id": "p1YUmk",
@@ -64036,7 +64066,7 @@
               "fill": "$ink-muted",
               "textGrowth": "fixed-width",
               "width": "fill_container",
-              "content": "Turn the brief into Requirements, Assumptions, estimates, and unresolved questions.",
+              "content": "Start with the brief, write one requirement in plain language, then add an assumption or question only if it changes the design.",
               "lineHeight": 1.5,
               "fontFamily": "$font-body",
               "fontSize": 14,
@@ -64071,7 +64101,7 @@
               "id": "H10WU",
               "name": "Mobile Requirements Label",
               "fill": "$ink-muted",
-              "content": "REQUIREMENTS",
+              "content": "YOUR DESIGN CHECKLIST",
               "lineHeight": 1.35,
               "fontFamily": "$font-mono",
               "fontSize": 11,
@@ -66170,7 +66200,7 @@
                   "id": "E8TKF",
                   "name": "Plan Eyebrow",
                   "fill": "$action",
-                  "content": "ACCOUNT / PLAN & USAGE",
+                  "content": "← ACCOUNT SETTINGS",
                   "fontFamily": "$font-mono",
                   "fontSize": 11,
                   "fontWeight": "normal"
@@ -68168,7 +68198,7 @@
                   "id": "X6mtnw",
                   "name": "Plan Eyebrow",
                   "fill": "$action",
-                  "content": "ACCOUNT / PLAN & USAGE",
+                  "content": "← ACCOUNT SETTINGS",
                   "fontFamily": "$font-mono",
                   "fontSize": 11,
                   "fontWeight": "normal"
@@ -70706,6 +70736,17 @@
               "children": [
                 {
                   "type": "text",
+                  "id": "wEkHM",
+                  "name": "AI Processing Account Settings Back Link",
+                  "fill": "#0F766E",
+                  "content": "← ACCOUNT SETTINGS",
+                  "lineHeight": 1.3,
+                  "fontFamily": "IBM Plex Mono",
+                  "fontSize": 11,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
                   "id": "x6kL8Z",
                   "name": "AI processing title",
                   "fill": "#17211F",
@@ -72082,6 +72123,17 @@
               "children": [
                 {
                   "type": "text",
+                  "id": "Z5sTkq",
+                  "name": "Import Export Account Settings Back Link",
+                  "fill": "#0F766E",
+                  "content": "← ACCOUNT SETTINGS",
+                  "lineHeight": 1.3,
+                  "fontFamily": "IBM Plex Mono",
+                  "fontSize": 11,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
                   "id": "CWSUO",
                   "name": "Import & export title",
                   "fill": "#17211F",
@@ -73404,7 +73456,7 @@
                           "id": "VKTyB",
                           "name": "Deletion Description",
                           "fill": "$ink-muted",
-                          "content": "Account deletion requires recent authentication.",
+                          "content": "Account deletion requires explicit confirmation.",
                           "lineHeight": 1.3,
                           "fontFamily": "$font-body",
                           "fontSize": 12,
@@ -74016,7 +74068,7 @@
                   "fill": "#5F6965",
                   "textGrowth": "fixed-width",
                   "width": "fill_container",
-                  "content": "This permanently removes your account, architecture revisions, reviews, and associated personal data after the grace period.",
+                  "content": "This permanently removes your account, architecture revisions, reviews, and associated personal data immediately after confirmation. There is no recovery window.",
                   "fontFamily": "Inter",
                   "fontSize": 14,
                   "fontWeight": "normal"
@@ -74049,7 +74101,7 @@
                       "fill": "#8A241D",
                       "textGrowth": "fixed-width",
                       "width": "fill_container",
-                      "content": "Request an export if you want a copy of your account data.",
+                      "content": "Choose Keep my account if you do not want to continue.",
                       "fontFamily": "Inter",
                       "fontSize": 13,
                       "fontWeight": "normal"
@@ -74066,7 +74118,7 @@
                     {
                       "type": "frame",
                       "id": "L7G82",
-                      "name": "Request export action",
+                      "name": "Keep account action",
                       "fill": "#FFFFFF",
                       "cornerRadius": 4,
                       "stroke": "#B7C0BB",
@@ -74080,9 +74132,9 @@
                         {
                           "type": "text",
                           "id": "bZ0q9",
-                          "name": "Request export label",
+                          "name": "Keep account label",
                           "fill": "#35534E",
-                          "content": "Request export",
+                          "content": "Keep my account",
                           "fontFamily": "Inter",
                           "fontSize": 14,
                           "fontWeight": "600"
@@ -74112,1459 +74164,6 @@
                           "fontWeight": "600"
                         }
                       ]
-                    }
-                  ]
-                }
-              ]
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "type": "frame",
-      "id": "J5HTzO",
-      "x": 5950,
-      "y": 10892,
-      "name": "Account Settings — Deletion Scheduled",
-      "clip": true,
-      "width": 1440,
-      "height": 900,
-      "fill": "$paper",
-      "layout": "vertical",
-      "children": [
-        {
-          "type": "frame",
-          "id": "MlKNe",
-          "name": "Authenticated Global Navigation",
-          "width": "fill_container",
-          "height": 64,
-          "fill": "$nav-graphite",
-          "stroke": "$nav-line",
-          "strokeWidth": {
-            "bottom": 1
-          },
-          "padding": [
-            0,
-            48
-          ],
-          "justifyContent": "space_between",
-          "alignItems": "center",
-          "children": [
-            {
-              "id": "JYFEm",
-              "type": "ref",
-              "ref": "EnwHq",
-              "name": "Product Logo Inverse Lockup",
-              "width": 238,
-              "height": 38,
-              "padding": 0,
-              "fill": "#00000000",
-              "stroke": "#00000000",
-              "strokeWidth": 0
-            },
-            {
-              "type": "text",
-              "id": "k2osZc",
-              "x": 48,
-              "y": 21,
-              "name": "Product Wordmark",
-              "enabled": false,
-              "fill": "$ink-dark",
-              "content": "◆  System Design Copilot",
-              "lineHeight": 1.3,
-              "fontFamily": "$font-display",
-              "fontSize": 16,
-              "fontWeight": "normal"
-            },
-            {
-              "type": "frame",
-              "id": "jet57",
-              "name": "Primary Navigation",
-              "gap": 30,
-              "children": [
-                {
-                  "type": "text",
-                  "id": "TzSsf",
-                  "name": "Practice Navigation",
-                  "fill": "$ink-dark-muted",
-                  "content": "Practice",
-                  "lineHeight": 1.3,
-                  "fontFamily": "$font-body",
-                  "fontSize": 13,
-                  "fontWeight": "normal"
-                },
-                {
-                  "type": "text",
-                  "id": "GbUbs",
-                  "name": "Challenges Navigation",
-                  "fill": "$ink-dark-muted",
-                  "content": "Challenges",
-                  "lineHeight": 1.3,
-                  "fontFamily": "$font-body",
-                  "fontSize": 13,
-                  "fontWeight": "normal"
-                },
-                {
-                  "type": "text",
-                  "id": "y4geeU",
-                  "name": "Progress Navigation",
-                  "fill": "$ink-dark-muted",
-                  "content": "Progress",
-                  "lineHeight": 1.3,
-                  "fontFamily": "$font-body",
-                  "fontSize": 13,
-                  "fontWeight": "normal"
-                }
-              ]
-            },
-            {
-              "type": "text",
-              "id": "A82Vg",
-              "x": 1272,
-              "y": 25.5,
-              "name": "Account Menu",
-              "enabled": false,
-              "fill": "$scenario",
-              "content": "TL  ·  PERSONAL BETA",
-              "lineHeight": 1.3,
-              "fontFamily": "$font-mono",
-              "fontSize": 11,
-              "fontWeight": "normal"
-            },
-            {
-              "id": "coyLH",
-              "type": "ref",
-              "ref": "qvZfh",
-              "name": "Account Menu Control",
-              "width": 184,
-              "height": 40,
-              "padding": [
-                4,
-                8
-              ],
-              "fill": "#00000000",
-              "stroke": "#00000000",
-              "strokeWidth": 0
-            }
-          ]
-        },
-        {
-          "type": "frame",
-          "id": "V1U8r",
-          "name": "Account Body",
-          "width": "fill_container",
-          "height": "fill_container",
-          "children": [
-            {
-              "type": "frame",
-              "id": "UOlze",
-              "name": "Account Settings Navigation",
-              "width": 280,
-              "fill": "$paper-raised",
-              "stroke": "$line",
-              "strokeWidth": {
-                "right": 1
-              },
-              "layout": "vertical",
-              "gap": 10,
-              "padding": [
-                38,
-                32
-              ],
-              "children": [
-                {
-                  "type": "text",
-                  "id": "U15MA",
-                  "name": "Settings Navigation Label",
-                  "fill": "$ink-muted",
-                  "content": "ACCOUNT SETTINGS",
-                  "lineHeight": 1.3,
-                  "fontFamily": "$font-mono",
-                  "fontSize": 11,
-                  "fontWeight": "normal"
-                },
-                {
-                  "type": "frame",
-                  "id": "x7xrLB",
-                  "name": "Profile & sessions Settings Item",
-                  "width": "fill_container",
-                  "fill": "$action-subtle",
-                  "cornerRadius": 3,
-                  "padding": [
-                    11,
-                    10
-                  ],
-                  "children": [
-                    {
-                      "type": "text",
-                      "id": "HaOT6",
-                      "name": "Profile & security Settings Label",
-                      "fill": "$action",
-                      "content": "Profile & security",
-                      "lineHeight": 1.3,
-                      "fontFamily": "$font-body",
-                      "fontSize": 13,
-                      "fontWeight": "normal"
-                    }
-                  ]
-                },
-                {
-                  "type": "frame",
-                  "id": "efdPg",
-                  "name": "Plan & usage Settings Item",
-                  "width": "fill_container",
-                  "fill": "$paper-raised",
-                  "cornerRadius": 3,
-                  "padding": [
-                    11,
-                    10
-                  ],
-                  "children": [
-                    {
-                      "type": "text",
-                      "id": "BTlxn",
-                      "name": "Plan & usage Settings Label",
-                      "fill": "$ink-muted",
-                      "content": "Plan & usage",
-                      "lineHeight": 1.3,
-                      "fontFamily": "$font-body",
-                      "fontSize": 13,
-                      "fontWeight": "normal"
-                    }
-                  ]
-                },
-                {
-                  "type": "frame",
-                  "id": "WkL35",
-                  "name": "AI processing Settings Item",
-                  "width": "fill_container",
-                  "fill": "$paper-raised",
-                  "cornerRadius": 3,
-                  "padding": [
-                    11,
-                    10
-                  ],
-                  "children": [
-                    {
-                      "type": "text",
-                      "id": "WhHUG",
-                      "name": "AI processing Settings Label",
-                      "fill": "$ink-muted",
-                      "content": "AI processing",
-                      "lineHeight": 1.3,
-                      "fontFamily": "$font-body",
-                      "fontSize": 13,
-                      "fontWeight": "normal"
-                    }
-                  ]
-                },
-                {
-                  "type": "frame",
-                  "id": "pv7T6",
-                  "name": "Data import & export Settings Item",
-                  "width": "fill_container",
-                  "fill": "$paper-raised",
-                  "cornerRadius": 3,
-                  "padding": [
-                    11,
-                    10
-                  ],
-                  "children": [
-                    {
-                      "type": "text",
-                      "id": "HZAVQ",
-                      "name": "Data import & export Settings Label",
-                      "fill": "$ink-muted",
-                      "content": "Data import & export",
-                      "lineHeight": 1.3,
-                      "fontFamily": "$font-body",
-                      "fontSize": 13,
-                      "fontWeight": "normal"
-                    }
-                  ]
-                },
-                {
-                  "type": "frame",
-                  "id": "V4NxR0",
-                  "name": "Privacy & deletion Settings Item",
-                  "width": "fill_container",
-                  "fill": "$paper-raised",
-                  "cornerRadius": 3,
-                  "padding": [
-                    11,
-                    10
-                  ],
-                  "children": [
-                    {
-                      "type": "text",
-                      "id": "A4adn",
-                      "name": "Privacy & deletion Settings Label",
-                      "fill": "$ink-muted",
-                      "content": "Privacy & deletion",
-                      "lineHeight": 1.3,
-                      "fontFamily": "$font-body",
-                      "fontSize": 13,
-                      "fontWeight": "normal"
-                    }
-                  ]
-                }
-              ]
-            },
-            {
-              "type": "frame",
-              "id": "PKF5W",
-              "name": "Account Settings Main",
-              "width": "fill_container",
-              "layout": "vertical",
-              "gap": 22,
-              "padding": [
-                38,
-                56
-              ],
-              "children": [
-                {
-                  "type": "text",
-                  "id": "DzIcd",
-                  "name": "Account Eyebrow",
-                  "fill": "$action",
-                  "content": "ACCOUNT / SETTINGS OVERVIEW",
-                  "lineHeight": 1.3,
-                  "fontFamily": "$font-mono",
-                  "fontSize": 11,
-                  "fontWeight": "normal"
-                },
-                {
-                  "type": "text",
-                  "id": "ZmHIZ",
-                  "name": "Account Title",
-                  "fill": "$ink",
-                  "textGrowth": "fixed-width",
-                  "width": "fill_container",
-                  "content": "Account settings",
-                  "lineHeight": 1.08,
-                  "fontFamily": "$font-display",
-                  "fontSize": 38,
-                  "fontWeight": "500"
-                },
-                {
-                  "type": "text",
-                  "id": "gePhO",
-                  "name": "Account Description",
-                  "fill": "$ink-muted",
-                  "textGrowth": "fixed-width",
-                  "width": 720,
-                  "content": "See the status of your account, then open one focused settings section when you need to make a change.",
-                  "lineHeight": 1.5,
-                  "fontFamily": "$font-body",
-                  "fontSize": 14,
-                  "fontWeight": "normal"
-                },
-                {
-                  "type": "rectangle",
-                  "id": "ZkruG",
-                  "name": "Account Header Rule",
-                  "fill": "$line",
-                  "width": "fill_container",
-                  "height": 1
-                },
-                {
-                  "type": "frame",
-                  "id": "FH72z",
-                  "name": "Account Settings Grid",
-                  "width": "fill_container",
-                  "gap": 44,
-                  "children": [
-                    {
-                      "type": "frame",
-                      "id": "g2JvLR",
-                      "name": "Profile Settings",
-                      "width": "fill_container",
-                      "layout": "vertical",
-                      "gap": 15,
-                      "children": [
-                        {
-                          "type": "text",
-                          "id": "vlkDx",
-                          "name": "Profile Section Label",
-                          "fill": "$ink-muted",
-                          "content": "PROFILE SUMMARY",
-                          "lineHeight": 1.3,
-                          "fontFamily": "$font-mono",
-                          "fontSize": 11,
-                          "fontWeight": "normal"
-                        },
-                        {
-                          "type": "frame",
-                          "id": "VsxPL",
-                          "name": "Name Profile Row",
-                          "width": "fill_container",
-                          "stroke": "$line",
-                          "strokeWidth": {
-                            "bottom": 1
-                          },
-                          "padding": [
-                            13,
-                            0
-                          ],
-                          "justifyContent": "space_between",
-                          "children": [
-                            {
-                              "type": "text",
-                              "id": "jfrWh",
-                              "name": "Name Profile Label",
-                              "fill": "$ink-muted",
-                              "content": "Name",
-                              "lineHeight": 1.3,
-                              "fontFamily": "$font-body",
-                              "fontSize": 13,
-                              "fontWeight": "normal"
-                            },
-                            {
-                              "type": "text",
-                              "id": "HIEMS",
-                              "name": "Name Profile Value",
-                              "fill": "$ink",
-                              "content": "Thaw Linn Htet",
-                              "lineHeight": 1.3,
-                              "fontFamily": "$font-body",
-                              "fontSize": 13,
-                              "fontWeight": "normal"
-                            }
-                          ]
-                        },
-                        {
-                          "type": "frame",
-                          "id": "SkNOY",
-                          "name": "Email Profile Row",
-                          "width": "fill_container",
-                          "stroke": "$line",
-                          "strokeWidth": {
-                            "bottom": 1
-                          },
-                          "padding": [
-                            13,
-                            0
-                          ],
-                          "justifyContent": "space_between",
-                          "children": [
-                            {
-                              "type": "text",
-                              "id": "qbI8T",
-                              "name": "Email Profile Label",
-                              "fill": "$ink-muted",
-                              "content": "Email",
-                              "lineHeight": 1.3,
-                              "fontFamily": "$font-body",
-                              "fontSize": 13,
-                              "fontWeight": "normal"
-                            },
-                            {
-                              "type": "text",
-                              "id": "SWtpd",
-                              "name": "Email Profile Value",
-                              "fill": "$ink",
-                              "content": "thaw@example.com · Verified",
-                              "lineHeight": 1.3,
-                              "fontFamily": "$font-body",
-                              "fontSize": 13,
-                              "fontWeight": "normal"
-                            }
-                          ]
-                        },
-                        {
-                          "type": "frame",
-                          "id": "GJHAU",
-                          "name": "Authentication Profile Row",
-                          "width": "fill_container",
-                          "stroke": "$line",
-                          "strokeWidth": {
-                            "bottom": 1
-                          },
-                          "padding": [
-                            13,
-                            0
-                          ],
-                          "justifyContent": "space_between",
-                          "children": [
-                            {
-                              "type": "text",
-                              "id": "ZAAQ3",
-                              "name": "Authentication Profile Label",
-                              "fill": "$ink-muted",
-                              "content": "Account type",
-                              "lineHeight": 1.3,
-                              "fontFamily": "$font-body",
-                              "fontSize": 13,
-                              "fontWeight": "normal"
-                            },
-                            {
-                              "type": "text",
-                              "id": "F9mBya",
-                              "name": "Authentication Profile Value",
-                              "fill": "$ink",
-                              "content": "Personal beta",
-                              "lineHeight": 1.3,
-                              "fontFamily": "$font-body",
-                              "fontSize": 13,
-                              "fontWeight": "normal"
-                            }
-                          ]
-                        }
-                      ]
-                    },
-                    {
-                      "type": "frame",
-                      "id": "pwmNw",
-                      "name": "Session Settings",
-                      "width": "fill_container",
-                      "layout": "vertical",
-                      "gap": 15,
-                      "children": [
-                        {
-                          "type": "text",
-                          "id": "I2UV8",
-                          "name": "Session Section Label",
-                          "fill": "$ink-muted",
-                          "content": "ACCESS & SESSIONS",
-                          "lineHeight": 1.3,
-                          "fontFamily": "$font-mono",
-                          "fontSize": 11,
-                          "fontWeight": "normal"
-                        },
-                        {
-                          "type": "frame",
-                          "id": "FGRn9",
-                          "name": "Current Session",
-                          "width": "fill_container",
-                          "fill": "$paper-raised",
-                          "stroke": "$line",
-                          "strokeWidth": 1,
-                          "layout": "vertical",
-                          "gap": 8,
-                          "padding": 18,
-                          "children": [
-                            {
-                              "type": "text",
-                              "id": "g3uzj",
-                              "name": "Current Session Title",
-                              "fill": "$ink",
-                              "content": "Windows · Chrome",
-                              "lineHeight": 1.3,
-                              "fontFamily": "$font-display",
-                              "fontSize": 16,
-                              "fontWeight": "normal"
-                            },
-                            {
-                              "type": "text",
-                              "id": "NspWz",
-                              "name": "Current Session Metadata",
-                              "fill": "$ink-muted",
-                              "content": "CURRENT  ·  ACTIVE NOW",
-                              "lineHeight": 1.3,
-                              "fontFamily": "$font-mono",
-                              "fontSize": 11,
-                              "fontWeight": "normal"
-                            },
-                            {
-                              "type": "text",
-                              "id": "IA02q",
-                              "name": "Session Management Note",
-                              "fill": "$ink-muted",
-                              "textGrowth": "fixed-width",
-                              "width": "fill_container",
-                              "content": "Open Profile & security for device management and recent authentication.",
-                              "lineHeight": 1.5,
-                              "fontFamily": "$font-body",
-                              "fontSize": 13,
-                              "fontWeight": "normal"
-                            }
-                          ]
-                        },
-                        {
-                          "type": "text",
-                          "id": "f7dwuM",
-                          "name": "Manage Sessions Action",
-                          "fill": "$action",
-                          "content": "Open Profile & security  →",
-                          "lineHeight": 1.3,
-                          "fontFamily": "$font-body",
-                          "fontSize": 13,
-                          "fontWeight": "normal"
-                        }
-                      ]
-                    }
-                  ]
-                },
-                {
-                  "type": "rectangle",
-                  "id": "OJ122",
-                  "name": "Account Secondary Rule",
-                  "fill": "$line",
-                  "width": "fill_container",
-                  "height": 1
-                },
-                {
-                  "type": "frame",
-                  "id": "tQLyp",
-                  "name": "Plan and Consent Summary",
-                  "width": "fill_container",
-                  "gap": 44,
-                  "children": [
-                    {
-                      "type": "frame",
-                      "id": "pbx5d",
-                      "name": "Plan & usage Summary",
-                      "width": "fill_container",
-                      "layout": "vertical",
-                      "gap": 8,
-                      "children": [
-                        {
-                          "type": "text",
-                          "id": "O4qi0",
-                          "name": "Plan & usage Summary Label",
-                          "fill": "$ink-muted",
-                          "content": "PLAN & USAGE",
-                          "lineHeight": 1.3,
-                          "fontFamily": "$font-mono",
-                          "fontSize": 11,
-                          "fontWeight": "normal"
-                        },
-                        {
-                          "type": "text",
-                          "id": "JUUFi",
-                          "name": "Plan & usage Summary Value",
-                          "fill": "$ink",
-                          "content": "Free personal beta",
-                          "lineHeight": 1.3,
-                          "fontFamily": "$font-display",
-                          "fontSize": 18,
-                          "fontWeight": "normal"
-                        },
-                        {
-                          "type": "text",
-                          "id": "wqAfQ",
-                          "name": "Plan & usage Summary Detail",
-                          "fill": "$ink-muted",
-                          "textGrowth": "fixed-width",
-                          "width": "fill_container",
-                          "content": "2/10 Workspaces · 12 Copilot Turns remaining",
-                          "lineHeight": 1.45,
-                          "fontFamily": "$font-body",
-                          "fontSize": 12,
-                          "fontWeight": "normal"
-                        },
-                        {
-                          "type": "text",
-                          "id": "W9BSNq",
-                          "name": "Plan Usage Action",
-                          "fill": "$action",
-                          "content": "View all usage boundaries  →",
-                          "fontFamily": "$font-body",
-                          "fontSize": 12,
-                          "fontWeight": "500"
-                        }
-                      ]
-                    },
-                    {
-                      "type": "frame",
-                      "id": "u6eJK",
-                      "name": "AI processing Summary",
-                      "width": "fill_container",
-                      "layout": "vertical",
-                      "gap": 8,
-                      "children": [
-                        {
-                          "type": "text",
-                          "id": "ueItE",
-                          "name": "AI processing Summary Label",
-                          "fill": "$ink-muted",
-                          "content": "AI PROCESSING",
-                          "lineHeight": 1.3,
-                          "fontFamily": "$font-mono",
-                          "fontSize": 11,
-                          "fontWeight": "normal"
-                        },
-                        {
-                          "type": "text",
-                          "id": "d2uPH",
-                          "name": "AI processing Summary Value",
-                          "fill": "$ink",
-                          "content": "Consent granted",
-                          "lineHeight": 1.3,
-                          "fontFamily": "$font-display",
-                          "fontSize": 18,
-                          "fontWeight": "normal"
-                        },
-                        {
-                          "type": "text",
-                          "id": "AP1le",
-                          "name": "AI Consent Action",
-                          "fill": "$action",
-                          "content": "Review or revoke consent  →",
-                          "fontFamily": "$font-body",
-                          "fontSize": 12,
-                          "fontWeight": "500"
-                        }
-                      ]
-                    },
-                    {
-                      "type": "frame",
-                      "id": "cjHnt",
-                      "name": "Portable data Summary",
-                      "width": "fill_container",
-                      "layout": "vertical",
-                      "gap": 8,
-                      "children": [
-                        {
-                          "type": "text",
-                          "id": "T2iPt",
-                          "name": "Portable data Summary Label",
-                          "fill": "$ink-muted",
-                          "content": "PORTABLE DATA",
-                          "lineHeight": 1.3,
-                          "fontFamily": "$font-mono",
-                          "fontSize": 11,
-                          "fontWeight": "normal"
-                        },
-                        {
-                          "type": "text",
-                          "id": "MOSsb",
-                          "name": "Portable data Summary Value",
-                          "fill": "$ink",
-                          "content": "Import or export",
-                          "lineHeight": 1.3,
-                          "fontFamily": "$font-display",
-                          "fontSize": 18,
-                          "fontWeight": "normal"
-                        },
-                        {
-                          "type": "text",
-                          "id": "oqBOa",
-                          "name": "Portable data Summary Detail",
-                          "fill": "$ink-muted",
-                          "textGrowth": "fixed-width",
-                          "width": "fill_container",
-                          "content": "Versioned JSON includes portable design content only. Identity, billing, usage, and Reviews remain excluded.",
-                          "lineHeight": 1.45,
-                          "fontFamily": "$font-body",
-                          "fontSize": 12,
-                          "fontWeight": "normal"
-                        }
-                      ]
-                    }
-                  ]
-                },
-                {
-                  "type": "frame",
-                  "id": "z0DOC",
-                  "name": "Account Deletion Area",
-                  "width": "fill_container",
-                  "stroke": "#C7A09A",
-                  "strokeWidth": {
-                    "top": 1
-                  },
-                  "padding": [
-                    16,
-                    0
-                  ],
-                  "justifyContent": "space_between",
-                  "alignItems": "center",
-                  "children": [
-                    {
-                      "type": "frame",
-                      "id": "zsP4t",
-                      "name": "Deletion Copy",
-                      "layout": "vertical",
-                      "gap": 4,
-                      "children": [
-                        {
-                          "type": "text",
-                          "id": "S8XTga",
-                          "name": "Deletion Title",
-                          "fill": "#8D332A",
-                          "content": "Delete account",
-                          "lineHeight": 1.3,
-                          "fontFamily": "$font-body",
-                          "fontSize": 14,
-                          "fontWeight": "normal"
-                        },
-                        {
-                          "type": "text",
-                          "id": "mirWq",
-                          "name": "Deletion Description",
-                          "fill": "$ink-muted",
-                          "content": "Account deletion requires recent authentication.",
-                          "lineHeight": 1.3,
-                          "fontFamily": "$font-body",
-                          "fontSize": 12,
-                          "fontWeight": "normal"
-                        }
-                      ]
-                    },
-                    {
-                      "type": "text",
-                      "id": "A7YW7e",
-                      "name": "Deletion Action",
-                      "fill": "$ink-muted",
-                      "content": "Open privacy & deletion  →",
-                      "lineHeight": 1.3,
-                      "fontFamily": "$font-body",
-                      "fontSize": 13,
-                      "fontWeight": "normal"
-                    }
-                  ]
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "type": "frame",
-          "id": "QEkww",
-          "layoutPosition": "absolute",
-          "x": 0,
-          "y": 64,
-          "name": "Account settings sidebar — Overview",
-          "width": 270,
-          "height": 836,
-          "fill": "#FFFFFF",
-          "layout": "vertical",
-          "gap": 8,
-          "padding": [
-            28,
-            20
-          ],
-          "children": [
-            {
-              "type": "text",
-              "id": "psl43",
-              "name": "Sidebar section label",
-              "fill": "#75807A",
-              "content": "ACCOUNT SETTINGS",
-              "fontFamily": "Inter",
-              "fontSize": 11,
-              "fontWeight": "600",
-              "letterSpacing": 0.7
-            },
-            {
-              "type": "frame",
-              "id": "cXlg4",
-              "name": "Sidebar item — Overview",
-              "width": "fill_container",
-              "fill": "#DDF2EE",
-              "cornerRadius": 4,
-              "gap": 8,
-              "padding": [
-                10,
-                12
-              ],
-              "alignItems": "center",
-              "children": [
-                {
-                  "type": "icon",
-                  "id": "V4nhjt",
-                  "name": "Sidebar icon — Overview",
-                  "width": 16,
-                  "height": 16,
-                  "icon": "settings",
-                  "library": "lucide",
-                  "fill": "#0C6F68"
-                },
-                {
-                  "type": "text",
-                  "id": "M3ibm1",
-                  "name": "Sidebar label — Overview",
-                  "fill": "#0C6F68",
-                  "content": "Overview",
-                  "fontFamily": "Inter",
-                  "fontSize": 14,
-                  "fontWeight": "600"
-                }
-              ]
-            },
-            {
-              "type": "frame",
-              "id": "h302H",
-              "name": "Sidebar item — Profile & security",
-              "width": "fill_container",
-              "fill": "#FFFFFF",
-              "cornerRadius": 4,
-              "gap": 8,
-              "padding": [
-                10,
-                12
-              ],
-              "alignItems": "center",
-              "children": [
-                {
-                  "type": "icon",
-                  "id": "XpC3T",
-                  "name": "Sidebar icon — Profile & security",
-                  "width": 16,
-                  "height": 16,
-                  "icon": "user-round",
-                  "library": "lucide",
-                  "fill": "#75807A"
-                },
-                {
-                  "type": "text",
-                  "id": "LnOg7",
-                  "name": "Sidebar label — Profile & security",
-                  "fill": "#58645E",
-                  "content": "Profile & security",
-                  "fontFamily": "Inter",
-                  "fontSize": 14,
-                  "fontWeight": "normal"
-                }
-              ]
-            },
-            {
-              "type": "frame",
-              "id": "Skjcm",
-              "name": "Sidebar item — Plan & usage",
-              "width": "fill_container",
-              "fill": "#FFFFFF",
-              "cornerRadius": 4,
-              "gap": 8,
-              "padding": [
-                10,
-                12
-              ],
-              "alignItems": "center",
-              "children": [
-                {
-                  "type": "icon",
-                  "id": "Ye1PG",
-                  "name": "Sidebar icon — Plan & usage",
-                  "width": 16,
-                  "height": 16,
-                  "icon": "credit-card",
-                  "library": "lucide",
-                  "fill": "#75807A"
-                },
-                {
-                  "type": "text",
-                  "id": "yOEI2",
-                  "name": "Sidebar label — Plan & usage",
-                  "fill": "#58645E",
-                  "content": "Plan & usage",
-                  "fontFamily": "Inter",
-                  "fontSize": 14,
-                  "fontWeight": "normal"
-                }
-              ]
-            },
-            {
-              "type": "frame",
-              "id": "t7MI7I",
-              "name": "Sidebar item — AI processing",
-              "width": "fill_container",
-              "fill": "#FFFFFF",
-              "cornerRadius": 4,
-              "gap": 8,
-              "padding": [
-                10,
-                12
-              ],
-              "alignItems": "center",
-              "children": [
-                {
-                  "type": "icon",
-                  "id": "m7aor",
-                  "name": "Sidebar icon — AI processing",
-                  "width": 16,
-                  "height": 16,
-                  "icon": "shield-check",
-                  "library": "lucide",
-                  "fill": "#75807A"
-                },
-                {
-                  "type": "text",
-                  "id": "oxs6E",
-                  "name": "Sidebar label — AI processing",
-                  "fill": "#58645E",
-                  "content": "AI processing",
-                  "fontFamily": "Inter",
-                  "fontSize": 14,
-                  "fontWeight": "normal"
-                }
-              ]
-            },
-            {
-              "type": "frame",
-              "id": "Y0mLy4",
-              "name": "Sidebar item — Import & export",
-              "width": "fill_container",
-              "fill": "#FFFFFF",
-              "cornerRadius": 4,
-              "gap": 8,
-              "padding": [
-                10,
-                12
-              ],
-              "alignItems": "center",
-              "children": [
-                {
-                  "type": "icon",
-                  "id": "Ei9Oi",
-                  "name": "Sidebar icon — Import & export",
-                  "width": 16,
-                  "height": 16,
-                  "icon": "arrow-up-down",
-                  "library": "lucide",
-                  "fill": "#75807A"
-                },
-                {
-                  "type": "text",
-                  "id": "QBeEn",
-                  "name": "Sidebar label — Import & export",
-                  "fill": "#58645E",
-                  "content": "Import & export",
-                  "fontFamily": "Inter",
-                  "fontSize": 14,
-                  "fontWeight": "normal"
-                }
-              ]
-            },
-            {
-              "type": "frame",
-              "id": "PNKuL",
-              "name": "Sidebar item — Privacy & deletion",
-              "width": "fill_container",
-              "fill": "#FFFFFF",
-              "cornerRadius": 4,
-              "gap": 8,
-              "padding": [
-                10,
-                12
-              ],
-              "alignItems": "center",
-              "children": [
-                {
-                  "type": "icon",
-                  "id": "Q6NbF",
-                  "name": "Sidebar icon — Privacy & deletion",
-                  "width": 16,
-                  "height": 16,
-                  "icon": "lock-keyhole",
-                  "library": "lucide",
-                  "fill": "#75807A"
-                },
-                {
-                  "type": "text",
-                  "id": "qfqpd",
-                  "name": "Sidebar label — Privacy & deletion",
-                  "fill": "#58645E",
-                  "content": "Privacy & deletion",
-                  "fontFamily": "Inter",
-                  "fontSize": 14,
-                  "fontWeight": "normal"
-                }
-              ]
-            },
-            {
-              "type": "frame",
-              "id": "NgBwk",
-              "name": "Sidebar spacer",
-              "width": "fill_container",
-              "height": 16
-            }
-          ]
-        },
-        {
-          "type": "frame",
-          "id": "ikyx7",
-          "layoutPosition": "absolute",
-          "x": 0,
-          "y": 64,
-          "name": "Account settings sidebar — Privacy & deletion",
-          "width": 270,
-          "height": 836,
-          "fill": "#FFFFFF",
-          "layout": "vertical",
-          "gap": 8,
-          "padding": [
-            28,
-            20
-          ],
-          "children": [
-            {
-              "type": "text",
-              "id": "zJqPK",
-              "name": "Sidebar section label",
-              "fill": "#75807A",
-              "content": "ACCOUNT SETTINGS",
-              "fontFamily": "Inter",
-              "fontSize": 11,
-              "fontWeight": "600",
-              "letterSpacing": 0.7
-            },
-            {
-              "type": "frame",
-              "id": "eQrSf",
-              "name": "Sidebar item — Overview",
-              "width": "fill_container",
-              "fill": "#FFFFFF",
-              "cornerRadius": 4,
-              "gap": 8,
-              "padding": [
-                10,
-                12
-              ],
-              "alignItems": "center",
-              "children": [
-                {
-                  "type": "icon",
-                  "id": "O9a2O",
-                  "name": "Sidebar icon — Overview",
-                  "width": 16,
-                  "height": 16,
-                  "icon": "settings",
-                  "library": "lucide",
-                  "fill": "#75807A"
-                },
-                {
-                  "type": "text",
-                  "id": "ArgaC",
-                  "name": "Sidebar label — Overview",
-                  "fill": "#58645E",
-                  "content": "Overview",
-                  "fontFamily": "Inter",
-                  "fontSize": 14,
-                  "fontWeight": "normal"
-                }
-              ]
-            },
-            {
-              "type": "frame",
-              "id": "qiZ0h",
-              "name": "Sidebar item — Profile & security",
-              "width": "fill_container",
-              "fill": "#FFFFFF",
-              "cornerRadius": 4,
-              "gap": 8,
-              "padding": [
-                10,
-                12
-              ],
-              "alignItems": "center",
-              "children": [
-                {
-                  "type": "icon",
-                  "id": "uUtBV",
-                  "name": "Sidebar icon — Profile & security",
-                  "width": 16,
-                  "height": 16,
-                  "icon": "user-round",
-                  "library": "lucide",
-                  "fill": "#75807A"
-                },
-                {
-                  "type": "text",
-                  "id": "dGqG2",
-                  "name": "Sidebar label — Profile & security",
-                  "fill": "#58645E",
-                  "content": "Profile & security",
-                  "fontFamily": "Inter",
-                  "fontSize": 14,
-                  "fontWeight": "normal"
-                }
-              ]
-            },
-            {
-              "type": "frame",
-              "id": "U6J3A1",
-              "name": "Sidebar item — Plan & usage",
-              "width": "fill_container",
-              "fill": "#FFFFFF",
-              "cornerRadius": 4,
-              "gap": 8,
-              "padding": [
-                10,
-                12
-              ],
-              "alignItems": "center",
-              "children": [
-                {
-                  "type": "icon",
-                  "id": "aIQpR",
-                  "name": "Sidebar icon — Plan & usage",
-                  "width": 16,
-                  "height": 16,
-                  "icon": "credit-card",
-                  "library": "lucide",
-                  "fill": "#75807A"
-                },
-                {
-                  "type": "text",
-                  "id": "Kmwrt",
-                  "name": "Sidebar label — Plan & usage",
-                  "fill": "#58645E",
-                  "content": "Plan & usage",
-                  "fontFamily": "Inter",
-                  "fontSize": 14,
-                  "fontWeight": "normal"
-                }
-              ]
-            },
-            {
-              "type": "frame",
-              "id": "aLGN0",
-              "name": "Sidebar item — AI processing",
-              "width": "fill_container",
-              "fill": "#FFFFFF",
-              "cornerRadius": 4,
-              "gap": 8,
-              "padding": [
-                10,
-                12
-              ],
-              "alignItems": "center",
-              "children": [
-                {
-                  "type": "icon",
-                  "id": "p0vl80",
-                  "name": "Sidebar icon — AI processing",
-                  "width": 16,
-                  "height": 16,
-                  "icon": "shield-check",
-                  "library": "lucide",
-                  "fill": "#75807A"
-                },
-                {
-                  "type": "text",
-                  "id": "cL1YP",
-                  "name": "Sidebar label — AI processing",
-                  "fill": "#58645E",
-                  "content": "AI processing",
-                  "fontFamily": "Inter",
-                  "fontSize": 14,
-                  "fontWeight": "normal"
-                }
-              ]
-            },
-            {
-              "type": "frame",
-              "id": "ovcux",
-              "name": "Sidebar item — Import & export",
-              "width": "fill_container",
-              "fill": "#FFFFFF",
-              "cornerRadius": 4,
-              "gap": 8,
-              "padding": [
-                10,
-                12
-              ],
-              "alignItems": "center",
-              "children": [
-                {
-                  "type": "icon",
-                  "id": "q08sSq",
-                  "name": "Sidebar icon — Import & export",
-                  "width": 16,
-                  "height": 16,
-                  "icon": "arrow-up-down",
-                  "library": "lucide",
-                  "fill": "#75807A"
-                },
-                {
-                  "type": "text",
-                  "id": "s5Adlh",
-                  "name": "Sidebar label — Import & export",
-                  "fill": "#58645E",
-                  "content": "Import & export",
-                  "fontFamily": "Inter",
-                  "fontSize": 14,
-                  "fontWeight": "normal"
-                }
-              ]
-            },
-            {
-              "type": "frame",
-              "id": "bcIXI",
-              "name": "Sidebar item — Privacy & deletion",
-              "width": "fill_container",
-              "fill": "#DDF2EE",
-              "cornerRadius": 4,
-              "gap": 8,
-              "padding": [
-                10,
-                12
-              ],
-              "alignItems": "center",
-              "children": [
-                {
-                  "type": "icon",
-                  "id": "BunFs",
-                  "name": "Sidebar icon — Privacy & deletion",
-                  "width": 16,
-                  "height": 16,
-                  "icon": "lock-keyhole",
-                  "library": "lucide",
-                  "fill": "#0C6F68"
-                },
-                {
-                  "type": "text",
-                  "id": "iIPEt",
-                  "name": "Sidebar label — Privacy & deletion",
-                  "fill": "#0C6F68",
-                  "content": "Privacy & deletion",
-                  "fontFamily": "Inter",
-                  "fontSize": 14,
-                  "fontWeight": "600"
-                }
-              ]
-            },
-            {
-              "type": "frame",
-              "id": "B1ju3j",
-              "name": "Sidebar spacer",
-              "width": "fill_container",
-              "height": 16
-            }
-          ]
-        },
-        {
-          "type": "frame",
-          "id": "NT2DB",
-          "layoutPosition": "absolute",
-          "x": 270,
-          "y": 64,
-          "name": "Deletion scheduled content",
-          "width": 1100,
-          "height": 836,
-          "fill": "#F7F5EF",
-          "layout": "vertical",
-          "gap": 28,
-          "padding": [
-            42,
-            46,
-            46,
-            46
-          ],
-          "children": [
-            {
-              "type": "frame",
-              "id": "da7e5",
-              "name": "Deletion scheduled header",
-              "width": "fill_container",
-              "layout": "vertical",
-              "gap": 8,
-              "children": [
-                {
-                  "type": "text",
-                  "id": "vIRhV",
-                  "name": "Deletion scheduled title",
-                  "fill": "#17211F",
-                  "content": "Deletion scheduled",
-                  "fontFamily": "Inter",
-                  "fontSize": 30,
-                  "fontWeight": "600"
-                },
-                {
-                  "type": "text",
-                  "id": "GS1IP",
-                  "name": "Deletion scheduled description",
-                  "fill": "#5F6965",
-                  "textGrowth": "fixed-width",
-                  "width": "fill_container",
-                  "content": "Your account deletion is pending. You still have time to change your mind.",
-                  "fontFamily": "Inter",
-                  "fontSize": 14,
-                  "fontWeight": "normal"
-                }
-              ]
-            },
-            {
-              "type": "frame",
-              "id": "Q9uNDg",
-              "name": "Deletion scheduled decision panel",
-              "width": 760,
-              "fill": "#FFFFFF",
-              "cornerRadius": 6,
-              "stroke": "#DCE7E2",
-              "strokeWidth": 1,
-              "layout": "vertical",
-              "gap": 18,
-              "padding": 28,
-              "children": [
-                {
-                  "type": "text",
-                  "id": "l2su9e",
-                  "name": "Deletion scheduled heading",
-                  "fill": "#17211F",
-                  "content": "Your deletion is scheduled",
-                  "fontFamily": "Inter",
-                  "fontSize": 20,
-                  "fontWeight": "600"
-                },
-                {
-                  "type": "text",
-                  "id": "rIaxr",
-                  "name": "Deletion scheduled detail",
-                  "fill": "#5F6965",
-                  "textGrowth": "fixed-width",
-                  "width": "fill_container",
-                  "content": "Your account will be permanently deleted on 24 August 2026. You can cancel at any time before then.",
-                  "fontFamily": "Inter",
-                  "fontSize": 14,
-                  "fontWeight": "normal"
-                },
-                {
-                  "type": "frame",
-                  "id": "IOoHn",
-                  "name": "Deletion status",
-                  "width": "fill_container",
-                  "fill": "#EAF4F1",
-                  "cornerRadius": 5,
-                  "layout": "vertical",
-                  "gap": 5,
-                  "padding": 16,
-                  "children": [
-                    {
-                      "type": "text",
-                      "id": "w57Vlg",
-                      "name": "Deletion status label",
-                      "fill": "#245F58",
-                      "content": "DELETION PENDING",
-                      "fontFamily": "Inter",
-                      "fontSize": 12,
-                      "fontWeight": "600"
-                    },
-                    {
-                      "type": "text",
-                      "id": "HPBzz",
-                      "name": "Deletion status date",
-                      "fill": "#245F58",
-                      "content": "Scheduled for 24 August 2026",
-                      "fontFamily": "Inter",
-                      "fontSize": 15,
-                      "fontWeight": "600"
-                    }
-                  ]
-                },
-                {
-                  "type": "frame",
-                  "id": "d8kej",
-                  "name": "Cancel deletion action",
-                  "fill": "#0D756E",
-                  "cornerRadius": 4,
-                  "padding": [
-                    10,
-                    14
-                  ],
-                  "alignItems": "center",
-                  "children": [
-                    {
-                      "type": "text",
-                      "id": "qiOpR",
-                      "name": "Cancel deletion label",
-                      "fill": "#FFFFFF",
-                      "content": "Cancel deletion",
-                      "fontFamily": "Inter",
-                      "fontSize": 14,
-                      "fontWeight": "600"
                     }
                   ]
                 }
@@ -76907,6 +75506,17 @@
               "children": [
                 {
                   "type": "text",
+                  "id": "aFq0x",
+                  "name": "Privacy Account Settings Back Link",
+                  "fill": "#0F766E",
+                  "content": "← ACCOUNT SETTINGS",
+                  "lineHeight": 1.3,
+                  "fontFamily": "IBM Plex Mono",
+                  "fontSize": 11,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
                   "id": "ZeJAl",
                   "name": "Privacy & deletion title",
                   "fill": "#17211F",
@@ -77773,6 +76383,422 @@
               "fontFamily": "$font-mono",
               "fontSize": 11,
               "fontWeight": "normal"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "nwEGL",
+      "x": 32623,
+      "y": 0,
+      "name": "Practice Home — Custom Design Submitting",
+      "clip": true,
+      "width": 1440,
+      "height": 900,
+      "fill": "$paper",
+      "layout": "vertical",
+      "children": [
+        {
+          "type": "frame",
+          "id": "PDbry",
+          "name": "Authenticated Global Navigation",
+          "width": "fill_container",
+          "height": 72,
+          "fill": "$nav-graphite",
+          "stroke": "$nav-line",
+          "strokeWidth": {
+            "bottom": 1
+          },
+          "padding": [
+            0,
+            48
+          ],
+          "justifyContent": "space_between",
+          "alignItems": "center",
+          "children": [
+            {
+              "id": "N7SXJ3",
+              "type": "ref",
+              "ref": "EnwHq",
+              "name": "Product Logo Inverse Lockup",
+              "width": 238,
+              "height": 38,
+              "padding": 0,
+              "fill": "#00000000",
+              "stroke": "#00000000",
+              "strokeWidth": 0
+            },
+            {
+              "type": "frame",
+              "id": "CZxfI",
+              "name": "Primary Navigation",
+              "gap": 32,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "qwxWJ",
+                  "name": "Practice Navigation Link",
+                  "fill": "$ink-dark",
+                  "content": "Practice",
+                  "lineHeight": 1.3,
+                  "fontFamily": "$font-body",
+                  "fontSize": 14,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "iUKiD",
+                  "name": "Challenges Navigation Link",
+                  "fill": "$ink-dark-muted",
+                  "content": "Challenges",
+                  "lineHeight": 1.3,
+                  "fontFamily": "$font-body",
+                  "fontSize": 14,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "aq481",
+                  "name": "Progress Navigation Link",
+                  "fill": "$ink-dark-muted",
+                  "content": "Progress",
+                  "lineHeight": 1.3,
+                  "fontFamily": "$font-body",
+                  "fontSize": 14,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "id": "m9pR8",
+              "type": "ref",
+              "ref": "qvZfh",
+              "name": "Account Menu Control",
+              "width": 184,
+              "height": 40,
+              "padding": [
+                4,
+                8
+              ],
+              "fill": "#00000000",
+              "stroke": "#00000000",
+              "strokeWidth": 0
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "tyGm3",
+          "name": "Custom Design Main",
+          "width": "fill_container",
+          "height": "fill_container",
+          "layout": "vertical",
+          "gap": 28,
+          "padding": [
+            42,
+            64
+          ],
+          "children": [
+            {
+              "type": "frame",
+              "id": "qDF5E",
+              "name": "Custom Design Introduction",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 10,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "e71GAp",
+                  "name": "Custom Design Eyebrow",
+                  "fill": "#0F766E",
+                  "content": "← BACK TO PRACTICE / CUSTOM DESIGN",
+                  "lineHeight": 1.3,
+                  "fontFamily": "$font-mono",
+                  "fontSize": 11,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "KcUVF",
+                  "name": "Custom Design Title",
+                  "fill": "$ink",
+                  "textGrowth": "fixed-width",
+                  "width": 720,
+                  "content": "Make the problem explicit.",
+                  "lineHeight": 1.05,
+                  "fontFamily": "$font-display",
+                  "fontSize": 42,
+                  "fontWeight": "500"
+                },
+                {
+                  "type": "text",
+                  "id": "RkEkx",
+                  "name": "Custom Design Description",
+                  "fill": "$ink-muted",
+                  "textGrowth": "fixed-width",
+                  "width": 680,
+                  "content": "Name the system, state what you are designing, and enter the practice loop without a generated solution.",
+                  "lineHeight": 1.5,
+                  "fontFamily": "$font-body",
+                  "fontSize": 15,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "a5Xon",
+              "name": "Workspace Creation Paths",
+              "width": "fill_container",
+              "stroke": "$line",
+              "strokeWidth": {
+                "bottom": 1
+              },
+              "gap": 20,
+              "padding": [
+                0,
+                0,
+                10,
+                0
+              ],
+              "children": [
+                {
+                  "type": "text",
+                  "id": "ZY7qy",
+                  "name": "Custom Design Creation Path",
+                  "fill": "$action",
+                  "content": "CUSTOM DESIGN",
+                  "fontFamily": "$font-mono",
+                  "fontSize": 11,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "rvRxS",
+              "name": "Custom Design Creation Form",
+              "width": "fill_container",
+              "height": 300,
+              "fill": "$paper-raised",
+              "stroke": "$line",
+              "strokeWidth": 1,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "vnbOW",
+                  "name": "Custom Design Form Fields",
+                  "width": 860,
+                  "layout": "vertical",
+                  "gap": 12,
+                  "padding": 28,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "X8njH",
+                      "name": "Custom Design Form Label",
+                      "fill": "$ink-muted",
+                      "content": "CUSTOM DESIGN",
+                      "lineHeight": 1.3,
+                      "fontFamily": "$font-mono",
+                      "fontSize": 11,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "I8cIPt",
+                      "name": "Custom Design Form Title",
+                      "fill": "$ink",
+                      "content": "Start with your own system",
+                      "lineHeight": 1.3,
+                      "fontFamily": "$font-display",
+                      "fontSize": 24,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "Ha34N",
+                      "name": "Custom Design Fields",
+                      "width": "fill_container",
+                      "gap": 16,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "hGNlb",
+                          "width": "fill_container",
+                          "layout": "vertical",
+                          "gap": 5,
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "MaQZg",
+                              "name": "System Name Label",
+                              "fill": "$ink-muted",
+                              "content": "SYSTEM NAME",
+                              "fontFamily": "$font-mono",
+                              "fontSize": 10,
+                              "fontWeight": "normal"
+                            },
+                            {
+                              "type": "frame",
+                              "id": "zxvE5",
+                              "name": "System Name Input",
+                              "width": "fill_container",
+                              "height": 42,
+                              "fill": "$paper",
+                              "cornerRadius": 4,
+                              "stroke": "$line",
+                              "strokeWidth": 1,
+                              "padding": [
+                                10,
+                                12
+                              ],
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "AVC4d",
+                                  "name": "System Name Placeholder",
+                                  "fill": "$ink-muted",
+                                  "content": "e.g. Event ingestion platform",
+                                  "fontFamily": "$font-body",
+                                  "fontSize": 14,
+                                  "fontWeight": "normal"
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "l3hSH",
+                          "width": "fill_container",
+                          "layout": "vertical",
+                          "gap": 5,
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "LrL4h",
+                              "name": "System Idea Label",
+                              "fill": "$ink-muted",
+                              "content": "WHAT ARE YOU DESIGNING?",
+                              "fontFamily": "$font-mono",
+                              "fontSize": 10,
+                              "fontWeight": "normal"
+                            },
+                            {
+                              "type": "frame",
+                              "id": "Nq1ch",
+                              "name": "System Idea Input",
+                              "width": "fill_container",
+                              "height": 42,
+                              "fill": "$paper",
+                              "cornerRadius": 4,
+                              "stroke": "$line",
+                              "strokeWidth": 1,
+                              "padding": [
+                                10,
+                                12
+                              ],
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "s2Iay",
+                                  "name": "System Idea Placeholder",
+                                  "fill": "$ink-muted",
+                                  "content": "Describe the product, users, and decision.",
+                                  "fontFamily": "$font-body",
+                                  "fontSize": 14,
+                                  "fontWeight": "normal"
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "L743yT",
+                      "name": "Create Blank Workspace Button",
+                      "height": 44,
+                      "fill": "#7D9B96",
+                      "cornerRadius": 3,
+                      "stroke": "#7D9B96",
+                      "strokeWidth": 1,
+                      "padding": [
+                        0,
+                        18
+                      ],
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "Ayh1h",
+                          "name": "Create Blank Workspace Label",
+                          "fill": "$ink-dark",
+                          "content": "Creating blank Workspace...",
+                          "fontFamily": "$font-body",
+                          "fontSize": 14,
+                          "fontWeight": "600"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "sdXGt",
+                  "name": "Custom Design Practice Loop",
+                  "width": 360,
+                  "fill": "$chrome",
+                  "layout": "vertical",
+                  "gap": 10,
+                  "padding": 28,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "lS3lE",
+                      "name": "Custom Design Practice Loop Label",
+                      "fill": "$ink-dark-muted",
+                      "content": "THE PRACTICE LOOP",
+                      "fontFamily": "$font-mono",
+                      "fontSize": 11,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "j8mv00",
+                      "name": "Custom Design Practice Loop Steps",
+                      "fill": "$ink-dark",
+                      "textGrowth": "fixed-width",
+                      "width": 300,
+                      "content": "Clarify  →  Design  →  Stress-test  →  Review",
+                      "lineHeight": 1.35,
+                      "fontFamily": "$font-display",
+                      "fontSize": 22,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "uOUlB",
+                      "name": "Custom Design Practice Loop Note",
+                      "fill": "$ink-dark-muted",
+                      "textGrowth": "fixed-width",
+                      "width": 290,
+                      "content": "No generated solution. You decide what matters and which trade-offs to defend.",
+                      "lineHeight": 1.45,
+                      "fontFamily": "$font-body",
+                      "fontSize": 13,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
             }
           ]
         }

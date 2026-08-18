@@ -14,6 +14,7 @@ class VerifiedEmailPolicyTests {
 	@Test
 	void acceptsClerkVerifiedEmailClaim() {
 		assertThatCode(() -> policy.requireVerified(jwt(true))).doesNotThrowAnyException();
+		assertThatCode(() -> policy.requireVerified(jwt("true"))).doesNotThrowAnyException();
 	}
 
 	@Test
@@ -22,7 +23,7 @@ class VerifiedEmailPolicyTests {
 		assertThatThrownBy(() -> policy.requireVerified(jwt(null))).isInstanceOf(EmailVerificationRequiredException.class);
 	}
 
-	private Jwt jwt(Boolean emailVerified) {
+	private Jwt jwt(Object emailVerified) {
 		var builder = Jwt.withTokenValue("test").header("alg", "RS256").subject("user_1").issuedAt(Instant.now()).expiresAt(Instant.now().plusSeconds(60));
 		if (emailVerified != null) builder.claim("email_verified", emailVerified);
 		return builder.build();

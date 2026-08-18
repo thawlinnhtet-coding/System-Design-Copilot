@@ -3,5 +3,5 @@ import { WorkspaceShell } from "@/features/workspaces/workspace-shell";
 
 export default async function WorkspacePage({ params }: { params: Promise<{ workspaceId: string }> }) {
   const { workspaceId } = await params;
-  return <AppShell><WorkspaceShell workspaceId={workspaceId} /></AppShell>;
+  return <AppShell compactHeader fullBleed><WorkspaceShell workspaceId={workspaceId} /></AppShell>;
 }

@@ -8,6 +8,7 @@ import org.springframework.ai.chat.messages.SystemMessage;
 import org.springframework.ai.chat.messages.UserMessage;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.chat.prompt.Prompt;
+import reactor.core.publisher.Flux;
 import org.springframework.ai.openai.OpenAiChatOptions;
 import org.springframework.stereotype.Component;
 
@@ -57,5 +58,31 @@ class OpenRouterAiProvider implements AiProviderPort {
 		} catch (RuntimeException exception) {
 			throw new AiProviderExceptions.UnavailableException(exception);
 		}
+	}
+
+	@Override
+	public Flux<AiProviderResponse> stream(AiProviderRequest request) {
+		var options = OpenAiChatOptions.builder()
+				.model(request.model())
+				.maxCompletionTokens(request.maxOutputTokens())
+				.extraBody(Map.of("provider", Map.of(
+						"data_collection", request.providerPolicy().dataCollection(),
+						"allow_fallbacks", request.providerPolicy().allowFallbacks())))
+				.build();
+		return Flux.defer(() -> chatModel.stream(new Prompt(
+				List.of(new SystemMessage(request.systemInstruction()), new UserMessage(request.untrustedContext())), options)))
+				.map(response -> {
+					var generation = response == null ? null : response.getResult();
+					var content = generation == null || generation.getOutput() == null ? "" : generation.getOutput().getText();
+					var metadata = response == null ? null : response.getMetadata();
+					var usage = metadata == null ? null : metadata.getUsage();
+					return new AiProviderResponse(content == null ? "" : content,
+							metadata == null ? null : metadata.getId(),
+							metadata == null ? request.model() : metadata.getModel(),
+							usage == null ? null : usage.getPromptTokens(),
+							usage == null ? null : usage.getCompletionTokens(), null);
+				})
+				.onErrorMap(exception -> exception instanceof AiProviderExceptions.UnavailableException
+						? exception : new AiProviderExceptions.UnavailableException(exception));
 	}
 }

@@ -15,7 +15,7 @@ public class VerifiedEmailPolicy {
 
 	public boolean isVerified(Jwt jwt) {
 		var value = jwt.getClaim("email_verified");
-		return Boolean.TRUE.equals(value) || "verified".equals(value);
+		return Boolean.TRUE.equals(value) || "true".equalsIgnoreCase(String.valueOf(value)) || "verified".equalsIgnoreCase(String.valueOf(value));
 	}
 
 	public String verifiedEmail(Jwt jwt) {

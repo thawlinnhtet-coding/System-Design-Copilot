@@ -24,6 +24,7 @@ export type PracticeProgress = {
 export type AiConsent = components["schemas"]["AiConsentResponse"];
 export type CopilotTurnRequest = Required<components["schemas"]["CopilotTurnRequest"]>;
 export type CopilotTurn = Required<components["schemas"]["CopilotTurn"]>;
+export type CopilotStreamEvent = { type: "delta" | "complete" | "error"; id: string; model?: string | null; content?: string; code?: string | null };
 export type PortableValidationResponse = components["schemas"]["ImportResponse"];
 export type Requirement = components["schemas"]["RequirementResponse"];
 export type Assumption = components["schemas"]["AssumptionResponse"];
@@ -86,15 +87,15 @@ export function useAuthenticatedApiClient() {
   const { getToken } = useAuth();
 
   return useMemo(() => {
-    async function request(path: string, init: RequestInit = {}) {
-      const token = await getToken({ template: tokenTemplate });
+    async function authenticatedRequest(path: string, init: RequestInit = {}, skipCache = false) {
+      const token = await getToken({ template: tokenTemplate, ...(skipCache ? { skipCache: true } : {}) });
       if (!token) {
         throw new Error("No active Clerk session is available for this request");
       }
 
       const headers = new Headers(init.headers);
       headers.set("Authorization", `Bearer ${token}`);
-      headers.set("Accept", "application/json");
+      if (!headers.has("Accept")) headers.set("Accept", "application/json");
 
       return fetch(`${apiBaseUrl}${path}`, {
         ...init,
@@ -102,11 +103,29 @@ export function useAuthenticatedApiClient() {
       });
     }
 
+    async function request(path: string, init: RequestInit = {}) {
+      const response = await authenticatedRequest(path, init);
+      if (response.status === 401) {
+        // A Clerk JWT can remain cached briefly after a template or verification change.
+        // Refresh once; a second failure is returned to the caller for a clear auth error.
+        return authenticatedRequest(path, init, true);
+      }
+      if (response.status !== 403) return response;
+
+      let details: Record<string, unknown> | undefined;
+      try { details = await response.clone().json() as Record<string, unknown>; } catch { /* response may be empty */ }
+      if (details?.code !== "email_verification_required") return response;
+
+      // Email verification changes the user data behind the JWT template. Clerk's
+      // normal token cache may still contain the pre-verification token briefly.
+      return authenticatedRequest(path, init, true);
+    }
+
     async function optionalRequest(path: string, init: RequestInit = {}) {
       const token = await getToken({ template: tokenTemplate });
       const headers = new Headers(init.headers);
       if (token) headers.set("Authorization", `Bearer ${token}`);
-      headers.set("Accept", "application/json");
+      if (!headers.has("Accept")) headers.set("Accept", "application/json");
       return fetch(`${apiBaseUrl}${path}`, { ...init, headers });
     }
 
@@ -374,6 +393,51 @@ export function useAuthenticatedApiClient() {
 			return json<CopilotTurn>(`/api/v1/workspaces/${workspaceId}/copilot/turns`, {
 				method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
 			});
+		},
+		async streamCopilot(workspaceId: string, body: CopilotTurnRequest, onEvent: (event: CopilotStreamEvent) => void): Promise<CopilotTurn> {
+			const response = await request(`/api/v1/workspaces/${workspaceId}/copilot/turns/stream`, {
+				method: "POST", headers: { "Content-Type": "application/json", Accept: "text/event-stream" }, body: JSON.stringify(body),
+			});
+			if (!response.ok) {
+				let details: Record<string, unknown> | undefined;
+				try { details = await response.json() as Record<string, unknown>; } catch { /* response may be empty */ }
+				throw new ApiRequestError(response.status, details);
+			}
+			if (!response.body) throw new ApiRequestError(503, { code: "ai_provider_unavailable" });
+			const reader = response.body.getReader();
+			const decoder = new TextDecoder();
+			let buffer = "";
+			let completed: CopilotTurn | null = null;
+			let content = "";
+			const consume = (block: string) => {
+				const lines = block.split("\n");
+				const eventType = lines.find((line) => line.startsWith("event:"))?.slice(6).trim() ?? "message";
+				const data = lines.filter((line) => line.startsWith("data:")).map((line) => line.slice(5).trim()).join("\n");
+				if (!data) return;
+				let event: CopilotStreamEvent;
+				try { event = JSON.parse(data) as CopilotStreamEvent; } catch { throw new ApiRequestError(502, { code: "ai_stream_protocol_error" }); }
+				if (eventType === "error" || event.type === "error") throw new ApiRequestError(503, { code: event.code ?? "ai_provider_unavailable" });
+				onEvent(event);
+				if (event.type === "delta") content += event.content ?? "";
+				if (event.type === "complete") completed = { id: event.id, content, model: event.model ?? "copilot", replayed: false };
+			};
+			try {
+				while (true) {
+					const chunk = await reader.read();
+					buffer += decoder.decode(chunk.value ?? new Uint8Array(), { stream: !chunk.done });
+					buffer = buffer.replace(/\r\n/g, "\n");
+					const blocks = buffer.split("\n\n");
+					buffer = blocks.pop() ?? "";
+					blocks.forEach(consume);
+					if (chunk.done) break;
+				}
+			} catch (cause) {
+				if (cause instanceof ApiRequestError) throw cause;
+				throw new ApiRequestError(502, { code: "ai_stream_transport_error" });
+			}
+			if (buffer.trim()) consume(buffer);
+			if (!completed) throw new ApiRequestError(503, { code: "ai_provider_unavailable" });
+			return completed;
 		},
       async reconcileCompletedCheckout(sessionId: string): Promise<void> {
         const response = await request(`/api/v1/billing/checkout/complete?session_id=${encodeURIComponent(sessionId)}`, { method: "POST" });

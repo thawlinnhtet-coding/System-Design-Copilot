@@ -189,7 +189,7 @@ function PlanDetail({ usage, loaded, loadError, onRetry }: { usage: CurrentEntit
         </div>
       </section>
 
-      <p className="text-[11px] leading-[1.4] text-text-muted">{isCanceling ? "Your owned Workspaces remain available after the paid-through date; Free limits apply after downgrade." : isPro ? "Manage billing includes payment details, invoices, and cancellation." : checkoutAvailable ? "Upgrade opens secure test-mode Checkout. Existing content is preserved and Free allowances remain until the plan changes." : "Ordinary personal-beta accounts cannot activate paid Pro access. Your existing Workspaces remain available, and quotas reset at the start of the next UTC month."}</p>
+      <p className="text-[11px] leading-[1.4] text-text-muted">{isCanceling ? "Your owned Workspaces remain available after the paid-through date; Free limits apply after downgrade." : isPro ? "Manage billing includes payment details, invoices, and cancellation." : checkoutAvailable ? "Upgrade opens secure test-mode Checkout. Existing content is preserved and Free allowances remain until the plan changes." : "Test-mode Pro billing is not enabled in this environment. Your existing Workspaces remain available, and quotas reset at the start of the next UTC month."}</p>
     </div>
   );
 }
@@ -289,8 +289,14 @@ function formatRenewal(value: string | undefined) {
 }
 
 function planActionError(error: unknown, isPro: boolean) {
-  const status = (error as Partial<ApiRequestError>)?.status;
-  if (status === 403) return isPro ? "Billing management is not available for this account." : "Paid Pro access is not available to this account during the personal beta.";
+  const requestError = error as Partial<ApiRequestError>;
+  const status = requestError?.status;
+  const code = typeof requestError?.details?.code === "string" ? requestError.details.code : undefined;
+  if (status === 403) {
+    if (code === "email_verification_required") return "Clerk could not confirm your email verification. Verify it or sign out and back in after updating the JWT template.";
+    if (code === "stripe_test_mode_required") return "Stripe test-mode billing is not enabled on the backend.";
+    return isPro ? "Billing management is not available for this account." : "Test-mode Pro Checkout is not enabled for this environment.";
+  }
   if (status === 409) return "You already have Pro access. Manage it through the billing portal.";
   if (status === 429) return "Please wait before starting another billing attempt.";
   return isPro ? "Billing is temporarily unavailable." : "Secure checkout is not available right now.";

@@ -47,7 +47,14 @@ describe("ChallengeDetail", () => {
 
     expect(await screen.findByRole("heading", { name: "Design a reliable URL shortener" })).toBeVisible();
     expect(screen.getByText("Build a service that creates short links and redirects users reliably.")).toBeVisible();
+    expect(screen.getByText("OBJECTIVE")).toBeVisible();
+    expect(screen.getByText("REASONING AREAS")).toBeVisible();
+    expect(screen.getByText("FOCUS AREAS")).toBeVisible();
+    expect(screen.getByText("SKILLS PRACTICED")).toBeVisible();
     expect(screen.getByText("100M redirects per day")).toBeVisible();
+    expect(screen.getByText("Estimated time")).toBeVisible();
+    expect(screen.getByText("SCENARIO PREVIEW")).toBeVisible();
+    expect(screen.queryByText("A regional cache is degraded.")).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Start practice" }));
     await waitFor(() => expect(api.startChallenge).toHaveBeenCalledWith("url-shortener"));
     expect(router.push).toHaveBeenCalledWith("/workspace/workspace-1");
@@ -76,13 +83,15 @@ describe("ChallengeDetail", () => {
       initialConstraints: ["100M redirects per day"],
       skillCoverage: [{ name: "request shaping", level: "introduce" }],
       scenarioPreview: ["A regional cache is degraded."],
-      attempts: [{ id: "attempt-1", name: "Existing attempt", status: "ACTIVE" }],
+      attempts: [{ id: "attempt-1", name: "Latest attempt", status: "ACTIVE" }],
     });
 
     renderWithProviders(<ChallengeDetail slug="url-shortener" />);
 
     expect(await screen.findByRole("link", { name: "Continue practice" })).toHaveAttribute("href", "/workspace/attempt-1");
     expect(screen.getByRole("button", { name: "Start new attempt" })).toBeVisible();
+    expect(screen.getByText("No other attempts yet.")).toBeVisible();
+    expect(screen.queryByText("Latest attempt")).not.toBeInTheDocument();
     expect(api.startChallenge).not.toHaveBeenCalled();
   });
 });

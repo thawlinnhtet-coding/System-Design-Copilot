@@ -35,7 +35,7 @@ export function PricingAction({ pro = false }: { pro?: boolean }) {
   }
 
   if (entitlements.data?.billing?.checkoutAvailable === false) {
-    return <div className="w-full"><button className={className} disabled type="button">Upgrade unavailable in beta</button><p className="mt-2 text-xs leading-5 text-text-muted" role="status">Ordinary personal-beta accounts stay on Free; existing Workspaces and content remain available.</p></div>;
+    return <div className="w-full"><button className={className} disabled type="button">Upgrade unavailable in beta</button><p className="mt-2 text-xs leading-5 text-text-muted" role="status">Test-mode Pro billing is not enabled in this environment; existing Workspaces and content remain available.</p></div>;
   }
 
   async function startCheckout() {
@@ -44,7 +44,19 @@ export function PricingAction({ pro = false }: { pro?: boolean }) {
     try {
       window.location.assign(await api.startCheckout());
     } catch (requestError) {
-      const status = (requestError as Partial<ApiRequestError>)?.status;
+      const apiError = requestError as Partial<ApiRequestError>;
+      const status = apiError?.status;
+      const code = typeof apiError?.details?.code === "string" ? apiError.details.code : undefined;
+      if (status === 403 && code === "email_verification_required") {
+        setError("Clerk could not confirm your email verification. Verify it or sign out and back in after updating the JWT template.");
+        setBusy(false);
+        return;
+      }
+      if (status === 403 && code === "stripe_test_mode_required") {
+        setError("Stripe test-mode billing is not enabled on the backend.");
+        setBusy(false);
+        return;
+      }
       setError(status === 403 ? "Pro Checkout is not enabled for this environment." : status === 409 ? "You already have Pro access. Manage it from Account → Billing." : status === 429 ? "Please wait before trying Checkout again." : "Checkout is unavailable right now.");
       setBusy(false);
     }

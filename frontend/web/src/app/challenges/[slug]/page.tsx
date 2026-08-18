@@ -3,5 +3,5 @@ import { ChallengeDetail } from "@/features/challenges/challenge-detail";
 
 export default async function ChallengeDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  return <AppShell><section className="mx-auto w-full max-w-6xl"><ChallengeDetail slug={slug} /></section></AppShell>;
+  return <AppShell><section className="mx-auto w-full max-w-[1312px]"><ChallengeDetail slug={slug} /></section></AppShell>;
 }

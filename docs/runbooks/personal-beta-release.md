@@ -1,11 +1,10 @@
 # Personal-Beta Release Runbook
 
-Use this runbook only for the public, Free-only personal beta. It is a best-effort release, not a commercial launch. Record completed checks by release version and ISO date in the deployment record; do not place credentials, full Workspace content, email addresses, or dashboard links in that record.
+Use this runbook only for the public personal beta with Stripe test-mode billing. It is a best-effort release, not a commercial launch. Record completed checks by release version and ISO date in the deployment record; do not place credentials, full Workspace content, email addresses, or dashboard links in that record.
 
 ## Release Boundary
 
-- Every ordinary participant remains on the Free Plan. The product makes no promise of paid Pro access.
-- Stripe is test mode only. Keep `STRIPE_TEST_PRO_ENABLED=false` and `STRIPE_ALLOW_ALL_TEST_USERS=false` for the public beta. A separately controlled synthetic Clerk subject may exercise test Checkout only when both are explicitly enabled in a non-public environment.
+- Stripe is test mode only. Set `STRIPE_TEST_PRO_ENABLED=true` and `STRIPE_ALLOW_ALL_TEST_USERS=true` with a `sk_test_` key so verified beta users may exercise Pro Checkout. No real payment is collected.
 - The beta is disposable. Disclose that there is no data-recovery, backup-deletion, RPO, or RTO guarantee before registration and at account/billing boundaries.
 - AI processing requires current consent, an email-verified Clerk identity, an eligible non-retaining provider route, plan quotas, request controls, and the global USD 0.10 UTC daily stop.
 
@@ -19,8 +18,8 @@ Before deploying, verify managed-secret configuration without printing secret va
 | `REDIS_URL` | Reachable disposable Redis instance used for rate limits and short-lived concurrency leases; never use it for product state. |
 | `OPENROUTER_API_KEY` | Present only in the backend secret store. |
 | `STRIPE_SECRET_KEY` | A test-mode key (`sk_test_…`) or billing disabled; never a live key. |
-| `STRIPE_TEST_PRO_ENABLED` | `false` for the public beta. |
-| `STRIPE_ALLOW_ALL_TEST_USERS` | `false`. |
+| `STRIPE_TEST_PRO_ENABLED` | `true` for the personal beta test-billing environment. |
+| `STRIPE_ALLOW_ALL_TEST_USERS` | `true`; backend still requires a `sk_test_` key. |
 | Clerk issuer, audience, authorized party, and JWK URL | Match the deployed Clerk instance and the public frontend origin. |
 | `APP_CORS_ALLOWED_ORIGINS` | Exact deployed frontend origin only; no wildcard. |
 | Review queue names and worker flags | Durable processing queue and distinct dead-letter queue configured. |
@@ -36,7 +35,7 @@ Run this with a disposable Clerk test User and Stripe test data after deployment
 3. Grant AI Processing Consent, send one Copilot request, submit one Review, and verify the Review reaches a terminal result or a recoverable failure state without exposing private content in browser errors.
 4. Withdraw consent and verify later AI operations are blocked; restore consent only through the explicit consent action.
 5. Exercise the configured per-User/origin rate and concurrency boundaries with harmless requests. Confirm the response is a retryable `429` problem rather than a successful bypass.
-6. Confirm an ordinary public-beta User sees the test-mode/beta billing disclosure and cannot start Checkout or gain Pro access. If an isolated non-public test subject is configured, verify Checkout returns pending until a verified test webhook projection is processed.
+6. Confirm a verified beta User sees the test-mode billing disclosure, starts Checkout, completes it with Stripe test data, and receives Pro only after the verified webhook or checkout reconciliation updates the subscription projection.
 7. Fill the daily AI cap in an isolated environment or use an approved test fixture. The next AI operation must fail before provider invocation with `ai_daily_budget_reached`; it remains unavailable until the next UTC day.
 8. Force a provider refusal or outage and a review-worker retry. Confirm terminal status, retry/dead-letter handling, and safe User-facing recovery guidance.
 

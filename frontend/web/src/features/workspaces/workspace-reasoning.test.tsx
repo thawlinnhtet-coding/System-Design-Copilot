@@ -32,10 +32,30 @@ describe("WorkspaceReasoning", () => {
     render(<WorkspaceReasoning workspaceId="workspace-1" />);
 
     expect(await screen.findByRole("heading", { name: "What must this system do?" })).toBeVisible();
+    expect(screen.getByRole("navigation", { name: "Reasoning actions" })).toBeVisible();
+    expect(screen.getByText("HOW TO USE CLARIFY")).toBeVisible();
+    expect(screen.getByText("You do not need to know the architecture yet. Plain language is enough.")).toBeVisible();
+    expect(screen.getByRole("link", { name: "+ Requirement" })).toHaveAttribute("href", "#requirements");
+    expect(screen.getByRole("textbox", { name: "Requirement statement" })).toHaveAttribute("placeholder", "e.g. Users can disable promotional notifications.");
+    expect(screen.getAllByText("Optional context")).toHaveLength(2);
+    expect(screen.getByText("Optional")).toBeVisible();
+    expect(screen.getByText("Assumptions and estimates · optional")).toBeVisible();
+    expect(screen.getByText("Decision log opens in Design, after you compare architecture options and trade-offs.")).toBeVisible();
+    expect(screen.queryByRole("button", { name: "Add decision" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Save Review Brief" })).not.toBeInTheDocument();
+    expect(screen.getByLabelText("Reasoning save status")).toHaveTextContent("0 unresolved questions / 0 validation errors");
     fireEvent.change(screen.getByRole("textbox", { name: "Requirement statement" }), { target: { value: "Keep reads fast" } });
     fireEvent.click(screen.getByRole("button", { name: "Add requirement" }));
 
     await waitFor(() => expect(api.createRequirement).toHaveBeenCalledWith("workspace-1", expect.objectContaining({ statement: "Keep reads fast", kind: "FUNCTIONAL", priority: "MUST", status: "OPEN" })));
+  });
+
+  it("explains that curated requirements are a distilled checklist", async () => {
+    render(<WorkspaceReasoning curatedChallenge workspaceId="workspace-1" />);
+
+    expect(await screen.findByText("Your design checklist")).toBeVisible();
+    expect(screen.getByText("Capture the important functional and quality needs you derive from the challenge brief. You do not need to repeat every detail.")).toBeVisible();
+    expect(screen.getByText("No requirements yet. Start with the most important promise in the challenge brief.")).toBeVisible();
   });
 
   it("requires and saves an editable Review Brief for an Architecture Review Workspace", async () => {

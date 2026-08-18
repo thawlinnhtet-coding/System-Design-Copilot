@@ -113,7 +113,7 @@ describe("AccountDetail", () => {
     expect(await screen.findByRole("button", { name: "Revoke consent" })).toBeVisible();
   });
 
-  it("keeps ordinary personal-beta users on Free without offering paid checkout", async () => {
+	it("keeps Pro Checkout disabled when the backend test-billing gate is off", async () => {
     api.getUsage.mockResolvedValue({
       plan: "FREE",
       activeWorkspaces: { used: 10, limit: 10 },
@@ -126,7 +126,7 @@ describe("AccountDetail", () => {
 
     expect(await screen.findByText("Free personal beta")).toBeVisible();
     expect(screen.getByRole("button", { name: "Upgrade unavailable in beta" })).toBeDisabled();
-    expect(screen.getByText(/ordinary personal-beta accounts cannot activate paid Pro access/i)).toBeVisible();
+		expect(screen.getByText(/test-mode Pro billing is not enabled in this environment/i)).toBeVisible();
   });
 
   it("shows Pro access through the paid-through date when cancellation is scheduled", async () => {

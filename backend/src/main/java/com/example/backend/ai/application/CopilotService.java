@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.UUID;
+import reactor.core.publisher.Flux;
 
 @Service
 public class CopilotService {
@@ -32,6 +33,19 @@ public class CopilotService {
 		var result = operations.invoke(clientTurnId, userId, AiProfile.COPILOT, contextAssembler.assemble(userId, workspaceId, question), ESTIMATED_COST_USD, PROMPT_VERSION);
 		entitlements.recordAcceptedCopilotTurn(userId, result.operationId());
 		return new CopilotTurn(result.operationId(), result.content(), result.model(), false);
+	}
+
+	@Transactional
+	public Flux<AiOperationService.AiStreamChunk> stream(UUID userId, UUID workspaceId, UUID clientTurnId, String question) {
+		workspaces.requireEditable(userId, workspaceId);
+		var existing = operations.accepted(clientTurnId, userId, workspaceId, AiProfile.COPILOT);
+		if (existing != null) {
+			return Flux.fromArray(existing.content().split("(?<=\\s)", -1)).filter(part -> !part.isBlank()).map(part -> new AiOperationService.AiStreamChunk(existing.operationId(), part, existing.model()));
+		}
+		var allowance = entitlements.currentEntitlements(userId).copilotTurns();
+		if (allowance.limit() != null && allowance.used() >= allowance.limit()) throw new QuotaExceededException("copilot_turns");
+		return operations.stream(clientTurnId, userId, AiProfile.COPILOT, contextAssembler.assemble(userId, workspaceId, question), ESTIMATED_COST_USD, PROMPT_VERSION)
+				.doOnComplete(() -> entitlements.recordAcceptedCopilotTurn(userId, clientTurnId));
 	}
 
 	public record CopilotTurn(UUID id, String content, String model, boolean replayed) { }

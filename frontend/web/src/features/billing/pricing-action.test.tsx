@@ -49,14 +49,14 @@ describe("PricingAction", () => {
     expect(await screen.findByRole("alert")).toHaveTextContent("already have Pro access");
   });
 
-  it("does not present paid checkout to ordinary personal-beta users", async () => {
+	it("does not present checkout when the backend test-billing gate is off", async () => {
     session.isSignedIn = true;
     api.getUsage.mockResolvedValue({ plan: "FREE", billing: { status: "FREE_BETA", checkoutAvailable: false } });
 
     renderWithProviders(<PricingAction pro />);
 
     expect(await screen.findByRole("button", { name: "Upgrade unavailable in beta" })).toBeDisabled();
-    expect(screen.getByRole("status")).toHaveTextContent("Ordinary personal-beta accounts stay on Free");
+		expect(screen.getByRole("status")).toHaveTextContent("Test-mode Pro billing is not enabled in this environment");
     expect(api.startCheckout).not.toHaveBeenCalled();
   });
 });

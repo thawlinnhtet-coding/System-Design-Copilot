@@ -47,6 +47,7 @@ export function ReviewExperience({ adapter = {}, workspaceId, readOnly = false }
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setSubmitting] = useState(false);
   const [isRetrying, setRetrying] = useState(false);
+  const [requirementsCount, setRequirementsCount] = useState<number | null>(null);
 
   useEffect(() => {
     if (!workspaceId) return;
@@ -55,6 +56,12 @@ export function ReviewExperience({ adapter = {}, workspaceId, readOnly = false }
       .then((items) => { if (active) { setError(null); setRemote(items.map(toView)); setLoading(false); } })
       .catch(() => { if (active) { setError("Review history could not be loaded. Your Workspace is unchanged."); setLoading(false); } });
     return () => { active = false; };
+  }, [api, workspaceId]);
+  useEffect(() => {
+    if (!workspaceId) return;
+    void api.getReasoning(workspaceId)
+      .then((reasoning) => setRequirementsCount(reasoning.requirements.length))
+      .catch(() => setRequirementsCount(null));
   }, [api, workspaceId]);
   const currentRemote = useMemo(() => remote[0], [remote]);
   useEffect(() => {
@@ -90,7 +97,7 @@ export function ReviewExperience({ adapter = {}, workspaceId, readOnly = false }
   const activeAdapter: ReviewExperienceAdapter = { ...adapter, current: review, history: adapter.history ?? remote.slice(1), onRetry: adapter.onRetry ?? (workspaceId ? (id) => void retry(id) : undefined), onCarryFinding: adapter.onCarryFinding ?? (workspaceId ? copyFinding : undefined) };
 
   if (!review && !workspaceId) return <ReviewIntegrationGap />;
-  if (!review) return <ReviewSubmissionState loading={loading} readOnly={readOnly} submitting={isSubmitting} error={error} onSubmit={() => void submit()} />;
+  if (!review) return <ReviewSubmissionState loading={loading} missingRequirements={requirementsCount === 0} readOnly={readOnly} submitting={isSubmitting} error={error} onSubmit={() => void submit()} />;
 
   return <section aria-label="Architecture Review" className="max-w-5xl">
     <header className="border-b border-line pb-7">
@@ -112,11 +119,12 @@ function ReviewIntegrationGap() {
   return <section aria-label="Review processing unavailable" className="max-w-3xl border-y border-line py-10"><p className="font-mono text-[10px] uppercase tracking-[0.16em] text-text-muted">REVIEW / WAITING FOR PROCESSING</p><h2 className="mt-3 font-display text-3xl font-semibold">Prepare the evidence; keep practicing.</h2><p className="mt-3 max-w-2xl text-sm leading-6 text-text-muted">Review processing is connected from the Workspace review stage.</p><button className="mt-6 inline-flex min-h-11 cursor-not-allowed items-center border border-line px-4 text-sm font-semibold text-text-muted" disabled type="button">Open a Workspace to request Review</button></section>;
 }
 
-function ReviewSubmissionState({ loading, readOnly, submitting, error, onSubmit }: { loading: boolean; readOnly: boolean; submitting: boolean; error: string | null; onSubmit: () => void }) {
+function ReviewSubmissionState({ loading, missingRequirements, readOnly, submitting, error, onSubmit }: { loading: boolean; missingRequirements: boolean; readOnly: boolean; submitting: boolean; error: string | null; onSubmit: () => void }) {
   return <section aria-label="Review processing unavailable" className="max-w-3xl border-y border-line py-10">
     <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-signal">REVIEW / IMMUTABLE CHECKPOINT</p>
     <h2 className="mt-3 font-display text-3xl font-semibold">Ask for feedback on this revision.</h2>
     <p className="mt-3 max-w-2xl text-sm leading-6 text-text-muted">Submitting records an immutable Architecture Revision. You can continue practicing while the Review is queued and processed.</p>
+    {missingRequirements ? <p className="mt-4 border-l-2 border-scenario pl-4 text-sm text-scenario" role="status">No requirements captured yet. Your design may be more difficult to evaluate, but you can still request a Review.</p> : null}
     {error ? <p className="mt-4 text-sm text-danger" role="alert">{error}</p> : null}
     <button className="mt-6 inline-flex min-h-11 items-center border border-signal bg-signal px-4 text-sm font-semibold text-text-on-dark disabled:opacity-50" disabled={loading || readOnly || submitting} onClick={onSubmit} type="button">{loading ? "Loading Reviews..." : submitting ? "Creating checkpoint..." : readOnly ? "Restore Workspace to request Review" : "Request Review"}</button>
   </section>;

@@ -94,7 +94,7 @@ export function BillingOverview() {
                 <button className={`${buttonClassName} bg-signal text-text-on-dark hover:brightness-110`} disabled={busyAction !== null || !checkoutAvailable || !emailVerified} onClick={startCheckout} type="button">
                   {busyAction === "checkout" ? <RefreshCw aria-hidden="true" className="animate-spin" size={16} /> : null} {checkoutAvailable ? "Upgrade to Pro" : "Upgrade unavailable in beta"} {checkoutAvailable ? <ArrowUpRight aria-hidden="true" size={16} /> : null}
                 </button>
-                <p className="text-xs text-text-muted">{!emailVerified ? "Verify email ownership before changing billing." : checkoutAvailable ? "Configured test account only; eligibility is enforced by the backend." : "Ordinary personal-beta accounts stay on Free."}</p>
+                <p className="text-xs text-text-muted">{!emailVerified ? "Verify email ownership before changing billing." : checkoutAvailable ? "Personal-beta test billing is available; eligibility is enforced by the backend." : "Test-mode Pro billing is not enabled in this environment."}</p>
               </div>
             )}
           </div>
@@ -118,7 +118,7 @@ export function BillingOverview() {
 
       <section className="rounded-lg border border-warning/30 bg-warning/10 p-5 text-sm leading-6 text-foreground">
         <p className="font-semibold">Personal beta billing boundary</p>
-        <p className="mt-1 text-text-muted">Stripe stays in test mode during the public Free beta. Ordinary beta participants remain on Free; a failed or unavailable upgrade never hides or deletes your work.</p>
+        <p className="mt-1 text-text-muted">Stripe stays in test mode during the personal beta, so no real payment is collected. A failed or unavailable upgrade never hides or deletes your work.</p>
       </section>
     </div>
   );
