@@ -23,9 +23,9 @@ describe("CopilotPanel", () => {
     renderWithProviders(<CopilotPanel readOnly={false} workspaceId="workspace-1" />);
     expect(await screen.findByText(/Excluded: credentials, tokens, passwords/)).toBeInTheDocument();
     fireEvent.change(screen.getByRole("textbox", { name: "Ask Copilot" }), { target: { value: "Should I use a cache?" } });
-    fireEvent.click(screen.getByRole("button", { name: "Ask Copilot" }));
+    fireEvent.click(screen.getByRole("button", { name: "Send message" }));
     await waitFor(() => expect(api.streamCopilot).toHaveBeenCalledWith("workspace-1", expect.objectContaining({ question: "Should I use a cache?" }), expect.any(Function)));
-    expect(await screen.findByLabelText("Copilot response")).toHaveTextContent("Inspect cache invalidation");
+    expect(await screen.findByLabelText(/Copilot response/)).toHaveTextContent("Inspect cache invalidation");
     expect(screen.queryByText("TRY ASKING")).not.toBeInTheDocument();
   });
 
@@ -39,7 +39,7 @@ describe("CopilotPanel", () => {
     renderWithProviders(<CopilotPanel readOnly={false} workspaceId="workspace-1" />);
     expect(await screen.findByText(/Excluded: credentials, tokens, passwords/)).toBeInTheDocument();
     fireEvent.change(screen.getByRole("textbox", { name: "Ask Copilot" }), { target: { value: "How should retries behave?" } });
-    fireEvent.click(screen.getByRole("button", { name: "Ask Copilot" }));
+    fireEvent.click(screen.getByRole("button", { name: "Send message" }));
     expect(await screen.findByText("Use bounded retries.")).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: "Add as requirement" }));

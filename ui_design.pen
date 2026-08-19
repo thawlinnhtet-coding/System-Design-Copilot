@@ -12147,7 +12147,7 @@
                   "fill": "$ink-muted",
                   "textGrowth": "fixed-width",
                   "width": "fill_container",
-                  "content": "Start with the brief, write one requirement in plain language, then add an assumption or question only if it changes the design.",
+                  "content": "Start with the brief, write your design checklist, then capture assumptions and open questions before moving to Design.",
                   "lineHeight": 1.5,
                   "fontFamily": "$font-body",
                   "fontSize": 14,
@@ -12553,9 +12553,9 @@
                     {
                       "type": "text",
                       "id": "v9IV3",
-              "name": "Inspector Tab",
-              "fill": "$action",
-              "content": "Inspector",
+                      "name": "Inspector Tab",
+                      "fill": "$action",
+                      "content": "Inspector",
                       "lineHeight": 1.3,
                       "fontFamily": "$font-body",
                       "fontSize": 12,
@@ -12564,9 +12564,9 @@
                     {
                       "type": "text",
                       "id": "je7u6",
-              "name": "Copilot Tab",
-              "fill": "$ink-muted",
-              "content": "Copilot",
+                      "name": "Copilot Tab",
+                      "fill": "$ink-muted",
+                      "content": "Copilot",
                       "lineHeight": 1.3,
                       "fontFamily": "$font-body",
                       "fontSize": 12,
@@ -40998,7 +40998,7 @@
                       "id": "isofQ",
                       "name": "Details Panel Tab",
                       "fill": "$action",
-                      "content": "Details",
+                      "content": "Inspector",
                       "lineHeight": 1.4,
                       "fontFamily": "$font-body",
                       "fontSize": 12,
@@ -41009,7 +41009,7 @@
                       "id": "wIxPW",
                       "name": "Copilot Panel Tab",
                       "fill": "$ink-muted",
-                  "content": "Copilot",
+                      "content": "Copilot",
                       "lineHeight": 1.4,
                       "fontFamily": "$font-body",
                       "fontSize": 12,
@@ -41303,7 +41303,7 @@
                   "fill": "$ink-muted",
                   "textGrowth": "fixed-width",
                   "width": "fill_container",
-              "content": "When closed: Copilot remains a quiet entry point; the document returns to full width.",
+                  "content": "When closed: Copilot remains a quiet entry point; the document returns to full width.",
                   "lineHeight": 1.4,
                   "fontFamily": "$font-mono",
                   "fontSize": 10,
@@ -64066,7 +64066,7 @@
               "fill": "$ink-muted",
               "textGrowth": "fixed-width",
               "width": "fill_container",
-              "content": "Start with the brief, write one requirement in plain language, then add an assumption or question only if it changes the design.",
+              "content": "Turn the brief into Requirements, Assumptions, estimates, and unresolved questions.",
               "lineHeight": 1.5,
               "fontFamily": "$font-body",
               "fontSize": 14,
@@ -64101,7 +64101,7 @@
               "id": "H10WU",
               "name": "Mobile Requirements Label",
               "fill": "$ink-muted",
-              "content": "YOUR DESIGN CHECKLIST",
+              "content": "REQUIREMENTS",
               "lineHeight": 1.35,
               "fontFamily": "$font-mono",
               "fontSize": 11,
@@ -76795,6 +76795,2284 @@
                       "fontFamily": "$font-body",
                       "fontSize": 13,
                       "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "H2uGiG",
+      "x": 3080,
+      "y": 5704,
+      "name": "Workspace — Clarify / Copilot Expanded",
+      "clip": true,
+      "width": 1440,
+      "height": 1024,
+      "fill": "$paper",
+      "layout": "vertical",
+      "children": [
+        {
+          "type": "frame",
+          "id": "yJDkK",
+          "name": "Workspace Global Navigation",
+          "width": "fill_container",
+          "height": 56,
+          "fill": "$nav-graphite",
+          "stroke": "$nav-line",
+          "strokeWidth": {
+            "bottom": 1
+          },
+          "padding": [
+            0,
+            28
+          ],
+          "justifyContent": "space_between",
+          "alignItems": "center",
+          "children": [
+            {
+              "id": "I7n0h",
+              "type": "ref",
+              "ref": "EnwHq",
+              "name": "Product Logo Inverse Lockup",
+              "width": 238,
+              "height": 38,
+              "padding": 0,
+              "fill": "#00000000",
+              "stroke": "#00000000",
+              "strokeWidth": 0
+            },
+            {
+              "type": "text",
+              "id": "TnHmJ",
+              "x": 28,
+              "y": 17.5,
+              "name": "Workspace Wordmark",
+              "enabled": false,
+              "fill": "$ink-dark",
+              "content": "◆  System Design Copilot",
+              "lineHeight": 1.3,
+              "fontFamily": "$font-display",
+              "fontSize": 15,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "frame",
+              "id": "WBeNI",
+              "name": "Workspace Global Links",
+              "gap": 28,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "nIi46",
+                  "name": "Practice Global Link",
+                  "fill": "$ink-dark-muted",
+                  "content": "Practice",
+                  "lineHeight": 1.3,
+                  "fontFamily": "$font-body",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "zJeHW",
+                  "name": "Challenges Global Link",
+                  "fill": "$ink-dark-muted",
+                  "content": "Challenges",
+                  "lineHeight": 1.3,
+                  "fontFamily": "$font-body",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "agjMW",
+                  "name": "Progress Global Link",
+                  "fill": "$ink-dark-muted",
+                  "content": "Progress",
+                  "lineHeight": 1.3,
+                  "fontFamily": "$font-body",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "id": "zsLNl",
+              "x": 1334,
+              "y": 21.5,
+              "name": "Workspace Beta Mark",
+              "enabled": false,
+              "fill": "$scenario",
+              "content": "PERSONAL BETA",
+              "lineHeight": 1.3,
+              "fontFamily": "$font-mono",
+              "fontSize": 11,
+              "fontWeight": "normal"
+            },
+            {
+              "id": "v0tYLS",
+              "type": "ref",
+              "ref": "qvZfh",
+              "name": "Account Menu Control",
+              "width": 184,
+              "height": 40,
+              "padding": [
+                4,
+                8
+              ],
+              "fill": "#00000000",
+              "stroke": "#00000000",
+              "strokeWidth": 0
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "c64Gv",
+          "name": "Workspace Header",
+          "width": "fill_container",
+          "height": 58,
+          "fill": "$paper-raised",
+          "stroke": "$line",
+          "strokeWidth": {
+            "bottom": 1
+          },
+          "padding": [
+            0,
+            28
+          ],
+          "justifyContent": "space_between",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "XIigp",
+              "name": "Workspace Identity",
+              "gap": 14,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "lzRbC",
+                  "name": "Workspace Name",
+                  "fill": "$ink",
+                  "content": "Reliable notification platform",
+                  "lineHeight": 1.3,
+                  "fontFamily": "$font-display",
+                  "fontSize": 17,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "s0ymw",
+                  "name": "Workspace Type",
+                  "fill": "$ink-muted",
+                  "content": "CHALLENGE WORKSPACE",
+                  "lineHeight": 1.3,
+                  "fontFamily": "$font-mono",
+                  "fontSize": 11,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "id": "VHVrW",
+              "name": "Save State",
+              "fill": "$ink-muted",
+              "content": "SAVED  ·  REVISION 04",
+              "lineHeight": 1.3,
+              "fontFamily": "$font-mono",
+              "fontSize": 11,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "rnTWU",
+          "name": "Workspace Body",
+          "width": "fill_container",
+          "height": "fill_container",
+          "children": [
+            {
+              "type": "frame",
+              "id": "sdNZT",
+              "name": "Practice Loop Rail",
+              "width": 176,
+              "height": "fill_container",
+              "fill": "$nav-graphite",
+              "stroke": "$nav-line",
+              "strokeWidth": {
+                "right": 1
+              },
+              "layout": "vertical",
+              "gap": 16,
+              "padding": [
+                24,
+                14
+              ],
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "JsWxi",
+                  "name": "Practice Loop Header",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 6,
+                  "padding": [
+                    0,
+                    8
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "nh7Dd",
+                      "name": "Practice Loop Eyebrow",
+                      "fill": "$ink-dark-muted",
+                      "content": "PRACTICE LOOP",
+                      "lineHeight": 1.3,
+                      "fontFamily": "$font-mono",
+                      "fontSize": 10,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "bdClb",
+                      "name": "Practice Loop Heading",
+                      "fill": "$ink-dark",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "From question to evidence",
+                      "lineHeight": 1.15,
+                      "fontFamily": "$font-display",
+                      "fontSize": 16,
+                      "fontWeight": "500"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "j7L2L",
+                  "name": "Clarify Practice Loop Step",
+                  "width": "fill_container",
+                  "height": 88,
+                  "fill": "#29413C",
+                  "cornerRadius": 4,
+                  "stroke": "$action",
+                  "strokeWidth": 1,
+                  "gap": 10,
+                  "padding": [
+                    10,
+                    8
+                  ],
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "VX9b6",
+                      "name": "Clarify Stage Marker",
+                      "width": 28,
+                      "height": "fill_container",
+                      "layout": "vertical",
+                      "gap": 5,
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "tounH",
+                          "name": "Clarify Stage Circle",
+                          "width": 28,
+                          "height": 28,
+                          "fill": "$action-subtle",
+                          "cornerRadius": 14,
+                          "stroke": "$action",
+                          "strokeWidth": 1,
+                          "justifyContent": "center",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "Jernl",
+                              "name": "Clarify Stage Number",
+                              "fill": "$action",
+                              "content": "01",
+                              "lineHeight": 1.3,
+                              "fontFamily": "$font-mono",
+                              "fontSize": 9,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "rectangle",
+                          "id": "IC853",
+                          "name": "Clarify Connector",
+                          "fill": "#4B5652",
+                          "width": 2,
+                          "height": 35
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "KjgPh",
+                      "name": "Clarify Stage Copy",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 4,
+                      "padding": [
+                        3,
+                        0
+                      ],
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "aho8i",
+                          "name": "Clarify Stage Name",
+                          "fill": "$ink-dark",
+                          "content": "Clarify",
+                          "lineHeight": 1.3,
+                          "fontFamily": "$font-body",
+                          "fontSize": 13,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "text",
+                          "id": "Y7woRh",
+                          "name": "Clarify Stage Description",
+                          "fill": "$ink-dark-muted",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "Make needs explicit",
+                          "lineHeight": 1.3,
+                          "fontFamily": "$font-body",
+                          "fontSize": 10,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "SzILN",
+                  "name": "Design Practice Loop Step",
+                  "width": "fill_container",
+                  "height": 88,
+                  "fill": "$nav-graphite",
+                  "cornerRadius": 4,
+                  "stroke": "#00000000",
+                  "strokeWidth": 1,
+                  "gap": 10,
+                  "padding": [
+                    10,
+                    8
+                  ],
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "Yjwyw",
+                      "name": "Design Stage Marker",
+                      "width": 28,
+                      "height": "fill_container",
+                      "layout": "vertical",
+                      "gap": 5,
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "hJVcy",
+                          "name": "Design Stage Circle",
+                          "width": 28,
+                          "height": 28,
+                          "fill": "#29302E",
+                          "cornerRadius": 14,
+                          "stroke": "#66706C",
+                          "strokeWidth": 1,
+                          "justifyContent": "center",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "lWYY3",
+                              "name": "Design Stage Number",
+                              "fill": "$ink-dark-muted",
+                              "content": "02",
+                              "lineHeight": 1.3,
+                              "fontFamily": "$font-mono",
+                              "fontSize": 9,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "rectangle",
+                          "id": "nLZLx",
+                          "name": "Design Connector",
+                          "fill": "#4B5652",
+                          "width": 2,
+                          "height": 35
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "wRC9u",
+                      "name": "Design Stage Copy",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 4,
+                      "padding": [
+                        3,
+                        0
+                      ],
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "oysxB",
+                          "name": "Design Stage Name",
+                          "fill": "$ink-dark-muted",
+                          "content": "Design",
+                          "lineHeight": 1.3,
+                          "fontFamily": "$font-body",
+                          "fontSize": 13,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "text",
+                          "id": "iERUo",
+                          "name": "Design Stage Description",
+                          "fill": "#7F8985",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "Connect responsibilities",
+                          "lineHeight": 1.3,
+                          "fontFamily": "$font-body",
+                          "fontSize": 10,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "r36MqF",
+                  "name": "Stress-test Practice Loop Step",
+                  "width": "fill_container",
+                  "height": 88,
+                  "fill": "$nav-graphite",
+                  "cornerRadius": 4,
+                  "stroke": "#00000000",
+                  "strokeWidth": 1,
+                  "gap": 10,
+                  "padding": [
+                    10,
+                    8
+                  ],
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "C9zc3u",
+                      "name": "Stress-test Stage Marker",
+                      "width": 28,
+                      "height": "fill_container",
+                      "layout": "vertical",
+                      "gap": 5,
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "bZmqU",
+                          "name": "Stress-test Stage Circle",
+                          "width": 28,
+                          "height": 28,
+                          "fill": "#29302E",
+                          "cornerRadius": 14,
+                          "stroke": "#66706C",
+                          "strokeWidth": 1,
+                          "justifyContent": "center",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "zcfFd",
+                              "name": "Stress-test Stage Number",
+                              "fill": "$ink-dark-muted",
+                              "content": "03",
+                              "lineHeight": 1.3,
+                              "fontFamily": "$font-mono",
+                              "fontSize": 9,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "rectangle",
+                          "id": "wVEOE",
+                          "name": "Stress-test Connector",
+                          "fill": "#4B5652",
+                          "width": 2,
+                          "height": 35
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "fx0ME",
+                      "name": "Stress-test Stage Copy",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 4,
+                      "padding": [
+                        3,
+                        0
+                      ],
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "zb6In",
+                          "name": "Stress-test Stage Name",
+                          "fill": "$ink-dark-muted",
+                          "content": "Stress-test",
+                          "lineHeight": 1.3,
+                          "fontFamily": "$font-body",
+                          "fontSize": 13,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "text",
+                          "id": "HNVOm",
+                          "name": "Stress-test Stage Description",
+                          "fill": "#7F8985",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "Change the conditions",
+                          "lineHeight": 1.3,
+                          "fontFamily": "$font-body",
+                          "fontSize": 10,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "snflx",
+                  "name": "Review Practice Loop Step",
+                  "width": "fill_container",
+                  "height": 88,
+                  "fill": "$nav-graphite",
+                  "cornerRadius": 4,
+                  "stroke": "#00000000",
+                  "strokeWidth": 1,
+                  "gap": 10,
+                  "padding": [
+                    10,
+                    8
+                  ],
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "BWRMZ",
+                      "name": "Review Stage Marker",
+                      "width": 28,
+                      "height": "fill_container",
+                      "layout": "vertical",
+                      "gap": 5,
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "JUiQP",
+                          "name": "Review Stage Circle",
+                          "width": 28,
+                          "height": 28,
+                          "fill": "#29302E",
+                          "cornerRadius": 14,
+                          "stroke": "#66706C",
+                          "strokeWidth": 1,
+                          "justifyContent": "center",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "NomQD",
+                              "name": "Review Stage Number",
+                              "fill": "$ink-dark-muted",
+                              "content": "04",
+                              "lineHeight": 1.3,
+                              "fontFamily": "$font-mono",
+                              "fontSize": 9,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "K7FSz",
+                      "name": "Review Stage Copy",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 4,
+                      "padding": [
+                        3,
+                        0
+                      ],
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "BNCuV",
+                          "name": "Review Stage Name",
+                          "fill": "$ink-dark-muted",
+                          "content": "Review",
+                          "lineHeight": 1.3,
+                          "fontFamily": "$font-body",
+                          "fontSize": 13,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "text",
+                          "id": "Njc4I",
+                          "name": "Review Stage Description",
+                          "fill": "#7F8985",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "Inspect the evidence",
+                          "lineHeight": 1.3,
+                          "fontFamily": "$font-body",
+                          "fontSize": 10,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "UGiqT",
+                  "name": "Practice Loop Progress",
+                  "width": "fill_container",
+                  "stroke": "$nav-line",
+                  "strokeWidth": {
+                    "top": 1
+                  },
+                  "layout": "vertical",
+                  "gap": 7,
+                  "padding": [
+                    14,
+                    8
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "l3htiN",
+                      "name": "Practice Loop Progress Label",
+                      "fill": "$ink-dark-muted",
+                      "content": "CURRENT POSITION",
+                      "lineHeight": 1.3,
+                      "fontFamily": "$font-mono",
+                      "fontSize": 9,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "GZtM3",
+                      "name": "Practice Loop Progress Value",
+                      "fill": "$action",
+                      "content": "1 of 4 · Clarify",
+                      "lineHeight": 1.3,
+                      "fontFamily": "$font-body",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "SK4ZT",
+                      "name": "Practice Loop Progress Track",
+                      "width": "fill_container",
+                      "height": 4,
+                      "fill": "#3A4541",
+                      "cornerRadius": 2,
+                      "children": [
+                        {
+                          "type": "rectangle",
+                          "cornerRadius": 2,
+                          "id": "M6rFz",
+                          "name": "Practice Loop Progress Fill",
+                          "fill": "$action",
+                          "width": 30,
+                          "height": 4
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "aFP94",
+              "name": "Clarify Primary Artifact",
+              "width": "fill_container",
+              "fill": "$paper",
+              "layout": "vertical",
+              "gap": 18,
+              "padding": [
+                34,
+                42
+              ],
+              "children": [
+                {
+                  "type": "text",
+                  "id": "gxBul",
+                  "name": "Clarify Artifact Eyebrow",
+                  "fill": "$action",
+                  "content": "CLARIFY / WORKSPACE DOCUMENT",
+                  "lineHeight": 1.3,
+                  "fontFamily": "$font-mono",
+                  "fontSize": 11,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "GveW7",
+                  "name": "Clarify Artifact Title",
+                  "fill": "$ink",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Make the system needs explicit.",
+                  "lineHeight": 1.08,
+                  "fontFamily": "$font-display",
+                  "fontSize": 34,
+                  "fontWeight": "500"
+                },
+                {
+                  "type": "text",
+                  "id": "H1rtut",
+                  "name": "Clarify Artifact Description",
+                  "fill": "$ink-muted",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Start with the brief, write your design checklist, then capture assumptions and open questions before moving to Design.",
+                  "lineHeight": 1.5,
+                  "fontFamily": "$font-body",
+                  "fontSize": 14,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "rectangle",
+                  "id": "gCSNR",
+                  "name": "Clarify Rule",
+                  "fill": "$line",
+                  "width": "fill_container",
+                  "height": 1
+                },
+                {
+                  "type": "text",
+                  "id": "ACbwE",
+                  "name": "Brief Section Label",
+                  "fill": "$ink-muted",
+                  "content": "CHALLENGE BRIEF",
+                  "lineHeight": 1.3,
+                  "fontFamily": "$font-mono",
+                  "fontSize": 11,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "WjSL6",
+                  "name": "Brief Text",
+                  "fill": "$ink",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Deliver transactional and product notifications across email, push, and SMS while respecting user preferences.",
+                  "lineHeight": 1.4,
+                  "fontFamily": "$font-display",
+                  "fontSize": 18,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "K4bYIl",
+                  "name": "Requirements Section Label",
+                  "fill": "$ink-muted",
+                  "content": "YOUR DESIGN CHECKLIST",
+                  "lineHeight": 1.3,
+                  "fontFamily": "$font-mono",
+                  "fontSize": 11,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "frame",
+                  "id": "j076Bi",
+                  "name": "R-01 Requirement Row",
+                  "width": "fill_container",
+                  "stroke": "$line",
+                  "strokeWidth": {
+                    "bottom": 1
+                  },
+                  "gap": 16,
+                  "padding": [
+                    12,
+                    0
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "E1pEhf",
+                      "name": "R-01 Requirement Id",
+                      "fill": "$ink-muted",
+                      "content": "R-01",
+                      "lineHeight": 1.3,
+                      "fontFamily": "$font-mono",
+                      "fontSize": 11,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "B3tDt",
+                      "name": "R-01 Requirement Text",
+                      "fill": "$ink",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Critical notifications arrive within 60 seconds.",
+                      "lineHeight": 1.3,
+                      "fontFamily": "$font-body",
+                      "fontSize": 14,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "AyGyW",
+                      "name": "R-01 Requirement Priority",
+                      "fill": "$ink-muted",
+                      "content": "MUST",
+                      "lineHeight": 1.3,
+                      "fontFamily": "$font-mono",
+                      "fontSize": 11,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "qhFuo",
+                  "name": "R-02 Requirement Row",
+                  "width": "fill_container",
+                  "stroke": "$line",
+                  "strokeWidth": {
+                    "bottom": 1
+                  },
+                  "gap": 16,
+                  "padding": [
+                    12,
+                    0
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "ZwvD5",
+                      "name": "R-02 Requirement Id",
+                      "fill": "$ink-muted",
+                      "content": "R-02",
+                      "lineHeight": 1.3,
+                      "fontFamily": "$font-mono",
+                      "fontSize": 11,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "krCHi",
+                      "name": "R-02 Requirement Text",
+                      "fill": "$ink",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Users can disable promotional channels.",
+                      "lineHeight": 1.3,
+                      "fontFamily": "$font-body",
+                      "fontSize": 14,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "Vf6A7",
+                      "name": "R-02 Requirement Priority",
+                      "fill": "$ink-muted",
+                      "content": "MUST",
+                      "lineHeight": 1.3,
+                      "fontFamily": "$font-mono",
+                      "fontSize": 11,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "hUg9q",
+                  "name": "R-03 Requirement Row",
+                  "width": "fill_container",
+                  "stroke": "$line",
+                  "strokeWidth": {
+                    "bottom": 1
+                  },
+                  "gap": 16,
+                  "padding": [
+                    12,
+                    0
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "EjCX0",
+                      "name": "R-03 Requirement Id",
+                      "fill": "$ink-muted",
+                      "content": "R-03",
+                      "lineHeight": 1.3,
+                      "fontFamily": "$font-mono",
+                      "fontSize": 11,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "wVWVE",
+                      "name": "R-03 Requirement Text",
+                      "fill": "$ink",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Provider failures must not drop accepted work.",
+                      "lineHeight": 1.3,
+                      "fontFamily": "$font-body",
+                      "fontSize": 14,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "f9B0M",
+                      "name": "R-03 Requirement Priority",
+                      "fill": "$ink-muted",
+                      "content": "SHOULD",
+                      "lineHeight": 1.3,
+                      "fontFamily": "$font-mono",
+                      "fontSize": 11,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "NCel4",
+                  "name": "Unresolved Questions Label",
+                  "fill": "$ink-muted",
+                  "content": "OPTIONAL / OPEN QUESTIONS",
+                  "lineHeight": 1.3,
+                  "fontFamily": "$font-mono",
+                  "fontSize": 11,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "q3ppo",
+                  "name": "Unresolved Question",
+                  "fill": "$action",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "What delivery guarantee does each notification class require?",
+                  "lineHeight": 1.35,
+                  "fontFamily": "$font-display",
+                  "fontSize": 17,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "frame",
+                  "id": "MpnfI",
+                  "name": "Clarify Document Actions",
+                  "width": "fill_container",
+                  "gap": 10,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "FgZvj",
+                      "name": "＋ Requirement Action",
+                      "fill": "$paper-raised",
+                      "cornerRadius": 3,
+                      "stroke": "$line",
+                      "strokeWidth": 1,
+                      "padding": [
+                        9,
+                        12
+                      ],
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "yxwuS",
+                          "name": "＋ Requirement Label",
+                          "fill": "$action",
+                          "content": "＋ Requirement",
+                          "lineHeight": 1.4,
+                          "fontFamily": "$font-body",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "m49nKm",
+                      "name": "＋ Assumption Action",
+                      "fill": "$paper-raised",
+                      "cornerRadius": 3,
+                      "stroke": "$line",
+                      "strokeWidth": 1,
+                      "padding": [
+                        9,
+                        12
+                      ],
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "d7EgON",
+                          "name": "＋ Assumption Label",
+                          "fill": "$ink",
+                          "content": "＋ Assumption",
+                          "lineHeight": 1.4,
+                          "fontFamily": "$font-body",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "bUbqM",
+                      "name": "Continue to Design Action",
+                      "fill": "$paper-raised",
+                      "cornerRadius": 3,
+                      "stroke": "$line",
+                      "strokeWidth": 1,
+                      "padding": [
+                        9,
+                        12
+                      ],
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "DJvzB",
+                          "name": "Continue to Design Label",
+                          "fill": "$ink",
+                          "content": "Continue to Design",
+                          "lineHeight": 1.4,
+                          "fontFamily": "$font-body",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "CbTvv",
+                      "name": "＋ Question Action",
+                      "fill": "$paper-raised",
+                      "cornerRadius": 3,
+                      "stroke": "$line",
+                      "strokeWidth": 1,
+                      "padding": [
+                        9,
+                        12
+                      ],
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "QQiJD",
+                          "name": "＋ Question Label",
+                          "fill": "$ink",
+                          "content": "＋ Question",
+                          "lineHeight": 1.4,
+                          "fontFamily": "$font-body",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "c351sR",
+                  "name": "Clarify Save Status",
+                  "width": "fill_container",
+                  "stroke": "$line",
+                  "strokeWidth": {
+                    "top": 1
+                  },
+                  "padding": [
+                    8,
+                    0
+                  ],
+                  "justifyContent": "space_between",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "b3ndDU",
+                      "name": "Clarify Validation Summary",
+                      "fill": "$ink-muted",
+                      "content": "1 UNRESOLVED QUESTION · 0 VALIDATION ERRORS",
+                      "lineHeight": 1.4,
+                      "fontFamily": "$font-mono",
+                      "fontSize": 11,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "OJVHS",
+                      "name": "Clarify Saved State",
+                      "fill": "$ink-muted",
+                      "content": "SAVED",
+                      "lineHeight": 1.4,
+                      "fontFamily": "$font-mono",
+                      "fontSize": 11,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "I3QNYt",
+              "name": "Expanded Copilot Panel",
+              "width": 420,
+              "height": "fill_container",
+              "fill": "$paper-raised",
+              "stroke": "$line",
+              "strokeWidth": {
+                "left": 1
+              },
+              "layout": "vertical",
+              "gap": 16,
+              "padding": 24,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "hQZ4v",
+                  "name": "Copilot Panel Tabs",
+                  "gap": 18,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "pE4Il",
+                      "name": "Inspector Tab",
+                      "fill": "$ink-muted",
+                      "content": "Inspector",
+                      "lineHeight": 1.3,
+                      "fontFamily": "$font-body",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "hR274",
+                      "name": "Copilot Tab",
+                      "fill": "$action",
+                      "content": "Copilot",
+                      "lineHeight": 1.3,
+                      "fontFamily": "$font-body",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "rectangle",
+                  "id": "YHCA4",
+                  "name": "Copilot Tabs Rule",
+                  "fill": "$line",
+                  "width": "fill_container",
+                  "height": 1
+                },
+                {
+                  "type": "text",
+                  "id": "V23mf",
+                  "name": "Copilot Panel Label",
+                  "fill": "$ink-muted",
+                  "content": "COPILOT / ADVISORY",
+                  "lineHeight": 1.3,
+                  "fontFamily": "$font-mono",
+                  "fontSize": 11,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "XphPq",
+                  "name": "Copilot Panel Heading",
+                  "fill": "$ink",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Think through one decision.",
+                  "lineHeight": 1.2,
+                  "fontFamily": "$font-display",
+                  "fontSize": 22,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "uDCAa",
+                  "name": "Copilot Panel Intro",
+                  "fill": "$ink-muted",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Ask about a requirement, trade-off, or failure mode. Copilot suggests; you decide what belongs in the document.",
+                  "lineHeight": 1.5,
+                  "fontFamily": "$font-body",
+                  "fontSize": 13,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "frame",
+                  "id": "FIdDc",
+                  "name": "Copilot Assistant Message",
+                  "width": "fill_container",
+                  "fill": "$paper",
+                  "cornerRadius": 4,
+                  "stroke": "$line",
+                  "strokeWidth": 1,
+                  "layout": "vertical",
+                  "gap": 6,
+                  "padding": 14,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "vPaP9",
+                      "name": "Assistant Message Label",
+                      "fill": "$action",
+                      "content": "COPILOT",
+                      "lineHeight": 1.3,
+                      "fontFamily": "$font-mono",
+                      "fontSize": 10,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "mrA1X",
+                      "name": "Assistant Message Copy",
+                      "fill": "$ink",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Start with the requirement you are unsure about. I can help expose a failure mode or compare two reasonable choices.",
+                      "lineHeight": 1.45,
+                      "fontFamily": "$font-body",
+                      "fontSize": 13,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "SVEji",
+                  "name": "Copilot User Message",
+                  "width": "fill_container",
+                  "fill": "$paper",
+                  "cornerRadius": 4,
+                  "stroke": "$line",
+                  "strokeWidth": 1,
+                  "layout": "vertical",
+                  "gap": 6,
+                  "padding": 14,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "d0GgP",
+                      "name": "User Message Label",
+                      "fill": "$action",
+                      "content": "YOU",
+                      "lineHeight": 1.3,
+                      "fontFamily": "$font-mono",
+                      "fontSize": 10,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "WM0Mt",
+                      "name": "User Message Copy",
+                      "fill": "$ink",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "How should retries behave when a provider times out?",
+                      "lineHeight": 1.45,
+                      "fontFamily": "$font-body",
+                      "fontSize": 13,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "popub",
+                  "name": "Suggested Prompts Label",
+                  "fill": "$ink-muted",
+                  "content": "TRY ASKING",
+                  "lineHeight": 1.3,
+                  "fontFamily": "$font-mono",
+                  "fontSize": 10,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "frame",
+                  "id": "Wtlks",
+                  "name": "Suggested Prompts",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 8,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "AO7pT",
+                      "name": "Suggested Prompt One",
+                      "width": "fill_container",
+                      "fill": "$paper",
+                      "cornerRadius": 4,
+                      "stroke": "$line",
+                      "strokeWidth": 1,
+                      "padding": 10,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "Q4f9Ei",
+                          "name": "Suggested Prompt One Copy",
+                          "fill": "$ink",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "Help me find a failure mode",
+                          "lineHeight": 1.3,
+                          "fontFamily": "$font-body",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "L0wGKr",
+                      "name": "Suggested Prompt Two",
+                      "width": "fill_container",
+                      "fill": "$paper",
+                      "cornerRadius": 4,
+                      "stroke": "$line",
+                      "strokeWidth": 1,
+                      "padding": 10,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "cn0DV",
+                          "name": "Suggested Prompt Two Copy",
+                          "fill": "$ink",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "Compare two trade-offs",
+                          "lineHeight": 1.3,
+                          "fontFamily": "$font-body",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "Y8Nm9N",
+                  "name": "Copilot Composer",
+                  "width": "fill_container",
+                  "fill": "$paper",
+                  "cornerRadius": 4,
+                  "stroke": "$line",
+                  "strokeWidth": 1,
+                  "layout": "vertical",
+                  "gap": 10,
+                  "padding": 12,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "DZ236",
+                      "name": "Composer Placeholder",
+                      "fill": "$ink-muted",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Ask about this design…",
+                      "lineHeight": 1.4,
+                      "fontFamily": "$font-body",
+                      "fontSize": 13,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "v5CsJR",
+                      "name": "Composer Send Action",
+                      "width": "fill_container",
+                      "height": 36,
+                      "fill": "$action",
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "A0ibY7",
+                          "name": "Composer Send Label",
+                          "fill": "$paper",
+                          "content": "Ask Copilot  →",
+                          "lineHeight": 1.3,
+                          "fontFamily": "$font-body",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "pLumo",
+      "x": 34183,
+      "y": 0,
+      "name": "Workspace — Clarify — Copilot Chat Prototype",
+      "clip": true,
+      "width": 1440,
+      "height": 900,
+      "fill": "#F5F2EA",
+      "children": [
+        {
+          "type": "frame",
+          "id": "byUeA",
+          "name": "Stage Sidebar",
+          "width": 178,
+          "height": "fill_container",
+          "fill": "#202A27",
+          "layout": "vertical",
+          "gap": 22,
+          "padding": 20,
+          "children": [
+            {
+              "type": "text",
+              "id": "v7kzaT",
+              "name": "Brand",
+              "fill": "#F5F2EA",
+              "content": "SYSTEM DESIGN COPILOT",
+              "fontFamily": "Inter",
+              "fontSize": 12,
+              "fontWeight": "700"
+            },
+            {
+              "type": "text",
+              "id": "fuCUl",
+              "name": "Loop Label",
+              "fill": "#9AA7A0",
+              "content": "PRACTICE LOOP",
+              "fontFamily": "Inter",
+              "fontSize": 10,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "frame",
+              "id": "KoXds",
+              "name": "Stage 01 Clarify",
+              "width": "fill_container",
+              "fill": "#31534B",
+              "cornerRadius": 3,
+              "gap": 10,
+              "padding": [
+                10,
+                8
+              ],
+              "children": [
+                {
+                  "type": "text",
+                  "id": "A2Npl3",
+                  "name": "Stage Number",
+                  "fill": "#B6F1D2",
+                  "content": "01",
+                  "fontFamily": "Inter",
+                  "fontSize": 10,
+                  "fontWeight": "700"
+                },
+                {
+                  "type": "text",
+                  "id": "PiKbb",
+                  "name": "Stage Label",
+                  "fill": "#F5F2EA",
+                  "content": "Clarify",
+                  "fontFamily": "Inter",
+                  "fontSize": 12,
+                  "fontWeight": "700"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "YfY5c",
+              "name": "Stage 02 Design",
+              "width": "fill_container",
+              "fill": "#202A27",
+              "cornerRadius": 3,
+              "gap": 10,
+              "padding": [
+                10,
+                8
+              ],
+              "children": [
+                {
+                  "type": "text",
+                  "id": "sS5YM",
+                  "name": "Stage Number",
+                  "fill": "#9AA7A0",
+                  "content": "02",
+                  "fontFamily": "Inter",
+                  "fontSize": 10,
+                  "fontWeight": "700"
+                },
+                {
+                  "type": "text",
+                  "id": "gnotV",
+                  "name": "Stage Label",
+                  "fill": "#9AA7A0",
+                  "content": "Design",
+                  "fontFamily": "Inter",
+                  "fontSize": 12
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "SkvRg",
+              "name": "Stage 03 Stress-test",
+              "width": "fill_container",
+              "fill": "#202A27",
+              "cornerRadius": 3,
+              "gap": 10,
+              "padding": [
+                10,
+                8
+              ],
+              "children": [
+                {
+                  "type": "text",
+                  "id": "IDoIw",
+                  "name": "Stage Number",
+                  "fill": "#9AA7A0",
+                  "content": "03",
+                  "fontFamily": "Inter",
+                  "fontSize": 10,
+                  "fontWeight": "700"
+                },
+                {
+                  "type": "text",
+                  "id": "nJdSt",
+                  "name": "Stage Label",
+                  "fill": "#9AA7A0",
+                  "content": "Stress-test",
+                  "fontFamily": "Inter",
+                  "fontSize": 12
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "vlgLj",
+              "name": "Stage 04 Review",
+              "width": "fill_container",
+              "fill": "#202A27",
+              "cornerRadius": 3,
+              "gap": 10,
+              "padding": [
+                10,
+                8
+              ],
+              "children": [
+                {
+                  "type": "text",
+                  "id": "d9t4L",
+                  "name": "Stage Number",
+                  "fill": "#9AA7A0",
+                  "content": "04",
+                  "fontFamily": "Inter",
+                  "fontSize": 10,
+                  "fontWeight": "700"
+                },
+                {
+                  "type": "text",
+                  "id": "s75J6",
+                  "name": "Stage Label",
+                  "fill": "#9AA7A0",
+                  "content": "Review",
+                  "fontFamily": "Inter",
+                  "fontSize": 12
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "id": "MYR6j",
+              "name": "Progress",
+              "fill": "#9AA7A0",
+              "content": "1 OF 4 STAGES",
+              "fontFamily": "Inter",
+              "fontSize": 10,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "WSDCv",
+          "name": "Workspace Content",
+          "width": 862,
+          "height": "fill_container",
+          "fill": "#F5F2EA",
+          "layout": "vertical",
+          "gap": 18,
+          "padding": [
+            30,
+            40
+          ],
+          "children": [
+            {
+              "type": "frame",
+              "id": "KU7sO",
+              "name": "Workspace Header",
+              "width": "fill_container",
+              "justifyContent": "space_between",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "Ob7RK",
+                  "name": "Workspace Title",
+                  "fill": "#202A27",
+                  "content": "Design a reliable URL shortener",
+                  "fontFamily": "Inter",
+                  "fontSize": 16,
+                  "fontWeight": "600"
+                },
+                {
+                  "type": "text",
+                  "id": "Nkgqw",
+                  "name": "Save State",
+                  "fill": "#5C6A63",
+                  "content": "✓ Saved",
+                  "fontFamily": "Inter",
+                  "fontSize": 11,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "id": "j8uWG",
+              "name": "Stage Eyebrow",
+              "fill": "#2A806A",
+              "content": "CLARIFY / WORKSPACE DOCUMENT",
+              "fontFamily": "Inter",
+              "fontSize": 10,
+              "fontWeight": "700"
+            },
+            {
+              "type": "text",
+              "id": "vLBOx",
+              "name": "Clarify Heading",
+              "fill": "#202A27",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "Make the system needs explicit.",
+              "fontFamily": "Inter",
+              "fontSize": 32,
+              "fontWeight": "600"
+            },
+            {
+              "type": "text",
+              "id": "i6P20",
+              "name": "Clarify Intro",
+              "fill": "#5C6A63",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "Turn the challenge brief into a short design checklist. Capture only the requirements that will guide your design.",
+              "fontFamily": "Inter",
+              "fontSize": 14,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "frame",
+              "id": "aOJvZ",
+              "name": "Challenge Brief",
+              "width": "fill_container",
+              "fill": "#ECE8DE",
+              "layout": "vertical",
+              "gap": 8,
+              "padding": [
+                16,
+                18
+              ],
+              "children": [
+                {
+                  "type": "text",
+                  "id": "FABTf",
+                  "name": "Brief Label",
+                  "fill": "#5C6A63",
+                  "content": "CHALLENGE BRIEF",
+                  "fontFamily": "Inter",
+                  "fontSize": 10,
+                  "fontWeight": "700"
+                },
+                {
+                  "type": "text",
+                  "id": "bRplJ",
+                  "name": "Brief Copy",
+                  "fill": "#202A27",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Keep redirects fast and durable while handling traffic growth and persistence failures.",
+                  "fontFamily": "Inter",
+                  "fontSize": 16,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "id": "uPTkj",
+              "name": "Next Action",
+              "fill": "#2A806A",
+              "content": "Next action: Make one important design requirement explicit.",
+              "fontFamily": "Inter",
+              "fontSize": 13,
+              "fontWeight": "600"
+            },
+            {
+              "type": "frame",
+              "id": "dZ7Lm",
+              "name": "Requirement Preview",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 10,
+              "padding": [
+                18,
+                0
+              ],
+              "children": [
+                {
+                  "type": "text",
+                  "id": "L2Cl3y",
+                  "name": "Checklist Label",
+                  "fill": "#5C6A63",
+                  "content": "YOUR DESIGN CHECKLIST",
+                  "fontFamily": "Inter",
+                  "fontSize": 10,
+                  "fontWeight": "700"
+                },
+                {
+                  "type": "frame",
+                  "id": "Ci8Rr",
+                  "name": "Requirement FUNCTIONAL · MUST",
+                  "width": "fill_container",
+                  "padding": [
+                    12,
+                    0
+                  ],
+                  "justifyContent": "space_between",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "xTXHT",
+                      "name": "Requirement Copy",
+                      "width": 650,
+                      "layout": "vertical",
+                      "gap": 4,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "HcRc9",
+                          "name": "Requirement Tag",
+                          "fill": "#2A806A",
+                          "content": "FUNCTIONAL · MUST",
+                          "fontFamily": "Inter",
+                          "fontSize": 10,
+                          "fontWeight": "700"
+                        },
+                        {
+                          "type": "text",
+                          "id": "w8HpXk",
+                          "name": "Requirement Text",
+                          "fill": "#202A27",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "Users can create a short URL and receive a unique redirect link.",
+                          "fontFamily": "Inter",
+                          "fontSize": 13,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "Imtv4",
+                      "name": "Requirement Status",
+                      "fill": "#5C6A63",
+                      "content": "OPEN",
+                      "fontFamily": "Inter",
+                      "fontSize": 11,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "vacRn",
+                  "name": "Requirement QUALITY · MUST",
+                  "width": "fill_container",
+                  "padding": [
+                    12,
+                    0
+                  ],
+                  "justifyContent": "space_between",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "zZSBx",
+                      "name": "Requirement Copy",
+                      "width": 650,
+                      "layout": "vertical",
+                      "gap": 4,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "tBegN",
+                          "name": "Requirement Tag",
+                          "fill": "#2A806A",
+                          "content": "QUALITY · MUST",
+                          "fontFamily": "Inter",
+                          "fontSize": 10,
+                          "fontWeight": "700"
+                        },
+                        {
+                          "type": "text",
+                          "id": "turWf",
+                          "name": "Requirement Text",
+                          "fill": "#202A27",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "Redirect requests should complete below 100 ms at p95.",
+                          "fontFamily": "Inter",
+                          "fontSize": 13,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "q98rT",
+                      "name": "Requirement Status",
+                      "fill": "#5C6A63",
+                      "content": "OPEN",
+                      "fontFamily": "Inter",
+                      "fontSize": 11,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "WA3pV",
+          "name": "Copilot Chat Rail",
+          "width": 400,
+          "height": "fill_container",
+          "fill": "#FBFAF6",
+          "stroke": "#D7D2C7",
+          "strokeWidth": {
+            "left": 1
+          },
+          "layout": "vertical",
+          "gap": 14,
+          "padding": 22,
+          "children": [
+            {
+              "type": "frame",
+              "id": "AEtRf",
+              "name": "Copilot Header",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 6,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "S2qeu",
+                  "name": "Copilot Header Row",
+                  "width": "fill_container",
+                  "justifyContent": "space_between",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "P7FfA",
+                      "name": "Copilot Label",
+                      "fill": "#2A806A",
+                      "content": "COPILOT / CLARIFY",
+                      "fontFamily": "Inter",
+                      "fontSize": 10,
+                      "fontWeight": "700"
+                    },
+                    {
+                      "type": "text",
+                      "id": "ZJJ23",
+                      "name": "New Conversation",
+                      "fill": "#2A806A",
+                      "content": "+ New chat",
+                      "fontFamily": "Inter",
+                      "fontSize": 11,
+                      "fontWeight": "700"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "SFurS",
+                  "name": "Copilot Title",
+                  "fill": "#202A27",
+                  "content": "Think through one decision.",
+                  "fontFamily": "Inter",
+                  "fontSize": 21,
+                  "fontWeight": "600"
+                },
+                {
+                  "type": "text",
+                  "id": "yS5co",
+                  "name": "Context Summary",
+                  "fill": "#5C6A63",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Using this Challenge brief, 2 requirements, 1 assumption",
+                  "fontFamily": "Inter",
+                  "fontSize": 11,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "gTrNi",
+              "name": "Conversation History",
+              "width": "fill_container",
+              "height": 520,
+              "layout": "vertical",
+              "gap": 12,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "bWdiJ",
+                  "name": "User Message 1",
+                  "width": "fill_container",
+                  "fill": "#ECE8DE",
+                  "layout": "vertical",
+                  "gap": 5,
+                  "padding": 12,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "V72Yxu",
+                      "name": "User Label",
+                      "fill": "#5C6A63",
+                      "content": "YOU",
+                      "fontFamily": "Inter",
+                      "fontSize": 9,
+                      "fontWeight": "700"
+                    },
+                    {
+                      "type": "text",
+                      "id": "d8ynxB",
+                      "name": "User Question",
+                      "fill": "#202A27",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "What requirement am I missing for redirects?",
+                      "fontFamily": "Inter",
+                      "fontSize": 13,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "G4iT7L",
+                  "name": "Copilot Response 1",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 8,
+                  "padding": [
+                    12,
+                    0
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "ojUQJ",
+                      "name": "Copilot Label 1",
+                      "fill": "#2A806A",
+                      "content": "COPILOT",
+                      "fontFamily": "Inter",
+                      "fontSize": 9,
+                      "fontWeight": "700"
+                    },
+                    {
+                      "type": "text",
+                      "id": "VC4bt",
+                      "name": "Copilot Answer 1",
+                      "fill": "#202A27",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Consider making redirect performance explicit. A measurable latency target will guide caching and data-store choices.",
+                      "fontFamily": "Inter",
+                      "fontSize": 13,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "IDo7b",
+                      "name": "Response Actions 1",
+                      "width": "fill_container",
+                      "gap": 6,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "t3FXJ",
+                          "name": "Action Add as requirement",
+                          "fill": "#F5F2EA",
+                          "cornerRadius": 2,
+                          "stroke": "#C8C2B5",
+                          "strokeWidth": 1,
+                          "padding": [
+                            7,
+                            8
+                          ],
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "FmGI9",
+                              "name": "Add as requirement Label",
+                              "fill": "#202A27",
+                              "content": "Add as requirement",
+                              "fontFamily": "Inter",
+                              "fontSize": 10,
+                              "fontWeight": "700"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "YLjjD",
+                          "name": "Action Keep as assumption",
+                          "fill": "#F5F2EA",
+                          "cornerRadius": 2,
+                          "stroke": "#C8C2B5",
+                          "strokeWidth": 1,
+                          "padding": [
+                            7,
+                            8
+                          ],
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "Uy9xi",
+                              "name": "Keep as assumption Label",
+                              "fill": "#202A27",
+                              "content": "Keep as assumption",
+                              "fontFamily": "Inter",
+                              "fontSize": 10,
+                              "fontWeight": "700"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "M4RTd",
+                          "name": "Action Save as question",
+                          "fill": "#F5F2EA",
+                          "cornerRadius": 2,
+                          "stroke": "#C8C2B5",
+                          "strokeWidth": 1,
+                          "padding": [
+                            7,
+                            8
+                          ],
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "PSfA1",
+                              "name": "Save as question Label",
+                              "fill": "#202A27",
+                              "content": "Save as question",
+                              "fontFamily": "Inter",
+                              "fontSize": 10,
+                              "fontWeight": "700"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "wzwis",
+                  "name": "User Message 2",
+                  "width": "fill_container",
+                  "fill": "#ECE8DE",
+                  "layout": "vertical",
+                  "gap": 5,
+                  "padding": 12,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "CgRxY",
+                      "name": "User Label 2",
+                      "fill": "#5C6A63",
+                      "content": "YOU",
+                      "fontFamily": "Inter",
+                      "fontSize": 9,
+                      "fontWeight": "700"
+                    },
+                    {
+                      "type": "text",
+                      "id": "wnW9i",
+                      "name": "User Question 2",
+                      "fill": "#202A27",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "What would be a reasonable target?",
+                      "fontFamily": "Inter",
+                      "fontSize": 13,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "eVg9R",
+                  "name": "Copilot Response 2",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 8,
+                  "padding": [
+                    12,
+                    0
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "hFzIx",
+                      "name": "Copilot Label 2",
+                      "fill": "#2A806A",
+                      "content": "COPILOT",
+                      "fontFamily": "Inter",
+                      "fontSize": 9,
+                      "fontWeight": "700"
+                    },
+                    {
+                      "type": "text",
+                      "id": "bXoG7",
+                      "name": "Copilot Answer 2",
+                      "fill": "#202A27",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Start with p95 redirect latency below 100 ms, then validate the target during Stress-test.",
+                      "fontFamily": "Inter",
+                      "fontSize": 13,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "tQxIk",
+              "name": "Chat Composer",
+              "width": "fill_container",
+              "fill": "#F5F2EA",
+              "cornerRadius": 3,
+              "stroke": "#C8C2B5",
+              "strokeWidth": 1,
+              "layout": "vertical",
+              "gap": 10,
+              "padding": 12,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "CQ57z",
+                  "name": "Composer Placeholder",
+                  "fill": "#78847D",
+                  "content": "Ask a follow-up question…",
+                  "fontFamily": "Inter",
+                  "fontSize": 13,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "frame",
+                  "id": "KdMTs",
+                  "name": "Composer Actions",
+                  "width": "fill_container",
+                  "justifyContent": "space_between",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "e2H1C",
+                      "name": "Privacy Note",
+                      "fill": "#5C6A63",
+                      "content": "Private Workspace context",
+                      "fontFamily": "Inter",
+                      "fontSize": 10,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "J9nNVJ",
+                      "name": "Ask Button",
+                      "fill": "#2A806A",
+                      "cornerRadius": 2,
+                      "padding": [
+                        8,
+                        12
+                      ],
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "GAabt",
+                          "name": "Ask Copilot → Label",
+                          "fill": "#F5F2EA",
+                          "content": "Ask Copilot →",
+                          "fontFamily": "Inter",
+                          "fontSize": 10,
+                          "fontWeight": "700"
+                        }
+                      ]
                     }
                   ]
                 }

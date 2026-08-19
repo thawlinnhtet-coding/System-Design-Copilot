@@ -506,7 +506,7 @@ Calculation should feel transparent rather than magical.
 
 # 17. Architecture Canvas
 
-The canvas is a dedicated dark spatial plane.
+The Design stage is a dedicated dark spatial plane. The stage heading, description, and Canvas Toolbar share that plane, matching the approved `ui_design` Workspace Design screens.
 
 Recommended surface:
 
@@ -514,6 +514,21 @@ Recommended surface:
 --canvas: #101316;
 --canvas-grid: #20252A;
 ```
+
+The Design stage article uses `#0D1211` as its artifact background with `#151C1A` chrome for the Canvas Toolbar and legend, and a `#101316` canvas box inside.
+
+The Canvas Toolbar sits between the stage heading and the canvas box. It contains:
+
+* editing tools: `Select`, `Pan`, `Component`, `Connection`, `Boundary`
+* view controls: `Undo`, `Redo`, `Fit view`, `Full screen`, and a live zoom percentage
+
+The `Component` tool places a Service at the clicked flow position; `Connection` opens the palette connection form and enables click-to-connect; `Boundary` opens the palette boundary form. `Select` restores node dragging and default interaction. The React Flow zoom controls are not rendered; zoom is available through the view controls, wheel, and pinch.
+
+While the canvas is in full screen, the Design stage heading swaps to `Architecture Canvas` and the description reads `Full-screen editing · Press Esc to return to the Workspace.`, matching the approved `ui_design` full-screen canvas screen. Full screen stays inside the workspace shell: the global navigation, workspace header, stage rail, heading, and context panel remain visible, the Design artifact expands to fill the full body width and height, and the canvas fills the remaining space. The palette becomes a scrollable 180px rail on desktop. `Esc` or the toolbar toggle returns to the embedded canvas.
+
+A legend strip runs along the bottom edge of the canvas box and reports the current interaction hint. A footer below the canvas box always reports component, connection, and boundary counts, the live zoom, the save state, and the Checkpoint Revision action (shown only in full screen before this rule).
+
+When the canvas has no Components, a centered onboarding panel offers a primary Add Component action instead of an empty plane.
 
 Grid treatment should be extremely subtle.
 
@@ -547,10 +562,10 @@ Examples:
 Node appearance:
 
 ```text
-┌───────────────────────┐
-│ icon  API Gateway     │
-│       gateway         │
-└───────────────────────┘
+┌───────────────────────────┐
+│ ▦  API Gateway            │
+│     authenticated         │
+└───────────────────────────┘
 ```
 
 Characteristics:
@@ -559,9 +574,9 @@ Characteristics:
 * flat
 * 1px border
 * 4–6px radius
-* semantic icon
+* semantic icon in a `#242E2B` icon box
 * clear label
-* optional small metadata
+* optional small metadata line derived from the component's primary semantic property (for example runtime, consistency, delivery guarantee, or exposure)
 * no large illustrations
 * no heavy shadow
 
