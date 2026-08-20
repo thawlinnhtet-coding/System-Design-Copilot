@@ -135,4 +135,15 @@ describe("architecture editor draft", () => {
     expect(parentOrigins.get(state.nodes[0]!.id)).toBeDefined();
     expect(state.nodes.every((node) => node.parentId === undefined)).toBe(true);
   });
+
+  it("keeps an empty boundary at its requested canvas position", () => {
+    const editor = useArchitectureEditorStore.getState();
+    editor.addBoundary({ label: "Primary region", type: "REGION", componentIds: [], metadata: { x: 420, y: 260, width: 500, height: 300 } });
+
+    const state = useArchitectureEditorStore.getState();
+    const boundaryNode = buildFlowLayout(state.nodes, state.boundaries).flowNodes.find((node) => node.type === "boundary");
+
+    expect(boundaryNode?.position).toEqual({ x: 420, y: 260 });
+    expect(boundaryNode?.style).toMatchObject({ width: 500, height: 300 });
+  });
 });

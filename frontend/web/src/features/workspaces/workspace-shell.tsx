@@ -1,16 +1,15 @@
 "use client";
 
 import { SignInButton, useAuth } from "@clerk/nextjs";
-import { ArrowLeft, Check, PanelRight, RotateCcw, RotateCw } from "lucide-react";
+import { ArrowLeft, PanelRight, Trash2 } from "lucide-react";
 import type { Viewport } from "@xyflow/react";
 import Link from "next/link";
 import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
 import { useAuthenticatedApiClient, type WorkspaceSummary } from "@/lib/api/authenticated-client";
-import { downloadPortablePackage, type PortablePackage } from "@/lib/portable-package";
 import { WorkspaceReasoning } from "./workspace-reasoning";
 import { DecisionLog } from "./decision-log";
 import { ArchitectureCanvas, ArchitectureInspector, ConnectionInspector } from "./architecture-canvas";
-import { useArchitectureEditorStore } from "./architecture-editor-store";
+import { useArchitectureEditorStore, type CanvasBoundary } from "./architecture-editor-store";
 import { ScenarioPanel } from "./scenario-panel";
 import { ReviewExperience } from "./review-experience";
 import { CopilotPanel } from "./copilot-panel";
@@ -31,19 +30,13 @@ export function WorkspaceShell({ workspaceId }: { workspaceId: string }) {
   const [workspace, setWorkspace] = useState<WorkspaceSummary | null>(null);
   const [stage, setStage] = useState<Stage>("clarify");
   const [error, setError] = useState<string | null>(null);
-  const [isExporting, setIsExporting] = useState(false);
   const [isRestoring, setIsRestoring] = useState(false);
-  const [exportPackage, setExportPackage] = useState<Awaited<ReturnType<typeof api.exportWorkspace>> | null>(null);
   const [contextOpen, setContextOpen] = useState(true);
   const [canvasFullScreen, setCanvasFullScreen] = useState(false);
   const contextStorageKey = `workspace-context-tab:${workspaceId}`;
   const subscribeToContextTab = useCallback((onChange: () => void) => subscribeContextTab(contextStorageKey, onChange), [contextStorageKey]);
   const getContextTab = useCallback(() => readContextTab(contextStorageKey), [contextStorageKey]);
   const contextTab = useSyncExternalStore(subscribeToContextTab, getContextTab, () => "inspector" as ContextTab);
-  const undo = useArchitectureEditorStore((state) => state.undo);
-  const redo = useArchitectureEditorStore((state) => state.redo);
-  const canUndo = useArchitectureEditorStore((state) => state.workspaceId === workspaceId && state.past.length > 0);
-  const canRedo = useArchitectureEditorStore((state) => state.workspaceId === workspaceId && state.future.length > 0);
 
   useEffect(() => {
     if (!isLoaded || !isSignedIn) return;
@@ -73,6 +66,15 @@ export function WorkspaceShell({ workspaceId }: { workspaceId: string }) {
       setWorkspace(saved);
     } catch {
       setError("The current stage could not be saved. Your work is safe.");
+    }
+  }
+
+  function toggleContextPanel() {
+    if (contextOpen) {
+      setContextOpen(false);
+      setCanvasFullScreen(false);
+    } else {
+      setContextOpen(true);
     }
   }
 
@@ -107,22 +109,8 @@ export function WorkspaceShell({ workspaceId }: { workspaceId: string }) {
   if (error) return <section className="mx-auto max-w-xl border-y border-line py-12"><p className="text-sm text-danger" role="alert">{error}</p><Link className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-signal" href="/practice"><ArrowLeft aria-hidden="true" size={16} />Back to Practice</Link></section>;
   if (!workspace) return <p className="text-sm text-text-muted">Opening Workspace...</p>;
 
-  async function exportWorkspace() {
-    setIsExporting(true);
-    setError(null);
-    try {
-      const result = await api.exportWorkspace(workspaceId);
-      if (!result.packageNode) throw new Error("The server returned no portable package");
-      setExportPackage(result);
-    } catch {
-      setError("The portable export could not be prepared. Your Workspace is safe.");
-    } finally {
-      setIsExporting(false);
-    }
-  }
-
-  return <div className="flex min-h-[calc(100vh-64px)] flex-col bg-surface md:flex-row">
-    <aside aria-label="Workspace stages" className="hidden w-44 shrink-0 border-r border-line bg-canvas px-[14px] py-6 text-text-on-dark md:flex md:flex-col">
+  return <div className="flex min-h-[calc(100vh-56px)] flex-col bg-surface md:flex-row">
+    <aside aria-label="Workspace stages" className="hidden w-44 shrink-0 bg-chrome-800 px-[14px] py-6 text-text-on-dark md:flex md:flex-col">
       <Link aria-label="Back to Practice" className="flex items-center gap-2 px-2 text-xs text-text-on-dark-secondary hover:text-text-on-dark" href="/practice"><ArrowLeft aria-hidden="true" size={15} />Back to Practice</Link>
       <div className="mt-7 px-2"><p className="font-mono text-[10px] leading-4 text-text-on-dark-secondary">PRACTICE LOOP</p><p className="mt-1 font-display text-base font-medium leading-tight text-text-on-dark">From question to evidence</p></div>
       <div className="mt-5 grid gap-2">
@@ -139,16 +127,15 @@ export function WorkspaceShell({ workspaceId }: { workspaceId: string }) {
     <section className="flex min-h-0 flex-1 flex-col">
       <header className="flex min-h-[58px] items-center justify-between gap-4 border-b border-line bg-surface px-5 sm:px-7">
         <div className="flex min-w-0 items-baseline gap-3"><h1 className="truncate font-display text-[17px] font-medium">{workspace.name ?? "Untitled Workspace"}</h1><span className="hidden font-mono text-[11px] text-text-muted sm:inline">{workspace.source === "CURATED_CHALLENGE" ? "CHALLENGE WORKSPACE" : "CUSTOM WORKSPACE"}</span></div>
-        <div className="flex items-center gap-2 text-text-muted"><button aria-label="Export portable package" className="text-xs font-semibold text-signal hover:underline" disabled={isExporting} onClick={() => void exportWorkspace()} type="button">{isExporting ? "Exporting..." : "Export"}</button><button aria-label="Undo" className="icon-button disabled:cursor-not-allowed disabled:opacity-40" disabled={!canUndo} onClick={undo} type="button"><RotateCcw aria-hidden="true" size={15} /></button><button aria-label="Redo" className="icon-button disabled:cursor-not-allowed disabled:opacity-40" disabled={!canRedo} onClick={redo} type="button"><RotateCw aria-hidden="true" size={15} /></button><span className="mx-1 hidden items-center gap-1 font-mono text-[11px] sm:flex"><Check aria-hidden="true" className="text-success" size={14} />{formatSaveState(workspace.saveState)}</span><button aria-controls="workspace-context-panel" aria-expanded={contextOpen} aria-label={contextOpen ? "Close contextual rail" : "Open contextual rail"} className="icon-button" onClick={() => setContextOpen((open) => !open)} type="button"><PanelRight aria-hidden="true" size={16} /></button></div>
+        <div className="flex items-center gap-2 text-text-muted"><span className="hidden font-mono text-[11px] uppercase tracking-[0.08em] sm:inline">{formatSaveState(workspace.saveState)}</span><button aria-controls="workspace-context-panel" aria-expanded={contextOpen} aria-label={contextOpen ? "Close contextual rail" : "Open contextual rail"} className="icon-button md:hidden" onClick={toggleContextPanel} type="button"><PanelRight aria-hidden="true" size={16} /></button></div>
       </header>
       {workspace.status === "ARCHIVED" ? <section className="flex flex-col justify-between gap-4 border-b border-amber-500/30 bg-amber-500/10 px-5 py-4 sm:flex-row sm:items-center sm:px-7" aria-label="Archived Workspace status"><div><p className="font-mono text-[10px] uppercase tracking-[0.14em] text-amber-800">ARCHIVED / READ-ONLY</p><p className="mt-1 text-sm text-foreground">Editing, Copilot use, and Review submission are unavailable until this Workspace is restored. Export remains available.</p></div><button className="inline-flex min-h-11 shrink-0 items-center justify-center border border-signal bg-signal px-4 text-sm font-semibold text-text-on-dark disabled:opacity-50" disabled={isRestoring} onClick={() => void restoreWorkspace()} type="button">{isRestoring ? "Restoring..." : "Restore Workspace"}</button></section> : null}
-      {exportPackage?.packageNode ? <section aria-label="Portable export preview" className="border-b border-line bg-background px-5 py-4 sm:px-7"><div className="flex flex-wrap items-center justify-between gap-4"><div><p className="font-mono text-[10px] uppercase tracking-[0.14em] text-text-muted">PORTABLE EXPORT PREVIEW</p><p className="mt-1 text-sm text-foreground">{exportPackage.preview?.title ?? workspace.name} · {exportPackage.preview?.requirements ?? 0} Requirements · {exportPackage.preview?.assumptions ?? 0} Assumptions · {exportPackage.preview?.decisions ?? 0} Decisions · {exportPackage.preview?.components ?? 0} Components</p><p className="mt-1 text-xs text-text-muted">Identity, billing, usage, provider metadata, and Reviews are excluded.</p></div><div className="flex gap-2"><button className="border border-line px-3 py-2 text-xs text-text-muted" onClick={() => setExportPackage(null)} type="button">Cancel</button><button className="bg-signal px-3 py-2 text-xs font-semibold text-text-on-dark" onClick={() => { downloadPortablePackage(exportPackage.packageNode as unknown as PortablePackage, `${workspace.name ?? "workspace"}.json`); setExportPackage(null); }} type="button">Download JSON</button></div></div></section> : null}
       <nav aria-label="Mobile Workspace stages" className="grid grid-cols-4 border-b border-line bg-background md:hidden">{stages.map((item) => <button aria-current={stage === item.id ? "step" : undefined} className={`min-h-12 border-r border-line px-2 text-xs font-semibold last:border-r-0 ${stage === item.id ? "text-signal" : "text-text-muted"}`} key={item.id} onClick={() => void selectStage(item.id)} type="button"><span className="mr-1 font-mono text-[10px]">{item.number}</span>{item.label}</button>)}</nav>
       <div className="flex min-h-0 flex-1 flex-col lg:flex-row">
-        <main className={canvasFullScreen ? "min-w-0 flex-1 overflow-hidden" : "min-w-0 flex-1 overflow-auto px-5 py-8 sm:px-8 lg:px-12 lg:py-10"}>
-          <div className={canvasFullScreen ? "flex h-full flex-col" : "mx-auto max-w-[1000px]"}>{stage === "clarify" ? <ClarifyArtifact workspace={workspace} readOnly={workspace.status === "ARCHIVED"} workspaceId={workspaceId} onDesign={() => void selectStage("design")} /> : stage === "design" ? <><section className={canvasFullScreen ? "flex min-h-0 flex-1 flex-col border border-[#2b3337] bg-[#0d1211] px-4 py-5 sm:px-6" : "border border-[#2b3337] bg-[#0d1211] px-5 py-6 sm:px-7 sm:py-7"}><p className="font-mono text-[10px] uppercase tracking-[0.16em] text-[#a7aeb3]">DESIGN / ARCHITECTURE DOCUMENT</p><h2 className="mt-3 max-w-3xl font-display text-[34px] font-medium leading-[1.08] tracking-[-0.03em] text-[#f0f3f1]">{canvasFullScreen ? "Architecture Canvas" : "Describe the system as connected responsibilities."}</h2><p className="mt-3 max-w-2xl text-[15px] leading-6 text-[#a7aeb3]">{canvasFullScreen ? "Full-screen editing · Press Esc to return to the Workspace." : "Place the Components, connect the paths, and keep the structure explainable."}</p><div className={canvasFullScreen ? "mt-5 flex min-h-0 flex-1 flex-col" : "mt-7"}><ArchitectureCanvas onFullScreenChange={setCanvasFullScreen} onViewportChange={(nextViewport) => void saveViewport(nextViewport)} readOnly={workspace.status === "ARCHIVED"} viewport={viewportFromWorkspace(workspace)} workspaceId={workspaceId} /></div></section>{canvasFullScreen ? null : <div className="mt-10"><DecisionLog readOnly={workspace.status === "ARCHIVED"} workspaceId={workspaceId} /></div>}</> : <StagePlaceholder stage={stage} workspace={workspace} />}</div>
+        <main className={stage === "design" ? (canvasFullScreen ? "min-w-0 flex-1 overflow-hidden" : "min-w-0 flex-1 overflow-auto") : (canvasFullScreen ? "min-w-0 flex-1 overflow-hidden" : "min-w-0 flex-1 overflow-auto px-5 py-8 sm:px-8 lg:px-12 lg:py-10")}>
+          <div className={stage === "design" || canvasFullScreen ? "flex h-full flex-col" : "mx-auto max-w-[1000px]"}>{stage === "clarify" ? <ClarifyArtifact workspace={workspace} readOnly={workspace.status === "ARCHIVED"} workspaceId={workspaceId} onDesign={() => void selectStage("design")} /> : stage === "design" ? <><section className={canvasFullScreen ? "flex min-h-0 flex-1 flex-col bg-[#0d1211] px-5 py-6 sm:px-7 sm:py-7" : "flex min-h-0 flex-1 flex-col bg-[#0d1211] px-5 py-6 sm:px-8 lg:px-10 sm:py-7"}><p className="font-mono text-[10px] uppercase tracking-[0.16em] text-[#a7aeb3]">DESIGN / ARCHITECTURE DOCUMENT</p><h2 className="mt-3 max-w-3xl font-display text-[34px] font-medium leading-[1.08] tracking-[-0.03em] text-[#f0f3f1]">{canvasFullScreen ? "Architecture Canvas" : "Describe the system as connected responsibilities."}</h2><p className="mt-3 max-w-2xl text-[15px] leading-6 text-[#a7aeb3]">{canvasFullScreen ? "Full-screen editing · Press Esc to return to the Workspace." : "Place the Components, connect the paths, and keep the structure explainable."}</p><div className={canvasFullScreen ? "mt-5 flex min-h-0 flex-1 flex-col" : "mt-7"}><ArchitectureCanvas fullScreen={canvasFullScreen} onFullScreenChange={setCanvasFullScreen} onViewportChange={(nextViewport) => void saveViewport(nextViewport)} readOnly={workspace.status === "ARCHIVED"} viewport={viewportFromWorkspace(workspace)} workspaceId={workspaceId} /></div></section>{canvasFullScreen ? null : <div className="mt-10"><DecisionLog readOnly={workspace.status === "ARCHIVED"} workspaceId={workspaceId} /></div>}</> : <StagePlaceholder stage={stage} workspace={workspace} />}</div>
         </main>
-        {contextOpen ? <WorkspaceContextPanel activeTab={contextTab} onClose={() => setContextOpen(false)} onTabChange={(tab) => persistContextTab(contextStorageKey, tab)} readOnly={workspace.status === "ARCHIVED"} stage={stage} workspaceId={workspaceId} /> : null}
+        {contextOpen ? <WorkspaceContextPanel activeTab={contextTab} onClose={toggleContextPanel} onTabChange={(tab) => persistContextTab(contextStorageKey, tab)} readOnly={workspace.status === "ARCHIVED"} stage={stage} workspaceId={workspaceId} /> : null}
       </div>
     </section>
   </div>;
@@ -197,22 +184,38 @@ function ContextInspector({ onOpenCopilot, readOnly, stage }: { onOpenCopilot: (
 
 function DesignContextInspector({ onOpenCopilot, readOnly }: { onOpenCopilot: () => void; readOnly: boolean }) {
   const selectedNodeId = useArchitectureEditorStore((state) => state.selectedNodeId);
+  const selectedNodeIds = useArchitectureEditorStore((state) => state.selectedNodeIds);
   const selectedEdgeId = useArchitectureEditorStore((state) => state.selectedEdgeId);
   const node = useArchitectureEditorStore((state) => state.nodes.find((item) => item.id === selectedNodeId));
   const edge = useArchitectureEditorStore((state) => state.edges.find((item) => item.id === selectedEdgeId));
+  const boundary = useArchitectureEditorStore((state) => state.boundaries.find((item) => item.id === selectedNodeId));
   const nodes = useArchitectureEditorStore((state) => state.nodes);
   const updateComponent = useArchitectureEditorStore((state) => state.updateComponent);
   const updateConnection = useArchitectureEditorStore((state) => state.updateConnection);
-  const deleteSelected = useArchitectureEditorStore((state) => state.deleteSelected);
-  const deleteConnection = useArchitectureEditorStore((state) => state.deleteConnection);
+  const updateBoundary = useArchitectureEditorStore((state) => state.updateBoundary);
+  const requestDelete = useArchitectureEditorStore((state) => state.requestDelete);
   const duplicateComponent = useArchitectureEditorStore((state) => state.duplicateComponent);
+  const duplicateNodes = useArchitectureEditorStore((state) => state.duplicateNodes);
   if (edge) {
     const source = nodes.find((item) => item.id === edge.source);
     const target = nodes.find((item) => item.id === edge.target);
-    return <ConnectionInspector disabled={readOnly} edge={edge} sourceLabel={source?.data.label ?? "Unknown Component"} targetLabel={target?.data.label ?? "Unknown Component"} onChange={(patch) => updateConnection(edge.id, patch)} onDelete={() => deleteConnection(edge.id)} />;
+    return <ConnectionInspector disabled={readOnly} edge={edge} sourceLabel={source?.data.label ?? "Unknown Component"} targetLabel={target?.data.label ?? "Unknown Component"} onChange={(patch) => updateConnection(edge.id, patch)} onDelete={() => requestDelete({ kind: "edge", id: edge.id, label: `${source?.data.label ?? "?"} → ${target?.data.label ?? "?"}` })} />;
+  }
+  if (boundary) return <BoundaryInspector boundary={boundary} disabled={readOnly} memberCount={boundary.componentIds.length} onChange={(patch) => updateBoundary(boundary.id, patch)} onDelete={() => requestDelete({ kind: "boundary", id: boundary.id, label: boundary.label })} />;
+  if (selectedNodeIds.length > 1) {
+    const selected = nodes.filter((item) => selectedNodeIds.includes(item.id));
+    return <section className="pt-5"><p className="font-mono text-[11px] leading-4 text-text-muted">DESIGN / INSPECTOR</p><h2 className="mt-2 font-display text-[22px] font-normal leading-[1.2]">{selected.length} Components selected</h2><p className="mt-4 text-[13px] leading-5 text-text-muted">Duplicate, group, distribute, or delete the selection from the Canvas toolbar above the selection.</p><div className="mt-5 flex flex-wrap gap-2"><button className="inline-flex min-h-10 items-center border border-line px-3 text-sm text-foreground hover:border-signal" disabled={readOnly} onClick={() => duplicateNodes(selectedNodeIds)} type="button">Duplicate</button><button className="inline-flex min-h-10 items-center border border-danger/50 px-3 text-sm text-danger hover:bg-danger/10 disabled:cursor-not-allowed disabled:opacity-50" disabled={readOnly} onClick={() => requestDelete({ kind: "nodes", ids: selectedNodeIds, label: `${selected.length} Components`, connectionCount: 0 })} type="button">Delete</button></div></section>;
   }
   if (!node) return <section className="pt-5"><p className="font-mono text-[11px] leading-4 text-text-muted">DESIGN / INSPECTOR</p><h2 className="mt-2 font-display text-[22px] font-normal leading-[1.2]">Select a Component or Connection.</h2><p className="mt-4 text-[13px] leading-5 text-text-muted">Select a Component to inspect its responsibility and properties, or a Connection to describe its intent, protocol, and guarantees.</p><button aria-label="Open Copilot" className="mt-5 inline-flex min-h-10 items-center border border-signal px-3 text-sm font-semibold text-signal hover:bg-signal-soft" onClick={onOpenCopilot} type="button">Open Copilot</button></section>;
-  return <ArchitectureInspector disabled={readOnly} node={node} onChange={(patch) => updateComponent(node.id, patch)} onDelete={deleteSelected} onDuplicate={() => duplicateComponent(node.id)} />;
+  return <ArchitectureInspector disabled={readOnly} node={node} onChange={(patch) => updateComponent(node.id, patch)} onDelete={() => requestDelete({ kind: "nodes", ids: [node.id], label: node.data.label, connectionCount: edgesTouching(node.id) })} onDuplicate={() => duplicateComponent(node.id)} />;
+}
+
+function edgesTouching(nodeId: string) {
+  return useArchitectureEditorStore.getState().edges.filter((edge) => edge.source === nodeId || edge.target === nodeId).length;
+}
+
+function BoundaryInspector({ boundary, disabled, memberCount, onChange, onDelete }: { boundary: { label: string; type: CanvasBoundary["type"] }; disabled: boolean; memberCount: number; onChange: (patch: { label?: string; type?: CanvasBoundary["type"] }) => void; onDelete: () => void }) {
+  return <div><p className="font-mono text-[10px] uppercase tracking-[0.14em] text-[#a7aeb3]">Boundary Inspector</p><label className="mt-5 block text-xs text-[#a7aeb3]" htmlFor="boundary-label">Label</label><input className="mt-2 min-h-10 w-full border border-[#3c4542] bg-[#101316] px-2 text-sm text-[#f2f3f3] outline-none focus:border-[#a9e5d8] disabled:opacity-50" disabled={disabled} id="boundary-label" onChange={(event) => onChange({ label: event.target.value })} value={boundary.label} /><label className="mt-4 block text-xs text-[#a7aeb3]" htmlFor="boundary-type">Type</label><select className="mt-2 min-h-10 w-full border border-[#3c4542] bg-[#101316] px-2 text-sm text-[#f2f3f3] outline-none focus:border-[#a9e5d8] disabled:opacity-50" disabled={disabled} id="boundary-type" onChange={(event) => onChange({ type: event.target.value as CanvasBoundary["type"] })} value={boundary.type}><option value="DEPLOYMENT">Deployment</option><option value="NETWORK">Network</option><option value="REGION">Region</option><option value="AVAILABILITY">Availability</option><option value="TRUST">Trust</option></select><p className="mt-4 text-[13px] text-text-muted">{memberCount} Component{memberCount === 1 ? "" : "s"} in this Boundary.</p><button className="mt-6 inline-flex min-h-9 items-center gap-2 border border-danger/50 px-3 text-xs font-semibold text-danger hover:bg-danger/10 disabled:cursor-not-allowed disabled:opacity-50" disabled={disabled} onClick={onDelete} type="button"><Trash2 aria-hidden="true" size={14} />Delete Boundary</button></div>;
 }
 
 function toStage(value: string | undefined): Stage {

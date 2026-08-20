@@ -58,6 +58,50 @@ describe("ArchitectureCanvas", () => {
     expect(useArchitectureEditorStore.getState().nodes[0]?.data).toMatchObject({ category: "COMPUTE", type: "SERVICE", label: "Service" });
   });
 
+  it("exposes the expanded PRD taxonomy in the component palette", async () => {
+    renderWithProviders(<ArchitectureCanvas workspaceId="workspace-1" />);
+
+    await screen.findByRole("toolbar", { name: "Canvas tools" });
+    fireEvent.click(screen.getByRole("button", { name: "Clients" }));
+    fireEvent.click(screen.getByRole("button", { name: "Client" }));
+    fireEvent.click(screen.getByRole("button", { name: "Messaging & streaming" }));
+    fireEvent.click(screen.getByRole("button", { name: "Event bus" }));
+
+    await waitFor(() => expect(useArchitectureEditorStore.getState().nodes).toHaveLength(2));
+    expect(useArchitectureEditorStore.getState().nodes[0]?.data).toMatchObject({ category: "CLIENT", type: "CLIENT", label: "Client" });
+    expect(useArchitectureEditorStore.getState().nodes[1]?.data).toMatchObject({ category: "MESSAGING", type: "EVENT_BUS", label: "Event bus" });
+  });
+
+  it("shows the empty canvas onboarding and confirms deletions before removing", async () => {
+    renderWithProviders(<ArchitectureCanvas workspaceId="workspace-1" />);
+
+    await screen.findByRole("toolbar", { name: "Canvas tools" });
+    expect(screen.getByText("No architecture Components yet.")).toBeVisible();
+
+    fireEvent.click(screen.getByRole("button", { name: "Service" }));
+    await waitFor(() => expect(useArchitectureEditorStore.getState().nodes).toHaveLength(1));
+
+    fireEvent.keyDown(screen.getByLabelText("Architecture canvas"), { key: "Delete" });
+    expect(screen.getByRole("dialog", { name: /Delete Service/ })).toBeInTheDocument();
+    expect(screen.getByText("Delete Service?")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Delete Component" }));
+    await waitFor(() => expect(useArchitectureEditorStore.getState().nodes).toHaveLength(0));
+    expect(screen.getByText("No architecture Components yet.")).toBeVisible();
+  });
+
+  it("opens boundary details after drawing a rectangle on the canvas", async () => {
+    renderWithProviders(<ArchitectureCanvas workspaceId="workspace-1" />);
+
+    await screen.findByRole("toolbar", { name: "Canvas tools" });
+    fireEvent.click(screen.getByRole("button", { name: "Boundary" }));
+    const canvas = screen.getByTestId("architecture-flow");
+    fireEvent.mouseDown(canvas, { button: 0, clientX: 120, clientY: 120 });
+    fireEvent.mouseUp(canvas, { button: 0, clientX: 520, clientY: 360 });
+
+    expect(await screen.findByRole("dialog", { name: "Add boundary" })).toBeVisible();
+  });
+
   it("loads pre-populated components into the editor without dropping them", async () => {
     api.getArchitectureDocument.mockResolvedValue({ workspaceId: "workspace-1", version: 0, document: { schemaVersion: 1, components: [{ id: "component-1", category: "COMPUTE", type: "SERVICE", label: "API", properties: { runtime: "OTHER" }, position: { x: 100, y: 100 } }], connections: [], boundaries: [] } });
     renderWithProviders(<ArchitectureCanvas workspaceId="workspace-1" />);
