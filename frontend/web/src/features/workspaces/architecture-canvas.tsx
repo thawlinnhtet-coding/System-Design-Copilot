@@ -183,16 +183,13 @@ function ArchitectureCanvasInner({ workspaceId, readOnly, viewport, onViewportCh
   const [isConnecting, setIsConnecting] = useState(false);
   const [boundaryDraft, setBoundaryDraft] = useState<{ position: { x: number; y: number }; flowPosition: { x: number; y: number }; size: { width: number; height: number }; label: string; type: CanvasBoundary["type"] } | null>(null);
   const boundaryDrag = useRef<{ start: { x: number; y: number } } | null>(null);
-  const [fullScreen, setFullScreen] = useState(controlledFullScreen ?? false);
+  const [internalFullScreen, setInternalFullScreen] = useState(controlledFullScreen ?? false);
+  const fullScreen = controlledFullScreen ?? internalFullScreen;
   const flowRef = useRef<HTMLDivElement | null>(null);
   const online = useSyncExternalStore((onChange) => { window.addEventListener("online", onChange); window.addEventListener("offline", onChange); return () => { window.removeEventListener("online", onChange); window.removeEventListener("offline", onChange); }; }, () => navigator.onLine, () => true);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const saving = useRef(false);
   const lastSelection = useRef("");
-
-  useEffect(() => {
-    if (controlledFullScreen !== undefined) setFullScreen(controlledFullScreen);
-  }, [controlledFullScreen]);
 
   const flowEdges = useMemo(() => edges.map((edge) => ({ ...edge, selected: edge.id === selectedEdgeId })), [edges, selectedEdgeId]);
 
@@ -210,7 +207,7 @@ function ArchitectureCanvasInner({ workspaceId, readOnly, viewport, onViewportCh
   }
 
   const setFullScreenMode = useCallback((next: boolean) => {
-    setFullScreen(next);
+    setInternalFullScreen(next);
     onFullScreenChange?.(next);
   }, [onFullScreenChange]);
 
