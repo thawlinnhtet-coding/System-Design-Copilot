@@ -9,7 +9,7 @@ import { ApiRequestError, type ArchitectureComponentCategory, type ArchitectureC
 import { useAuthenticatedApiClient } from "@/lib/api/authenticated-client";
 import { buildFlowLayout, componentDefaults, useArchitectureEditorStore, type BoundaryFlowNode, type CanvasBoundary, type CanvasEdge, type CanvasEdgeData, type CanvasNode, type CanvasNodeData, type PendingDelete } from "./architecture-editor-store";
 
-type PaletteItem = { label: string; category: ArchitectureComponentCategory; type: ArchitectureComponentType; icon: typeof Server };
+type PaletteItem = { label: string; category: ArchitectureComponentCategory; type: ArchitectureComponentType; icon: typeof Server; properties?: Record<string, string> };
 type PaletteGroup = { label: string; items: PaletteItem[] };
 type CanvasTool = "select" | "pan" | "component" | "connection" | "boundary";
 
@@ -24,8 +24,8 @@ const paletteGroups: PaletteGroup[] = [
     { label: "Batch job", category: "COMPUTE", type: "BATCH_JOB", icon: Workflow },
   ] },
   { label: "Data stores", items: [
-    { label: "Relational database", category: "DATA_STORE", type: "RELATIONAL_DATABASE", icon: Database },
     { label: "Document database", category: "DATA_STORE", type: "DOCUMENT_DATABASE", icon: Database },
+    { label: "Relational database", category: "DATA_STORE", type: "RELATIONAL_DATABASE", icon: Database },
     { label: "Cache", category: "DATA_STORE", type: "CACHE", icon: Zap },
     { label: "Object store", category: "DATA_STORE", type: "OBJECT_STORE", icon: HardDrive },
   ] },
@@ -42,7 +42,7 @@ const paletteGroups: PaletteGroup[] = [
     { label: "WAF", category: "EDGE_SECURITY", type: "WAF", icon: ShieldCheck },
     { label: "External API", category: "EDGE_SECURITY", type: "EXTERNAL_API", icon: Globe },
   ] },
-  { label: "Coordination & configuration", items: [
+  { label: "Coordination & config", items: [
     { label: "Config service", category: "COORDINATION_CONFIG", type: "CONFIG_SERVICE", icon: SlidersHorizontal },
     { label: "Service registry", category: "COORDINATION_CONFIG", type: "SERVICE_REGISTRY", icon: ListTree },
   ] },
@@ -96,10 +96,48 @@ function iconForSemantic(value: string | undefined) {
   }
 }
 
+function nodeTypeLabel(type: ArchitectureComponentType): string {
+  const labels: Partial<Record<ArchitectureComponentType, string>> = {
+    CLIENT: "Client",
+    SERVICE: "Service",
+    FUNCTION: "Function",
+    WORKER: "Worker",
+    BATCH_JOB: "Batch job",
+    RELATIONAL_DATABASE: "Relational database",
+    DOCUMENT_DATABASE: "Document database",
+    CACHE: "Cache",
+    OBJECT_STORE: "Object store",
+    QUEUE: "Queue",
+    EVENT_BUS: "Event bus",
+    STREAM: "Stream",
+    DNS: "DNS",
+    CDN: "CDN",
+    GATEWAY: "Gateway",
+    LOAD_BALANCER: "Load balancer",
+    WAF: "WAF",
+    CONFIG_SERVICE: "Config service",
+    SERVICE_REGISTRY: "Service registry",
+    IDENTITY_PROVIDER: "Identity provider",
+    SECRETS_MANAGER: "Secrets manager",
+    LOGGING: "Logging",
+    METRICS: "Metrics",
+    TRACING: "Tracing",
+    EXTERNAL_API: "External API",
+    CUSTOM_COMPONENT: "Custom component",
+  };
+  return labels[type] ?? "Component";
+}
+
+const typeAliases: Partial<Record<ArchitectureComponentType, string[]>> = {
+  CACHE: ["cache", "redis cache", "memcached"],
+  RELATIONAL_DATABASE: ["relational database", "postgresql", "mysql"],
+  DOCUMENT_DATABASE: ["document database", "nosql database", "mongodb"],
+};
+
 function nodeMeta(data: CanvasNodeData): string {
-  const key = { CLIENT: "platform", COMPUTE: "runtime", DATA_STORE: "consistency", MESSAGING: "deliveryGuarantee", EDGE_SECURITY: "exposure", COORDINATION_CONFIG: "consistency", IDENTITY_SECRETS: "responsibility", OBSERVABILITY: "signal", CUSTOM: "provider" }[data.category];
+  const key = data.category === "DATA_STORE" ? undefined : { CLIENT: "platform", COMPUTE: "runtime", MESSAGING: "deliveryGuarantee", EDGE_SECURITY: "exposure", COORDINATION_CONFIG: "consistency", IDENTITY_SECRETS: "responsibility", OBSERVABILITY: "signal", CUSTOM: "provider" }[data.category];
   const value = key ? String(data.properties[key] ?? "") : "";
-  return value ? value.replaceAll("_", " ").toLowerCase() : "";
+  return value && value !== "OTHER" ? value.replaceAll("_", " ").toLowerCase() : "";
 }
 
 const connectionIntents = ["REQUEST_RESPONSE", "DNS_RESOLUTION", "DATA_READ_WRITE", "EVENT_PUBLISH", "EVENT_CONSUME", "QUEUE_DELIVERY", "STREAM", "REPLICATION", "AUTHENTICATION", "FILE_OBJECT_TRANSFER"];
@@ -124,9 +162,10 @@ const pencilBoundarySizes = {
 // Keep the editable world larger than the visible Pencil canvas frame while
 // preventing the viewport from drifting into an effectively infinite plane.
 const canvasWorldExtent = [[-320, -240], [1920, 1440]] as [[number, number], [number, number]];
+const boundaryNodeSize = { width: 168, height: 76 } as const;
 
 function dragComponentData(event: React.DragEvent<HTMLElement>, item: PaletteItem) {
-  event.dataTransfer.setData(componentDragMime, JSON.stringify({ category: item.category, type: item.type, label: item.label }));
+  event.dataTransfer.setData(componentDragMime, JSON.stringify({ category: item.category, type: item.type, label: item.label, properties: item.properties }));
   event.dataTransfer.effectAllowed = "move";
 }
 
@@ -155,6 +194,10 @@ function ArchitectureCanvasInner({ workspaceId, readOnly, viewport, onViewportCh
   const addConnection = useArchitectureEditorStore((state) => state.addConnection);
   const addBoundary = useArchitectureEditorStore((state) => state.addBoundary);
   const addComponent = useArchitectureEditorStore((state) => state.addComponent);
+  const addComponentAndFocus = useCallback((category: ArchitectureComponentCategory, type: ArchitectureComponentType, overrides?: Parameters<typeof addComponent>[2]) => {
+    addComponent(category, type, overrides);
+    globalThis.setTimeout(() => globalThis.document.getElementById("component-label")?.focus(), 0);
+  }, [addComponent]);
   const selectNode = useArchitectureEditorStore((state) => state.selectNode);
   const selectEdge = useArchitectureEditorStore((state) => state.selectEdge);
   const setSelection = useArchitectureEditorStore((state) => state.setSelection);
@@ -253,6 +296,16 @@ function ArchitectureCanvasInner({ workspaceId, readOnly, viewport, onViewportCh
     try {
       const response = await api.saveArchitectureDocument(workspaceId, current.version, current.document);
       if (useArchitectureEditorStore.getState().workspaceId !== workspaceId) return false;
+      const latest = useArchitectureEditorStore.getState();
+      if (latest.document !== current.document) {
+        // A newer local edit happened while this request was in flight. The
+        // response only acknowledges the older snapshot; keep the newer draft
+        // dirty and let the debounced save persist it next.
+        setSaveState("unsaved");
+        if (saveTimer.current) clearTimeout(saveTimer.current);
+        saveTimer.current = setTimeout(() => void saveDocument(), 700);
+        return true;
+      }
       markSaved(response.version, response.document);
       setSaveState("saved");
       setConflictSnapshot(null);
@@ -266,7 +319,8 @@ function ArchitectureCanvasInner({ workspaceId, readOnly, viewport, onViewportCh
         if (typeof nextVersion === "number" && nextDocument && typeof nextDocument === "object") setConflictSnapshot({ version: nextVersion, document: nextDocument as ArchitectureDocument });
       } else {
         setSaveState("error");
-        setSaveError("We could not save the canvas. Your local draft is preserved.");
+        const detail = error instanceof ApiRequestError && typeof error.details?.detail === "string" ? ` ${error.details.detail}` : "";
+        setSaveError(`We could not save the canvas. Your local draft is preserved.${detail}`);
       }
       return false;
     } finally {
@@ -343,9 +397,9 @@ function ArchitectureCanvasInner({ workspaceId, readOnly, viewport, onViewportCh
     const raw = event.dataTransfer.getData(componentDragMime);
     if (!raw) return;
     try {
-      const payload = JSON.parse(raw) as { category: ArchitectureComponentCategory; type: ArchitectureComponentType; label: string };
+      const payload = JSON.parse(raw) as { category: ArchitectureComponentCategory; type: ArchitectureComponentType; label: string; properties?: Record<string, string> };
       const position = screenToFlowPosition({ x: event.clientX, y: event.clientY });
-      addComponent(payload.category, payload.type, { label: payload.label, position });
+      addComponentAndFocus(payload.category, payload.type, { label: payload.label, position, properties: payload.properties ? { ...componentDefaults[payload.category], ...payload.properties } : undefined });
     } catch {
       return;
     }
@@ -359,7 +413,7 @@ function ArchitectureCanvasInner({ workspaceId, readOnly, viewport, onViewportCh
   function handlePaneClick(event: React.MouseEvent) {
     if (activeTool === "component" && !readOnly) {
       const position = screenToFlowPosition({ x: event.clientX, y: event.clientY });
-      addComponent("COMPUTE", "SERVICE", { label: "Service", position });
+      addComponentAndFocus("COMPUTE", "SERVICE", { label: "Service", position });
       return;
     }
     if (activeTool === "boundary" && !readOnly) return;
@@ -400,7 +454,15 @@ function ArchitectureCanvasInner({ workspaceId, readOnly, viewport, onViewportCh
 
   function submitBoundaryDraft() {
     if (!boundaryDraft || !boundaryDraft.label.trim()) return;
-    addBoundary({ label: boundaryDraft.label.trim(), type: boundaryDraft.type, parentBoundaryId: undefined, componentIds: [], metadata: { x: Math.round(boundaryDraft.flowPosition.x), y: Math.round(boundaryDraft.flowPosition.y), width: Math.round(boundaryDraft.size.width), height: Math.round(boundaryDraft.size.height) } });
+    const { x, y } = boundaryDraft.flowPosition;
+    const right = x + boundaryDraft.size.width;
+    const bottom = y + boundaryDraft.size.height;
+    const componentIds = nodes.filter((node) => {
+      const centerX = node.position.x + boundaryNodeSize.width / 2;
+      const centerY = node.position.y + boundaryNodeSize.height / 2;
+      return centerX >= x && centerX <= right && centerY >= y && centerY <= bottom;
+    }).map((node) => node.id);
+    addBoundary({ label: boundaryDraft.label.trim(), type: boundaryDraft.type, parentBoundaryId: undefined, componentIds, metadata: { x: Math.round(x), y: Math.round(y), width: Math.round(boundaryDraft.size.width), height: Math.round(boundaryDraft.size.height) } });
     setBoundaryDraft(null);
   }
 
@@ -431,8 +493,8 @@ function ArchitectureCanvasInner({ workspaceId, readOnly, viewport, onViewportCh
   const filteredGroups = paletteSearch.trim()
     ? paletteGroups.map((group) => ({ ...group, items: group.items.filter((item) => `${item.label} ${item.type}`.toLowerCase().includes(paletteSearch.trim().toLowerCase())) })).filter((group) => group.items.length > 0)
     : paletteGroups;
-  const renderPaletteItem = ({ category, icon: Icon, label, type }: PaletteItem) => (
-    <button className="flex min-h-9 w-full min-w-0 items-center gap-2.5 border border-[#344047] px-2.5 text-left text-[13px] text-[#f2f3f3] hover:border-[#a9e5d8] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#a9e5d8] disabled:cursor-not-allowed disabled:opacity-50" disabled={readOnly} draggable={!readOnly} key={type} onDragStart={(event) => dragComponentData(event, { category, icon: Icon, label, type })} onClick={() => addComponent(category, type, { label, position: canvasCenterPosition() })} type="button"><Icon aria-hidden="true" className="shrink-0 text-[#a7aeb3]" size={16} /><span className="min-w-0 truncate">{label}</span><Plus aria-hidden="true" className="ml-auto shrink-0 text-[#a7aeb3]" size={14} /></button>
+  const renderPaletteItem = ({ category, icon: Icon, label, type, properties }: PaletteItem) => (
+    <button className="flex min-h-9 w-full min-w-0 items-center gap-2.5 rounded-[3px] border border-[#344047] px-2.5 py-1 text-left text-[13px] text-[#f2f3f3] hover:border-[#a9e5d8] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#a9e5d8] disabled:cursor-not-allowed disabled:opacity-50" disabled={readOnly} draggable={!readOnly} key={`${category}:${type}:${label}`} onDragStart={(event) => dragComponentData(event, { category, icon: Icon, label, type, properties })} onClick={() => addComponentAndFocus(category, type, { label, position: canvasCenterPosition(), properties: properties ? { ...componentDefaults[category], ...properties } : undefined })} title={label} type="button"><Icon aria-hidden="true" className="shrink-0 text-[#a7aeb3]" size={16} /><span className="min-w-0 whitespace-normal break-words leading-4">{label}</span><Plus aria-hidden="true" className="ml-auto shrink-0 text-[#a7aeb3]" size={14} /></button>
   );
   const layout = useMemo(() => buildFlowLayout(nodes, boundaries), [nodes, boundaries]);
   const renderedFlowNodes = useMemo(() => {
@@ -465,7 +527,7 @@ function ArchitectureCanvasInner({ workspaceId, readOnly, viewport, onViewportCh
       : activeTool === "component"
         ? "CLICK THE CANVAS TO PLACE A SERVICE"
         : activeTool === "boundary"
-          ? "CLICK THE CANVAS TO ADD A BOUNDARY"
+          ? "DRAG TO DRAW A BOUNDARY"
           : "DRAG TO PAN THE CANVAS";
   const selectedNodes = nodes.filter((node) => selectedNodeIds.includes(node.id));
   const selectionToolbar = useMemo(() => {
@@ -479,6 +541,18 @@ function ArchitectureCanvasInner({ workspaceId, readOnly, viewport, onViewportCh
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedNodes, viewportState]);
   const pendingDeleteCopy = pendingDelete ? deleteCopy(pendingDelete) : { title: "", copy: "", confirm: "" };
+  useEffect(() => {
+    function focusRenameField(event: KeyboardEvent) {
+      if (event.key !== "F2" || readOnly || pendingDelete) return;
+      const state = useArchitectureEditorStore.getState();
+      const fieldId = state.selectedEdgeId ? "connection-label" : state.selectedNodeId && state.boundaries.some((boundary) => boundary.id === state.selectedNodeId) ? "boundary-label" : state.selectedNodeId ? "component-label" : null;
+      if (!fieldId) return;
+      event.preventDefault();
+      window.setTimeout(() => globalThis.document.getElementById(fieldId)?.focus(), 0);
+    }
+    window.addEventListener("keydown", focusRenameField);
+    return () => window.removeEventListener("keydown", focusRenameField);
+  }, [pendingDelete, readOnly]);
 
   if (query.isLoading) return <section aria-label="Architecture canvas" className="border border-[#2b3337] bg-[#0d1211] p-8 text-sm text-[#a7aeb3]">Loading Architecture Document…</section>;
   if (query.isError || !document) return <section aria-label="Architecture canvas" className="border border-[#2b3337] bg-[#0d1211] p-8 text-sm text-[#ff9a8b]" role="alert">We could not load the Architecture Canvas. Try again.</section>;
@@ -497,10 +571,10 @@ function ArchitectureCanvasInner({ workspaceId, readOnly, viewport, onViewportCh
     {saveError ? <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#e6c98f] bg-[#f5e8d8] px-4 py-3" role="alert"><div className="flex items-center gap-2.5"><AlertTriangle aria-hidden="true" className="shrink-0 text-[#9a5310]" size={18} /><div><p className="text-[13px] font-semibold text-[#18201e]">{saveError}</p><p className="mt-0.5 text-[11px] text-[#626a66]">Your local edits are safe. Compare versions before choosing.</p></div></div><button className="min-h-8 bg-[#9a5310] px-3 text-[11px] font-semibold text-[#f0f3f1]" onClick={() => { const current = useArchitectureEditorStore.getState(); const serverVersion = conflictSnapshot?.version ?? query.data?.version ?? current.version; const serverDocument = conflictSnapshot?.document ?? query.data?.document ?? current.document; replaceFromServer(serverVersion, serverDocument as ArchitectureDocument); setSaveState("saved"); setSaveError(null); setConflictSnapshot(null); }} type="button">Compare</button></div> : null}
     {revisionMessage ? <p className="border-b border-[#2b3337] px-4 py-2 text-xs text-[#a9e5d8]" role="status">{revisionMessage}</p> : null}
     {connectionMessage ? <p className="border-b border-[#2b3337] px-4 py-2 text-xs text-[#a9e5d8]" role="status">{connectionMessage}</p> : null}
-    <div className={`${fullScreen ? "flex min-h-0 flex-1 flex-col lg:flex-row" : "grid min-h-[560px] lg:grid-cols-[156px_minmax(0,1fr)]"} border border-[#35413d]`}>
+    <div className={`${fullScreen ? "flex min-h-0 flex-1 flex-col lg:flex-row" : "grid min-h-[560px] lg:grid-cols-[180px_minmax(0,1fr)]"} border border-[#35413d]`}>
       <aside aria-label="Component palette" className={fullScreen ? "flex w-full shrink-0 flex-col overflow-hidden border-b border-[#2b3337] bg-[#151b1d] p-3 lg:w-[180px] lg:border-b-0 lg:border-r" : "flex flex-col overflow-hidden border-b border-[#2b3337] bg-[#151b1d] p-3 lg:border-b-0 lg:border-r"}><p className="shrink-0 font-mono text-[9px] uppercase tracking-[0.14em] text-[#a7aeb3]">Components</p><div className="mt-2.5 flex min-h-8 shrink-0 w-full items-center gap-2 border border-[#3c4542] bg-[#202826] px-2.5"><Search aria-hidden="true" className="shrink-0 text-[#a7aeb3]" size={13} /><input aria-label="Search components" className="min-w-0 flex-1 bg-transparent text-[13px] text-[#f2f3f3] outline-none placeholder:text-[#a7aeb3]" disabled={readOnly} onChange={(event) => setPaletteSearch(event.target.value)} placeholder="Search components" value={paletteSearch} /></div><div className="mt-3 min-h-0 flex-1 space-y-1 overflow-x-hidden overflow-y-auto pr-1" data-testid="palette-list">{paletteSearch.trim() ? filteredGroups.map((group) => <div key={group.label}><p className="font-mono text-[10px] uppercase tracking-[0.14em] text-[#a7aeb3]">{group.label}</p><div className="mt-1.5 grid gap-1">{group.items.map(renderPaletteItem)}</div></div>) : paletteGroups.map((group) => <div key={group.label}><button aria-expanded={openGroup === group.label} className="flex min-h-8 w-full items-center justify-between px-1 text-[11px] font-semibold text-[#a7aeb3] hover:text-[#f0f3f1] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#a9e5d8]" onClick={() => setOpenGroup((current) => current === group.label ? "" : group.label)} type="button">{group.label}<ChevronDown aria-hidden="true" className={`shrink-0 transition-transform ${openGroup === group.label ? "rotate-180 text-[#0f766e]" : "text-[#5a635f]"}`} size={14} /></button>{openGroup === group.label ? <div className="mt-1.5 grid gap-1">{group.items.map(renderPaletteItem)}</div> : null}</div>)}{paletteSearch.trim() && filteredGroups.length === 0 ? <p className="text-[13px] text-[#a7aeb3]">No components match “{paletteSearch}”.</p> : null}</div><p className="mt-3 shrink-0 font-mono text-[10px] text-[#a7aeb3]">Drag to Canvas or press Enter</p></aside>
       <div className={fullScreen ? "relative min-h-0 flex-1 overflow-hidden bg-[#101316]" : "relative h-[570px] overflow-hidden bg-[#101316]"} data-testid="architecture-flow" onDragEnter={(event) => { if (!readOnly && Array.from(event.dataTransfer.types).includes(componentDragMime)) setDragDepth((depth) => depth + 1); }} onDragLeave={() => setDragDepth((depth) => Math.max(0, depth - 1))} onDragOver={onFlowDragOver} onDrop={onFlowDrop} ref={flowRef}><ReactFlow connectionLineStyle={{ stroke: "#0f766e", strokeWidth: 1.5 }} connectOnClick={!readOnly && activeTool === "connection"} defaultViewport={viewport} edges={flowEdges} fitView={!viewport} isValidConnection={(connection) => Boolean(connection.source) && Boolean(connection.target) && connection.source !== connection.target} nodeExtent={canvasWorldExtent} nodeTypes={nodeTypes} nodes={renderedFlowNodes as unknown as CanvasNode[]} nodesConnectable={!readOnly} nodesDraggable={!readOnly && activeTool === "select"} onConnect={connect} onConnectEnd={() => setIsConnecting(false)} onConnectStart={() => setIsConnecting(true)} onEdgeClick={(_, edge) => selectEdge(edge.id)} onEdgesChange={readOnly ? undefined : handleEdgesChange} onMoveEnd={(_, nextViewport) => onViewportChange?.(nextViewport)} onNodeClick={(_, node) => { if (node.type === "component") selectNode(node.id); else if (node.type === "boundary") selectNode(node.id); }} onNodesChange={readOnly ? undefined : handleNodesChange} onPaneClick={handlePaneClick} onSelectionChange={handleSelectionChange} panOnDrag={activeTool === "pan"} proOptions={{ hideAttribution: true }} selectionOnDrag={!readOnly && activeTool === "select"} translateExtent={canvasWorldExtent}><Background color="#202a2d" gap={28} size={1} /></ReactFlow>
-        {nodes.length === 0 ? <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center p-4"><div className="pointer-events-auto w-[520px] max-w-full border border-[#2b3337] bg-[#151c1a] p-8 text-center"><div aria-hidden="true" className="mx-auto flex size-[46px] items-center justify-center bg-[#203633]"><Network className="text-[#0f766e]" size={22} /></div><p className="mt-4 font-display text-[22px] font-normal text-[#f0f3f1]">No architecture Components yet.</p><p className="mt-2 text-[13px] leading-5 text-[#a7aeb3]">Drag a Component from the palette, press Enter on a palette item, or use the Component tool to start describing the system.</p><button className="mt-5 inline-flex min-h-9 items-center bg-[#0f766e] px-4 text-xs font-semibold text-[#f0f3f1]" onClick={() => addComponent("COMPUTE", "SERVICE", { label: "Service", position: canvasCenterPosition() })} type="button">Add Component</button></div></div> : null}
+        {nodes.length === 0 ? <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center p-4"><div className="pointer-events-auto w-[520px] max-w-full border border-[#2b3337] bg-[#151c1a] p-8 text-center"><div aria-hidden="true" className="mx-auto flex size-[46px] items-center justify-center bg-[#203633]"><Network className="text-[#0f766e]" size={22} /></div><p className="mt-4 font-display text-[22px] font-normal text-[#f0f3f1]">No architecture Components yet.</p><p className="mt-2 text-[13px] leading-5 text-[#a7aeb3]">Drag a Component from the palette, press Enter on a palette item, or use the Component tool to start describing the system.</p><button className="mt-5 inline-flex min-h-9 items-center bg-[#0f766e] px-4 text-xs font-semibold text-[#f0f3f1]" onClick={() => addComponentAndFocus("COMPUTE", "SERVICE", { label: "Service", position: canvasCenterPosition() })} type="button">Add Component</button></div></div> : null}
         {selectionToolbar && selectedNodes.length > 0 && !pendingDelete ? <div className="absolute z-20 flex items-center gap-0.5 border border-[#2b3337] bg-[#202826] px-2 py-1.5" role="toolbar" style={{ left: selectionToolbar.x, top: selectionToolbar.y }}>{selectedNodes.length > 1 ? <span className="px-1.5 font-mono text-[10px] text-[#0f766e]">{selectedNodes.length} selected</span> : null}{selectedNodes.length > 1 ? <SelectionButton ariaLabel="Distribute selection" danger={false} icon={AlignHorizontalSpaceAround} onClick={() => distributeSelection(selectedNodeIds)} title="Distribute" /> : null}{selectedNodes.length > 1 ? <SelectionButton ariaLabel="Group selection" danger={false} icon={Group} onClick={() => groupSelection(selectedNodeIds)} title="Group" /> : null}<SelectionButton ariaLabel="Duplicate selection" danger={false} icon={Copy} onClick={() => duplicateNodes(selectedNodeIds)} title="Duplicate" />{selectedNodes.length === 1 ? <SelectionButton ariaLabel="Connect selection" danger={false} icon={Link} onClick={() => setActiveTool("connection")} title="Connect" /> : null}<SelectionButton ariaLabel="Delete selection" danger icon={Trash2} onClick={requestDeleteSelection} title="Delete" /></div> : null}
         {pendingConnection ? <div className="absolute z-20 w-[300px] rounded-[5px] border border-[#0f766e] bg-[#202826] p-3.5" style={{ left: pendingConnection.position.x, top: pendingConnection.position.y }} role="dialog" aria-label="Choose connection intent"><p className="font-mono text-[10px] uppercase tracking-[0.14em] text-[#0f766e]">Create Connection</p><p className="mt-1.5 text-[13px] font-medium text-[#f0f3f1]">{nodes.find((node) => node.id === pendingConnection.source)?.data.label ?? "?"} → {nodes.find((node) => node.id === pendingConnection.target)?.data.label ?? "?"}</p><div className="mt-3 grid gap-2">{connectionQuickIntents.map(({ intent, label, detail }) => <button className="flex min-h-12 w-full flex-col items-start justify-center gap-[3px] rounded-[3px] border border-[#35413d] px-2.5 py-2 text-left hover:border-[#0f766e] hover:bg-[#29413c] group" key={intent} onClick={() => pickConnection(intent)} type="button"><span className="text-[12px] font-medium text-[#a7aeb3] group-hover:text-[#f0f3f1]">{label}</span><span className="font-mono text-[10px] text-[#a7aeb3]">{detail}</span></button>)}<div className="mt-2 flex min-h-12 w-full flex-col items-start justify-center gap-[3px] border-t border-[#2b3337] px-[10px] py-[9px]"><p className="font-mono text-[9px] uppercase tracking-[0.14em] text-[#a7aeb3]">Keyboard Alternative</p><p className="text-[11px] text-[#f0f3f1]">Choose source, target, and intent without dragging</p></div></div></div> : null}
         {boundaryDraft ? <div className="absolute z-20 w-[260px] border border-[#2b3337] bg-[#202826] p-3.5" style={{ left: Math.min(boundaryDraft.position.x, Math.max(8, (flowRef.current?.clientWidth ?? 260) - 268)), top: Math.min(boundaryDraft.position.y, Math.max(8, (flowRef.current?.clientHeight ?? 260) - 260)) }} role="dialog" aria-label="Add boundary"><p className="font-mono text-[10px] uppercase tracking-[0.14em] text-[#0f766e]">Add Boundary</p><label className="mt-3 block text-[11px] text-[#a7aeb3]" htmlFor="boundary-draft-label">Label</label><input autoFocus className="mt-1.5 min-h-9 w-full border border-[#3c4542] bg-[#101316] px-2 text-[13px] text-[#f2f3f3] outline-none focus:border-[#a9e5d8]" id="boundary-draft-label" onChange={(event) => setBoundaryDraft((current) => current ? { ...current, label: event.target.value } : current)} onKeyDown={(event) => { if (event.key === "Enter") submitBoundaryDraft(); }} placeholder="e.g. Primary region" value={boundaryDraft.label} /><label className="mt-3 block text-[11px] text-[#a7aeb3]" htmlFor="boundary-draft-type">Type</label><select className="mt-1.5 min-h-9 w-full border border-[#3c4542] bg-[#101316] px-2 text-[13px] text-[#f2f3f3]" id="boundary-draft-type" onChange={(event) => setBoundaryDraft((current) => current ? { ...current, type: event.target.value as CanvasBoundary["type"] } : current)} value={boundaryDraft.type}>{boundaryTypes.map((type) => <option key={type} value={type}>{type}</option>)}</select><div className="mt-4 flex items-center justify-between"><button className="text-[11px] font-semibold text-[#a7aeb3] hover:text-[#f0f3f1]" onClick={() => setBoundaryDraft(null)} type="button">Cancel</button><button className="min-h-8 bg-[#0f766e] px-3 text-[11px] font-semibold text-[#f0f3f1]" disabled={!boundaryDraft.label.trim()} onClick={submitBoundaryDraft} type="button">Add Boundary</button></div></div> : null}
@@ -508,7 +582,7 @@ function ArchitectureCanvasInner({ workspaceId, readOnly, viewport, onViewportCh
       </div>
     </div>
     <div className="flex min-h-10 shrink-0 flex-wrap items-center justify-between gap-3 border-t border-[#2b3337] bg-[#101316] px-4 py-2 font-mono text-[10px] text-[#a7aeb3]"><span>{nodes.length} COMPONENT{nodes.length === 1 ? "" : "S"} · {edges.length} CONNECTION{edges.length === 1 ? "" : "S"} · {boundaries.length} BOUNDARY{boundaries.length === 1 ? "" : "IES"} · VIEW {Math.round(viewportState.zoom * 100)}%</span><div className="flex items-center gap-3">{visibleSaveState === "offline" ? <span className="flex items-center gap-1.5 border border-[#3c4542] bg-[#202826] px-2 py-1 text-[10px] text-[#f0f3f1]"><CloudOff aria-hidden="true" className="text-[#9a5310]" size={14} />Offline · changes queued locally</span> : <span aria-live="polite" className={`flex items-center gap-1.5 ${visibleSaveState === "conflict" || visibleSaveState === "error" ? "text-[#ff9a8b]" : visibleSaveState === "saved" || visibleSaveState === "loading" ? "text-[#a9aeb3]" : "text-[#a9e5d8]"}`} role="status">{statusLabel}</span>}<button className="border border-[#3c4542] px-2.5 py-1 text-[10px] font-semibold text-[#f2f3f3] hover:border-[#a9e5d8]" onClick={() => void createRevision()} type="button">Checkpoint Revision</button></div></div>
-    {pendingDelete ? <div className="fixed inset-0 z-50 grid place-items-center bg-[#0d1211]/60 p-4" role="dialog" aria-modal="true" aria-labelledby="delete-confirmation-title"><div className="w-[440px] max-w-full bg-[#fbf9f3] p-7"><div aria-hidden="true" className="flex size-[42px] items-center justify-center bg-[#f5e3e0]"><Trash2 className="text-[#a33f34]" size={20} /></div><h2 className="mt-4 font-display text-[22px] font-medium text-[#18201e]" id="delete-confirmation-title">{pendingDeleteCopy.title}</h2><p className="mt-2 text-[13px] leading-5 text-[#626a66]">{pendingDeleteCopy.copy}</p><div className="mt-6 flex items-center justify-between gap-3"><button className="min-h-9 px-1 text-[12px] font-semibold text-[#18201e] hover:underline" onClick={cancelDelete} type="button">Cancel</button><button className="min-h-9 bg-[#a33f34] px-4 text-[12px] font-semibold text-[#f0f3f1]" onClick={confirmDelete} type="button">{pendingDeleteCopy.confirm}</button></div></div></div> : null}
+    {pendingDelete ? <div className="fixed inset-0 z-50 grid place-items-center bg-[#0d1211]/60 p-4" role="dialog" aria-modal="true" aria-labelledby="delete-confirmation-title"><div className="w-[440px] max-w-full rounded-[4px] bg-[#fbf9f3] p-7"><div aria-hidden="true" className="flex size-[42px] items-center justify-center rounded-[4px] bg-[#f5e3e0]"><Trash2 className="text-[#a33f34]" size={20} /></div><h2 className="mt-4 font-display text-[22px] font-medium text-[#18201e]" id="delete-confirmation-title">{pendingDeleteCopy.title}</h2><p className="mt-2 text-[13px] leading-5 text-[#626a66]">{pendingDeleteCopy.copy}</p><div className="mt-6 flex items-center justify-end gap-2"><button className="inline-flex min-h-[38px] items-center rounded-[3px] border border-[#d6d1c5] px-3 text-[12px] font-normal text-[#18201e] hover:bg-[#f4f1e8]" onClick={cancelDelete} type="button">Cancel</button><button className="inline-flex min-h-[38px] items-center rounded-[3px] bg-[#a33f34] px-4 text-[12px] font-semibold text-[#f0f3f1]" onClick={confirmDelete} type="button">{pendingDeleteCopy.confirm}</button></div></div></div> : null}
   </section>;
 }
 
@@ -530,16 +604,26 @@ function deleteCopy(pending: PendingDelete) {
   return { title: pending.ids.length === 1 ? `Delete ${pending.label}?` : `Delete ${pending.ids.length} Components?`, copy, confirm: pending.ids.length === 1 ? "Delete Component" : "Delete Components" };
 }
 
-function ArchitectureNode({ data, selected }: NodeProps<CanvasNode>) {
+function ArchitectureNode({ id, data, selected }: NodeProps<CanvasNode>) {
   const icon = data.type === "CUSTOM_COMPONENT" ? iconForSemantic(String(data.properties.semanticIcon)) : iconForType(data.type);
   const meta = nodeMeta(data);
-  const handleClass = "!h-2.5 !w-2.5 !border-0 !bg-[#0f766e] !shadow-[0_0_0_3px_rgba(15,118,110,0.18)]";
-  return <div className={`min-w-[150px] border bg-[#1b2421] px-3 py-2.5 shadow-none ${selected ? "border-[#a9e5d8]" : "border-[#3c4542]"}`}><Handle className={handleClass} position={Position.Left} type="target" /><div className="flex items-center gap-2"><span aria-hidden="true" className="flex size-[26px] shrink-0 items-center justify-center bg-[#242e2b]">{createElement(icon, { className: "text-[#a9e5d8]", size: 14 })}</span><div className="min-w-0"><p className="truncate text-xs font-semibold text-[#f2f3f3]">{data.label}</p>{meta ? <p className="mt-0.5 font-mono text-[9px] uppercase tracking-[0.08em] text-[#a7aeb3]">{meta}</p> : null}</div></div><Handle className={handleClass} position={Position.Right} type="source" /></div>;
+  const handleClass = "!h-2 !w-2 !border-2 !border-[#0f766e] !bg-[#0d1211] !shadow-none";
+  const typeLabel = nodeTypeLabel(data.type);
+  const normalizedLabel = data.label.trim().toLowerCase();
+  const showType = normalizedLabel !== typeLabel.toLowerCase() && !(typeAliases[data.type] ?? []).includes(normalizedLabel);
+  return <div aria-label={showType ? `${data.label}, ${typeLabel}` : data.label} onDoubleClick={() => { useArchitectureEditorStore.getState().selectNode(id); globalThis.setTimeout(() => globalThis.document.getElementById("component-label")?.focus(), 0); }} className={`relative flex min-h-[82px] min-w-[120px] flex-col justify-center gap-[7px] rounded-[4px] border border-[#46534e] bg-[#1b2421] px-[10px] py-[10px] ${selected ? "outline outline-2 outline-offset-[-1px] outline-[#0f766e]" : ""}`}><Handle className={handleClass} position={Position.Left} type="target" /><div className="flex w-full items-center gap-2"><span aria-hidden="true" className="flex size-[26px] shrink-0 items-center justify-center rounded-[3px] bg-[#242e2b]">{createElement(icon, { className: "text-[#a7b0ac]", size: 14 })}</span><div className="flex min-w-0 flex-1 flex-col items-start gap-0.5"><p className="w-full truncate font-sans text-[12px] font-normal leading-4 text-[#f0f3f1]">{data.label}</p>{showType ? <p className="whitespace-nowrap font-mono text-[9px] uppercase leading-3 text-[#a7b0ac]">{typeLabel}</p> : null}</div></div>{meta ? <p className="relative z-[1] whitespace-nowrap font-mono text-[9px] leading-3 text-[#a7b0ac]">{meta}</p> : null}<Handle className={handleClass} position={Position.Right} type="source" /></div>;
 }
 
-function BoundaryNode({ data }: NodeProps<BoundaryFlowNode>) {
-  return <div className="relative h-full w-full overflow-visible rounded-[4px] border bg-[#101513]" style={{ borderColor: "#53615c", boxShadow: "none" }}><span className="absolute left-4 -top-6 whitespace-nowrap font-mono text-[10px] uppercase tracking-[0.08em] text-[#a7aeb3]">{data.label} / {data.boundaryType.replaceAll("_", " ")} BOUNDARY</span></div>;
+function BoundaryNode({ id, data }: NodeProps<BoundaryFlowNode>) {
+  return <div onDoubleClick={() => { if (id !== "__pencil-boundary-guide") { useArchitectureEditorStore.getState().selectNode(id); globalThis.setTimeout(() => globalThis.document.getElementById("boundary-label")?.focus(), 0); } }} className="relative h-full w-full overflow-visible rounded-[4px] border bg-[#101513]" style={{ borderColor: "#53615c", boxShadow: "none" }}><span className="absolute left-4 -top-6 whitespace-nowrap font-mono text-[10px] uppercase tracking-[0.08em] text-[#a7aeb3]">{data.label} / {data.boundaryType.replaceAll("_", " ")} BOUNDARY</span></div>;
 }
+
+const dataStoreProviderOptions: Partial<Record<ArchitectureComponentType, string[]>> = {
+  CACHE: ["REDIS", "MEMCACHED", "IN_MEMORY", "OTHER"],
+  RELATIONAL_DATABASE: ["POSTGRESQL", "MYSQL", "OTHER"],
+  DOCUMENT_DATABASE: ["MONGODB", "NOSQL", "OTHER"],
+  OBJECT_STORE: ["S3_COMPATIBLE", "OTHER"],
+};
 
 const propertyFields: Record<ArchitectureComponentCategory, string[]> = {
   CLIENT: ["responsibility", "authBoundary", "offlineNotes"],
@@ -554,13 +638,43 @@ const propertyFields: Record<ArchitectureComponentCategory, string[]> = {
 };
 
 export function ArchitectureInspector({ disabled, node, onChange, onDelete, onDuplicate }: { disabled: boolean; node: CanvasNode; onChange: (patch: Partial<CanvasNodeData>) => void; onDelete: () => void; onDuplicate: () => void }) {
-  const propertyKey = { CLIENT: "platform", COMPUTE: "runtime", DATA_STORE: "consistency", MESSAGING: "deliveryGuarantee", EDGE_SECURITY: "exposure", COORDINATION_CONFIG: "consistency", IDENTITY_SECRETS: "responsibility", OBSERVABILITY: "signal", CUSTOM: "semanticIcon" }[node.data.category];
-  const propertyOptions = { platform: ["WEB", "MOBILE", "DESKTOP", "CLI", "IOT", "OTHER"], runtime: ["JAVA", "NODE_JS", "PYTHON", "GO", "OTHER"], consistency: ["STRONG", "EVENTUAL", "CAUSAL"], deliveryGuarantee: ["AT_MOST_ONCE", "AT_LEAST_ONCE", "EXACTLY_ONCE"], exposure: ["PUBLIC", "PRIVATE", "INTERNAL"], responsibility: ["IDENTITY", "SECRETS"], signal: ["LOGS", "METRICS", "TRACES"], semanticIcon: ["component", "service", "worker", "database", "queue", "gateway", "event-bus", "dns", "cdn", "config", "registry", "storage", "identity", "external"] }[propertyKey];
+  const propertyKey = node.data.category === "DATA_STORE" ? "provider" : { CLIENT: "platform", COMPUTE: "runtime", MESSAGING: "deliveryGuarantee", EDGE_SECURITY: "exposure", COORDINATION_CONFIG: "consistency", IDENTITY_SECRETS: "responsibility", OBSERVABILITY: "signal", CUSTOM: "semanticIcon" }[node.data.category];
+  const properties = node.data.properties ?? {};
+  const propertyOptions = propertyKey === "provider" ? dataStoreProviderOptions[node.data.type] ?? ["OTHER"] : { platform: ["WEB", "MOBILE", "DESKTOP", "CLI", "IOT", "OTHER"], runtime: ["JAVA", "NODE_JS", "PYTHON", "GO", "OTHER"], consistency: ["STRONG", "EVENTUAL", "CAUSAL"], deliveryGuarantee: ["AT_MOST_ONCE", "AT_LEAST_ONCE", "EXACTLY_ONCE"], exposure: ["PUBLIC", "PRIVATE", "INTERNAL"], responsibility: ["IDENTITY", "SECRETS"], signal: ["LOGS", "METRICS", "TRACES"], semanticIcon: ["component", "service", "worker", "database", "queue", "gateway", "event-bus", "dns", "cdn", "config", "registry", "storage", "identity", "external"] }[propertyKey];
   const options = propertyOptions ?? [];
-  return <div><p className="font-mono text-[10px] uppercase tracking-[0.14em] text-[#a7aeb3]">Component Inspector</p><label className="mt-5 block text-xs text-[#a7aeb3]" htmlFor="component-label">Label</label><input className="mt-2 min-h-10 w-full border border-[#3c4542] bg-[#101316] px-2 text-sm text-[#f2f3f3] outline-none focus:border-[#a9e5d8] disabled:opacity-50" disabled={disabled} id="component-label" onChange={(event) => onChange({ label: event.target.value })} value={node.data.label} /><label className="mt-4 block text-xs text-[#a7aeb3]" htmlFor="component-category">Category</label><select className="mt-2 min-h-10 w-full border border-[#3c4542] bg-[#101316] px-2 text-sm text-[#f2f3f3] outline-none focus:border-[#a9e5d8] disabled:opacity-50" disabled={disabled} id="component-category" onChange={(event) => { const category = event.target.value as ArchitectureComponentCategory; onChange({ category, properties: componentDefaults[category] }); }} value={node.data.category}><option value="CLIENT">Client</option><option value="COMPUTE">Compute</option><option value="DATA_STORE">Data store</option><option value="MESSAGING">Messaging</option><option value="EDGE_SECURITY">Edge / security</option><option value="COORDINATION_CONFIG">Coordination / config</option><option value="IDENTITY_SECRETS">Identity / secrets</option><option value="OBSERVABILITY">Observability</option><option value="CUSTOM">Custom</option></select><label className="mt-4 block text-xs text-[#a7aeb3]" htmlFor="component-type">Type</label><select className="mt-2 min-h-10 w-full border border-[#3c4542] bg-[#101316] px-2 text-sm text-[#f2f3f3] outline-none focus:border-[#a9e5d8] disabled:opacity-50" disabled={disabled} id="component-type" onChange={(event) => onChange({ type: event.target.value as ArchitectureComponentType })} value={node.data.type}><option value="CLIENT">Client</option><option value="SERVICE">Service</option><option value="FUNCTION">Function</option><option value="WORKER">Worker</option><option value="BATCH_JOB">Batch job</option><option value="RELATIONAL_DATABASE">Relational database</option><option value="DOCUMENT_DATABASE">Document database</option><option value="CACHE">Cache</option><option value="OBJECT_STORE">Object store</option><option value="QUEUE">Queue</option><option value="EVENT_BUS">Event bus</option><option value="STREAM">Stream</option><option value="DNS">DNS</option><option value="CDN">CDN</option><option value="GATEWAY">API gateway</option><option value="LOAD_BALANCER">Load balancer</option><option value="WAF">WAF</option><option value="CONFIG_SERVICE">Config service</option><option value="SERVICE_REGISTRY">Service registry</option><option value="IDENTITY_PROVIDER">Identity provider</option><option value="SECRETS_MANAGER">Secrets manager</option><option value="LOGGING">Logging</option><option value="METRICS">Metrics</option><option value="TRACING">Tracing</option><option value="EXTERNAL_API">External API</option><option value="CUSTOM_COMPONENT">Custom Component</option></select><label className="mt-4 block text-xs text-[#a7aeb3]" htmlFor="component-property">{propertyKey.replace(/([A-Z])/g, " $1")}</label><select className="mt-2 min-h-10 w-full border border-[#3c4542] bg-[#101316] px-2 text-sm text-[#f2f3f3] outline-none focus:border-[#a9e5d8] disabled:opacity-50" disabled={disabled} id="component-property" onChange={(event) => onChange({ properties: { ...node.data.properties, [propertyKey]: event.target.value } })} value={String(node.data.properties[propertyKey] ?? options[0])}>{options.map((value) => <option key={value} value={value}>{value.replaceAll("_", " ")}</option>)}</select>{propertyFields[node.data.category].map((field) => <label className="mt-4 block text-xs text-[#a7aeb3]" key={field}>{field.replace(/([A-Z])/g, " $1")}<textarea className="mt-2 min-h-14 w-full border border-[#3c4542] bg-[#101316] px-2 py-2 text-xs text-[#f2f3f3] outline-none focus:border-[#a9e5d8] disabled:opacity-50" disabled={disabled} maxLength={500} onChange={(event) => onChange({ properties: { ...node.data.properties, [field]: event.target.value } })} value={String(node.data.properties[field] ?? "")} /></label>)}    <div className="mt-7 flex flex-wrap gap-2"><button className="inline-flex min-h-9 items-center gap-2 border border-[#3c4542] px-3 text-xs font-semibold text-[#f2f3f3] hover:border-[#a9e5d8] disabled:cursor-not-allowed disabled:opacity-50" disabled={disabled} onClick={onDuplicate} type="button"><Copy aria-hidden="true" size={14} />Duplicate</button><button className="inline-flex min-h-9 items-center gap-2 border border-[#ff9a8b] px-3 text-xs font-semibold text-[#ffb4a8] hover:bg-[#321d1a] disabled:cursor-not-allowed disabled:opacity-50" disabled={disabled} onClick={onDelete} type="button"><Trash2 aria-hidden="true" size={14} />Delete Component</button></div></div>;
+  return <div><p className="font-mono text-[10px] uppercase tracking-[0.14em] text-[#a7aeb3]">Component Inspector</p><label className="mt-5 block text-xs text-[#a7aeb3]" htmlFor="component-label">Label</label><input className="mt-2 min-h-10 w-full border border-[#3c4542] bg-[#101316] px-2 text-sm text-[#f2f3f3] outline-none focus:border-[#a9e5d8] disabled:opacity-50" disabled={disabled} id="component-label" onChange={(event) => onChange({ label: event.target.value })} value={node.data.label} /><label className="mt-4 block text-xs text-[#a7aeb3]" htmlFor="component-category">Category</label><select className="mt-2 min-h-10 w-full border border-[#3c4542] bg-[#101316] px-2 text-sm text-[#f2f3f3] outline-none focus:border-[#a9e5d8] disabled:opacity-50" disabled={disabled} id="component-category" onChange={(event) => { const category = event.target.value as ArchitectureComponentCategory; onChange({ category, properties: componentDefaults[category] }); }} value={node.data.category}><option value="CLIENT">Client</option><option value="COMPUTE">Compute</option><option value="DATA_STORE">Data store</option><option value="MESSAGING">Messaging</option><option value="EDGE_SECURITY">Edge / security</option><option value="COORDINATION_CONFIG">Coordination / config</option><option value="IDENTITY_SECRETS">Identity / secrets</option><option value="OBSERVABILITY">Observability</option><option value="CUSTOM">Custom</option></select><label className="mt-4 block text-xs text-[#a7aeb3]" htmlFor="component-type">Type</label><select className="mt-2 min-h-10 w-full border border-[#3c4542] bg-[#101316] px-2 text-sm text-[#f2f3f3] outline-none focus:border-[#a9e5d8] disabled:opacity-50" disabled={disabled} id="component-type" onChange={(event) => onChange({ type: event.target.value as ArchitectureComponentType })} value={node.data.type}><option value="CLIENT">Client</option><option value="SERVICE">Service</option><option value="FUNCTION">Function</option><option value="WORKER">Worker</option><option value="BATCH_JOB">Batch job</option><option value="RELATIONAL_DATABASE">Relational database</option><option value="DOCUMENT_DATABASE">Document database</option><option value="CACHE">Cache</option><option value="OBJECT_STORE">Object store</option><option value="QUEUE">Queue</option><option value="EVENT_BUS">Event bus</option><option value="STREAM">Stream</option><option value="DNS">DNS</option><option value="CDN">CDN</option><option value="GATEWAY">API gateway</option><option value="LOAD_BALANCER">Load balancer</option><option value="WAF">WAF</option><option value="CONFIG_SERVICE">Config service</option><option value="SERVICE_REGISTRY">Service registry</option><option value="IDENTITY_PROVIDER">Identity provider</option><option value="SECRETS_MANAGER">Secrets manager</option><option value="LOGGING">Logging</option><option value="METRICS">Metrics</option><option value="TRACING">Tracing</option><option value="EXTERNAL_API">External API</option><option value="CUSTOM_COMPONENT">Custom Component</option></select><label className="mt-4 block text-xs text-[#a7aeb3]" htmlFor="component-property">{propertyKey.replace(/([A-Z])/g, " $1")}</label><select className="mt-2 min-h-10 w-full border border-[#3c4542] bg-[#101316] px-2 text-sm text-[#f2f3f3] outline-none focus:border-[#a9e5d8] disabled:opacity-50" disabled={disabled} id="component-property" onChange={(event) => onChange({ properties: { ...properties, [propertyKey]: event.target.value } })} value={String(properties[propertyKey] ?? "")}><option value="">Not specified</option>{options.map((value) => <option key={value} value={value}>{({ IN_MEMORY: "In-memory", S3_COMPATIBLE: "S3-compatible", NOSQL: "NoSQL-compatible" } as Record<string, string>)[value] ?? value.replaceAll("_", " ")}</option>)}</select>{propertyFields[node.data.category].map((field) => <label className="mt-4 block text-xs text-[#a7aeb3]" key={field}>{field.replace(/([A-Z])/g, " $1")}<textarea className="mt-2 min-h-14 w-full border border-[#3c4542] bg-[#101316] px-2 py-2 text-xs text-[#f2f3f3] outline-none focus:border-[#a9e5d8] disabled:opacity-50" disabled={disabled} maxLength={500} onChange={(event) => onChange({ properties: { ...properties, [field]: event.target.value } })} value={String(properties[field] ?? "")} /></label>)}    <div className="mt-7 flex flex-wrap gap-2"><button className="inline-flex min-h-9 items-center gap-2 border border-[#3c4542] px-3 text-xs font-semibold text-[#f2f3f3] hover:border-[#a9e5d8] disabled:cursor-not-allowed disabled:opacity-50" disabled={disabled} onClick={onDuplicate} type="button"><Copy aria-hidden="true" size={14} />Duplicate</button><button className="inline-flex min-h-9 items-center gap-2 border border-[#ff9a8b] px-3 text-xs font-semibold text-[#ffb4a8] hover:bg-[#321d1a] disabled:cursor-not-allowed disabled:opacity-50" disabled={disabled} onClick={onDelete} type="button"><Trash2 aria-hidden="true" size={14} />Delete Component</button></div></div>;
 }
 
 export function ConnectionInspector({ disabled, edge, sourceLabel, targetLabel, onChange, onDelete }: { disabled: boolean; edge: CanvasEdge; sourceLabel: string; targetLabel: string; onChange: (patch: Partial<CanvasEdgeData>) => void; onDelete: () => void }) {
   const data = edge.data ?? { intent: "REQUEST_RESPONSE" };
-  return <div><p className="font-mono text-[10px] uppercase tracking-[0.14em] text-[#a7aeb3]">Connection Inspector</p><dl className="mt-5 grid gap-2 border-y border-line py-3 text-[12px]"><div className="flex justify-between gap-3"><dt className="text-text-muted">From</dt><dd className="text-right text-foreground">{sourceLabel}</dd></div><div className="flex justify-between gap-3"><dt className="text-text-muted">To</dt><dd className="text-right text-foreground">{targetLabel}</dd></div></dl><label className="mt-4 block text-xs text-text-muted" htmlFor="connection-intent">Intent</label><select className="mt-2 min-h-10 w-full border border-[#3c4542] bg-[#101316] px-2 text-sm text-[#f2f3f3] outline-none focus:border-[#a9e5d8] disabled:opacity-50" disabled={disabled} id="connection-intent" onChange={(event) => onChange({ intent: event.target.value })} value={data.intent}>{connectionIntents.map((intent) => <option key={intent} value={intent}>{intent.replaceAll("_", " ")}</option>)}</select><label className="mt-4 block text-xs text-text-muted" htmlFor="connection-protocol">Protocol</label><select className="mt-2 min-h-10 w-full border border-[#3c4542] bg-[#101316] px-2 text-sm text-[#f2f3f3] outline-none focus:border-[#a9e5d8] disabled:opacity-50" disabled={disabled} id="connection-protocol" onChange={(event) => onChange({ protocol: event.target.value })} value={data.protocol ?? ""}>{protocols.map((protocol) => <option key={protocol} value={protocol}>{protocol || "Not specified"}</option>)}</select><label className="mt-4 block text-xs text-text-muted" htmlFor="connection-guarantee">Guarantee</label><select className="mt-2 min-h-10 w-full border border-[#3c4542] bg-[#101316] px-2 text-sm text-[#f2f3f3] outline-none focus:border-[#a9e5d8] disabled:opacity-50" disabled={disabled} id="connection-guarantee" onChange={(event) => onChange({ guarantee: event.target.value })} value={data.guarantee ?? ""}>{guarantees.map((guarantee) => <option key={guarantee} value={guarantee}>{guarantee || "Not specified"}</option>)}</select><label className="mt-4 block text-xs text-text-muted" htmlFor="connection-notes">Notes</label><textarea className="mt-2 min-h-20 w-full border border-line bg-background px-2 py-2 text-sm text-foreground outline-none focus:border-signal disabled:opacity-50" disabled={disabled} id="connection-notes" maxLength={1000} onChange={(event) => onChange({ notes: event.target.value })} value={data.notes ?? ""} /><button className="mt-6 inline-flex min-h-9 items-center gap-2 border border-danger/50 px-3 text-xs font-semibold text-danger hover:bg-danger/10 disabled:cursor-not-allowed disabled:opacity-50" disabled={disabled} onClick={onDelete} type="button"><Trash2 aria-hidden="true" size={14} />Delete Connection</button></div>;
+  const humanize = (value?: string) => value ? value.replaceAll("_", " ").replace(/([a-z])([A-Z])/g, "$1 $2").toLowerCase().replace(/^./, (character) => character.toUpperCase()) : "Not specified";
+  const fieldClass = "mt-1.5 min-h-9 w-full rounded-[4px] border border-[#d6d1c5] bg-[#f4f1e8] px-3 text-[12px] text-[#18201e] outline-none focus:border-[#0f766e] disabled:opacity-50";
+  const summaryRows = [
+    ["From", sourceLabel],
+    ["To", targetLabel],
+    ["Intent", humanize(data.intent)],
+    ...(data.protocol ? [["Protocol", humanize(data.protocol)]] : []),
+    ...(data.guarantee ? [["Guarantee", humanize(data.guarantee)]] : []),
+  ];
+
+  return <section className="pt-5">
+    <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-[#626a66]">Selected connection</p>
+    <h2 className="mt-2 font-display text-[22px] font-normal leading-[1.2] text-[#18201e]">{sourceLabel} → {targetLabel}</h2>
+    <p className="mt-3 text-[13px] leading-5 text-[#626a66]">{data.label || "Describe how this Connection moves data between Components."}</p>
+    <dl className="mt-5 grid gap-3 text-[12px]">
+      {summaryRows.map(([label, value]) => <div className="flex items-baseline justify-between gap-4" key={label}><dt className="text-[#626a66]">{label}</dt><dd className="text-right text-[#18201e]">{value}</dd></div>)}
+    </dl>
+    <div className="mt-7">
+      <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-[#626a66]">Edit connection</p>
+      <label className="mt-4 block text-[12px] text-[#626a66]" htmlFor="connection-label">Label<input className={fieldClass} disabled={disabled} id="connection-label" maxLength={120} onChange={(event) => onChange({ label: event.target.value })} placeholder="Optional label" value={data.label ?? ""} /></label>
+      <label className="mt-4 block text-[12px] text-[#626a66]" htmlFor="connection-intent">Intent<select className={fieldClass} disabled={disabled} id="connection-intent" onChange={(event) => onChange({ intent: event.target.value })} value={data.intent}>{connectionIntents.map((intent) => <option key={intent} value={intent}>{humanize(intent)}</option>)}</select></label>
+      <label className="mt-4 block text-[12px] text-[#626a66]" htmlFor="connection-protocol">Protocol<select className={fieldClass} disabled={disabled} id="connection-protocol" onChange={(event) => onChange({ protocol: event.target.value })} value={data.protocol ?? ""}><option value="">Not specified</option>{protocols.filter(Boolean).map((protocol) => <option key={protocol} value={protocol}>{humanize(protocol)}</option>)}</select></label>
+      <label className="mt-4 block text-[12px] text-[#626a66]" htmlFor="connection-guarantee">Guarantee<select className={fieldClass} disabled={disabled} id="connection-guarantee" onChange={(event) => onChange({ guarantee: event.target.value })} value={data.guarantee ?? ""}><option value="">Not specified</option>{guarantees.filter(Boolean).map((guarantee) => <option key={guarantee} value={guarantee}>{humanize(guarantee)}</option>)}</select></label>
+      <label className="mt-4 block text-[12px] text-[#626a66]" htmlFor="connection-notes">Notes<textarea className={`${fieldClass} min-h-20 py-2`} disabled={disabled} id="connection-notes" maxLength={1000} onChange={(event) => onChange({ notes: event.target.value })} placeholder="Optional notes" value={data.notes ?? ""} /></label>
+    </div>
+    <div className="mt-6 flex flex-wrap gap-2 border-t border-[#d6d1c5] pt-5">
+      <button className="inline-flex min-h-[38px] items-center rounded-[4px] bg-[#0f766e] px-3 text-[12px] text-white hover:bg-[#0b625c] disabled:cursor-not-allowed disabled:opacity-50" disabled={disabled} onClick={() => onChange({})} type="button">Save changes</button>
+      <button className="inline-flex min-h-[38px] items-center gap-2 rounded-[4px] border border-[#c7a09a] px-3 text-[12px] text-[#8d332a] hover:bg-[#f8eeeb] disabled:cursor-not-allowed disabled:opacity-50" disabled={disabled} onClick={onDelete} type="button"><Trash2 aria-hidden="true" size={14} />Delete connection</button>
+    </div>
+  </section>;
 }

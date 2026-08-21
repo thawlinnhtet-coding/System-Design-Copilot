@@ -6,7 +6,7 @@ export type CanvasNodeData = { label: string; category: ArchitectureComponentCat
 export type CanvasNode = Node<CanvasNodeData>;
 export type BoundaryNodeData = { label: string; boundaryType: string };
 export type BoundaryFlowNode = Node<BoundaryNodeData, "boundary">;
-export type CanvasEdgeData = { intent: string; protocol?: string; guarantee?: string; notes?: string };
+export type CanvasEdgeData = { label?: string; intent: string; protocol?: string; guarantee?: string; notes?: string };
 export type CanvasEdge = Edge<CanvasEdgeData>;
 export type CanvasBoundary = { id: string; label: string; type: "DEPLOYMENT" | "NETWORK" | "REGION" | "AVAILABILITY" | "TRUST"; parentBoundaryId?: string; componentIds: string[]; metadata?: Record<string, string | number | boolean> };
 
@@ -31,7 +31,7 @@ type EditorState = {
   setNodes: (nodes: CanvasNode[]) => void;
   setEdges: (edges: Edge[]) => void;
   addConnection: (connection: Omit<CanvasEdgeData, "intent"> & { intent: string; source: string; target: string }) => { ok: true } | { ok: false; message: string };
-  addBoundary: (boundary: Omit<CanvasBoundary, "id">) => void;
+  addBoundary: (boundary: Omit<CanvasBoundary, "id">) => string;
   updateBoundary: (id: string, patch: Partial<Omit<CanvasBoundary, "id">>) => void;
   deleteBoundary: (id: string) => void;
   updateComponent: (id: string, patch: Partial<CanvasNodeData>) => void;
@@ -64,9 +64,10 @@ const emptyDocument = (): ArchitectureDocument => ({ schemaVersion: 1, component
 export const componentDefaults: Record<ArchitectureComponentCategory, Record<string, string>> = {
   CLIENT: { platform: "WEB" },
   COMPUTE: { runtime: "OTHER" },
+  // The API requires this schema field for every data store. It stays internal and is not shown in the canvas.
   DATA_STORE: { consistency: "EVENTUAL" },
   MESSAGING: { deliveryGuarantee: "AT_LEAST_ONCE" },
-  EDGE_SECURITY: { exposure: "INTERNAL" },
+  EDGE_SECURITY: {},
   COORDINATION_CONFIG: { consistency: "EVENTUAL" },
   IDENTITY_SECRETS: { responsibility: "IDENTITY" },
   OBSERVABILITY: { signal: "METRICS" },
@@ -87,10 +88,11 @@ function toNodes(document: ArchitectureDocument, existingNodes: CanvasNode[] = [
 }
 
 function toEdges(document: ArchitectureDocument): CanvasEdge[] {
-  return document.connections.map((connection) => buildEdge(connection.id, connection.fromComponentId, connection.toComponentId, connection.intent, connection.protocol, connection.guarantee, connection.notes));
+  return document.connections.map((connection) => buildEdge(connection.id, connection.fromComponentId, connection.toComponentId, connection.intent, connection.protocol, connection.guarantee, connection.notes, connection.label));
 }
 
-function shortIntentLabel(intent: string, protocol?: string) {
+function shortIntentLabel(intent: string, protocol?: string, label?: string) {
+  if (label?.trim()) return label.trim();
   if (protocol) return protocol;
   switch (intent) {
     case "REQUEST_RESPONSE": return "HTTP";
@@ -107,21 +109,21 @@ function shortIntentLabel(intent: string, protocol?: string) {
   }
 }
 
-function buildEdge(id: string, source: string, target: string, intent: string, protocol?: string, guarantee?: string, notes?: string): CanvasEdge {
+function buildEdge(id: string, source: string, target: string, intent: string, protocol?: string, guarantee?: string, notes?: string, label?: string): CanvasEdge {
   const async = intent.includes("EVENT") || intent === "QUEUE_DELIVERY" || intent === "STREAM";
   const dashed = async || intent === "REPLICATION";
   return {
     id,
     source,
     target,
-    label: shortIntentLabel(intent, protocol),
+    label: shortIntentLabel(intent, protocol, label),
     markerEnd: { type: MarkerType.ArrowClosed, color: "#0f766e" },
     animated: async,
     style: { stroke: "#0f766e", strokeWidth: 1.5, ...(dashed ? { strokeDasharray: "6 4" } : {}) },
     labelStyle: { fill: "#a7b0ac", fontSize: 9, fontWeight: 600 },
     labelBgStyle: { fill: "#101316", fillOpacity: 0.85 },
     labelBgPadding: [4, 2] as [number, number],
-    data: { intent, protocol, guarantee, notes },
+    data: { label, intent, protocol, guarantee, notes },
   };
 }
 
@@ -132,7 +134,7 @@ function toDocument(nodes: CanvasNode[], edges: CanvasEdge[], boundaries: Canvas
   });
   const connections = edges.map((edge) => {
     const existing = previous.connections.find((connection) => connection.id === edge.id);
-    return { ...(existing ?? { id: edge.id, intent: edge.data?.intent ?? "REQUEST_RESPONSE" }), fromComponentId: edge.source, toComponentId: edge.target, intent: edge.data?.intent ?? existing?.intent ?? "REQUEST_RESPONSE", protocol: edge.data?.protocol ?? existing?.protocol, guarantee: edge.data?.guarantee ?? existing?.guarantee, notes: edge.data?.notes ?? existing?.notes };
+    return { ...(existing ?? { id: edge.id, intent: edge.data?.intent ?? "REQUEST_RESPONSE" }), fromComponentId: edge.source, toComponentId: edge.target, intent: edge.data?.intent ?? existing?.intent ?? "REQUEST_RESPONSE", protocol: edge.data?.protocol ?? existing?.protocol, guarantee: edge.data?.guarantee ?? existing?.guarantee, notes: edge.data?.notes ?? existing?.notes, label: edge.data?.label ?? existing?.label };
   });
   return { ...previous, components, connections, boundaries };
 }
@@ -185,7 +187,14 @@ export const useArchitectureEditorStore = create<EditorState>((set) => ({
     });
     return result;
   },
-  addBoundary: (boundary) => set((state) => { const boundaries = [...state.boundaries, { ...boundary, id: nextId("boundary") }]; return state.document ? { boundaries, document: toDocument(state.nodes, state.edges, boundaries, state.document), dirty: true, past: [...state.past, snapshot(state)], future: [] } : { boundaries, dirty: true, past: [...state.past, snapshot(state)], future: [] }; }),
+  addBoundary: (boundary) => {
+    const id = nextId("boundary");
+    set((state) => {
+      const boundaries = [...state.boundaries, { ...boundary, id }];
+      return state.document ? { boundaries, selectedNodeId: id, selectedNodeIds: [], selectedEdgeId: null, document: toDocument(state.nodes, state.edges, boundaries, state.document), dirty: true, past: [...state.past, snapshot(state)], future: [] } : { boundaries, selectedNodeId: id, selectedNodeIds: [], selectedEdgeId: null, dirty: true, past: [...state.past, snapshot(state)], future: [] };
+    });
+    return id;
+  },
   updateBoundary: (id, patch) => set((state) => { const boundaries = state.boundaries.map((boundary) => boundary.id === id ? { ...boundary, ...patch } : boundary); return state.document ? { boundaries, document: toDocument(state.nodes, state.edges, boundaries, state.document), dirty: true, past: [...state.past, snapshot(state)], future: [] } : { boundaries, dirty: true, past: [...state.past, snapshot(state)], future: [] }; }),
   deleteBoundary: (id) => set((state) => { const boundaries = state.boundaries.filter((boundary) => boundary.id !== id).map((boundary) => boundary.parentBoundaryId === id ? { ...boundary, parentBoundaryId: undefined } : boundary); return state.document ? { boundaries, document: toDocument(state.nodes, state.edges, boundaries, state.document), dirty: true, past: [...state.past, snapshot(state)], future: [] } : { boundaries, dirty: true, past: [...state.past, snapshot(state)], future: [] }; }),
   updateComponent: (id, patch) => set((state) => {
@@ -279,7 +288,7 @@ export const useArchitectureEditorStore = create<EditorState>((set) => ({
     const edges = state.edges.map((edge) => {
       if (edge.id !== id) return edge;
       const data = { ...(edge.data ?? { intent: "REQUEST_RESPONSE" }), ...patch };
-      return { ...edge, label: shortIntentLabel(String(data.intent ?? ""), data.protocol), data };
+      return { ...edge, label: shortIntentLabel(String(data.intent ?? ""), data.protocol, data.label), data };
     });
     return state.document ? { edges, document: toDocument(state.nodes, edges, state.boundaries, state.document), dirty: true, past: [...state.past, snapshot(state)], future: [] } : { edges, dirty: true, past: [...state.past, snapshot(state)], future: [] };
   }),
@@ -288,7 +297,10 @@ export const useArchitectureEditorStore = create<EditorState>((set) => ({
     return state.document ? { edges, selectedEdgeId: state.selectedEdgeId === id ? null : state.selectedEdgeId, document: toDocument(state.nodes, edges, state.boundaries, state.document), dirty: true, past: [...state.past, snapshot(state)], future: [] } : { edges, selectedEdgeId: state.selectedEdgeId === id ? null : state.selectedEdgeId, dirty: true, past: [...state.past, snapshot(state)], future: [] };
   }),
   replaceFromServer: (version, document) => set((state) => ({ version, document, nodes: toNodes(document, state.nodes), edges: toEdges(document), boundaries: (document.boundaries ?? []) as CanvasBoundary[], dirty: false, selectedNodeId: state.selectedNodeId, selectedEdgeId: null, past: [], future: [] })),
-  markSaved: (version, document) => set((state) => ({ version, document, dirty: false, nodes: toNodes(document, state.nodes), edges: toEdges(document), boundaries: (document.boundaries ?? []) as CanvasBoundary[], past: [], future: [] })),
+  // The local document is already the payload that was saved. Keep the live
+  // React Flow objects so selection, input focus, and the inspector do not
+  // remount when the debounced save completes.
+  markSaved: (version, document) => set(() => ({ version, document, dirty: false, past: [], future: [] })),
   markDirty: () => set({ dirty: true }),
   undo: () => set((state) => {
     const previous = state.past.at(-1);
@@ -354,6 +366,16 @@ export function buildFlowLayout(nodes: CanvasNode[], boundaries: CanvasBoundary[
       minX = Math.min(minX, child.x); minY = Math.min(minY, child.y);
       maxX = Math.max(maxX, child.x + child.w); maxY = Math.max(maxY, child.y + child.h);
     }
+    const storedX = boundary.metadata?.x;
+    const storedY = boundary.metadata?.y;
+    const storedWidth = boundary.metadata?.width;
+    const storedHeight = boundary.metadata?.height;
+    if (typeof storedX === "number" && Number.isFinite(storedX) && typeof storedY === "number" && Number.isFinite(storedY) && typeof storedWidth === "number" && Number.isFinite(storedWidth) && typeof storedHeight === "number" && Number.isFinite(storedHeight)) {
+      minX = Number.isFinite(minX) ? Math.min(minX, storedX) : storedX;
+      minY = Number.isFinite(minY) ? Math.min(minY, storedY) : storedY;
+      maxX = Number.isFinite(maxX) ? Math.max(maxX, storedX + Math.max(24, storedWidth)) : storedX + Math.max(24, storedWidth);
+      maxY = Number.isFinite(maxY) ? Math.max(maxY, storedY + Math.max(24, storedHeight)) : storedY + Math.max(24, storedHeight);
+    }
     if (!Number.isFinite(minX)) {
       const metadataX = boundary.metadata?.x;
       const metadataY = boundary.metadata?.y;
@@ -366,7 +388,7 @@ export function buildFlowLayout(nodes: CanvasNode[], boundaries: CanvasBoundary[
       maxX = minX + width;
       maxY = minY + height;
     }
-    const padding = hasContent ? GROUP_PADDING : 0;
+    const padding = hasContent && !(typeof storedX === "number" && typeof storedY === "number" && typeof storedWidth === "number" && typeof storedHeight === "number") ? GROUP_PADDING : 0;
     const result = { x: minX - padding, y: minY - padding, w: maxX - minX + padding * 2, h: maxY - minY + padding * 2 };
     geom.set(boundaryId, result);
     return result;

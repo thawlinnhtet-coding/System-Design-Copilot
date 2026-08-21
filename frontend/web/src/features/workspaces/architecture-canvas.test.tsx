@@ -1,7 +1,7 @@
-import { fireEvent, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { vi } from "vitest";
 import { renderWithProviders } from "@/test/setup";
-import { ArchitectureCanvas } from "./architecture-canvas";
+import { ArchitectureCanvas, ArchitectureInspector } from "./architecture-canvas";
 import { useArchitectureEditorStore } from "./architecture-editor-store";
 
 const api = vi.hoisted(() => ({
@@ -110,5 +110,44 @@ describe("ArchitectureCanvas", () => {
     await waitFor(() => expect(useArchitectureEditorStore.getState().nodes).toHaveLength(1));
     expect(useArchitectureEditorStore.getState().nodes[0]?.data.label).toBe("API");
     expect(useArchitectureEditorStore.getState().document?.components[0]?.label).toBe("API");
+  });
+
+  it("offers generic data-store components without vendor duplicates", async () => {
+    renderWithProviders(<ArchitectureCanvas workspaceId="workspace-1" />);
+
+    await screen.findByRole("toolbar", { name: "Canvas tools" });
+    fireEvent.click(screen.getByRole("button", { name: "Data stores" }));
+    expect(screen.getByRole("button", { name: "Cache" })).toBeVisible();
+    expect(screen.queryByRole("button", { name: "Redis cache" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Document database" })).toBeVisible();
+    expect(screen.queryByRole("button", { name: "NoSQL database" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "PostgreSQL" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Vector database" })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Cache" }));
+
+    await waitFor(() => expect(useArchitectureEditorStore.getState().nodes).toHaveLength(1));
+    expect(useArchitectureEditorStore.getState().nodes[0]?.data).toMatchObject({ label: "Cache", type: "CACHE" });
+    const node = useArchitectureEditorStore.getState().nodes[0];
+    if (!node) throw new Error("Expected Cache component");
+    render(<ArchitectureInspector disabled={false} node={node} onChange={(patch) => useArchitectureEditorStore.getState().updateComponent(node.id, patch)} onDelete={() => undefined} onDuplicate={() => undefined} />);
+    const provider = screen.getByRole("combobox", { name: "provider" });
+    expect(provider).toHaveValue("");
+    expect(screen.getByRole("option", { name: "REDIS" })).toBeInTheDocument();
+    expect(screen.queryByRole("option", { name: "POSTGRESQL" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("option", { name: "MONGODB" })).not.toBeInTheDocument();
+    fireEvent.change(provider, { target: { value: "REDIS" } });
+    expect(useArchitectureEditorStore.getState().nodes[0]?.data.properties).toMatchObject({ provider: "REDIS" });
+    expect(useArchitectureEditorStore.getState().nodes[0]?.data.properties).toMatchObject({ consistency: "EVENTUAL" });
+  });
+
+  it("does not assume an API gateway exposure", async () => {
+    renderWithProviders(<ArchitectureCanvas workspaceId="workspace-1" />);
+
+    await screen.findByRole("toolbar", { name: "Canvas tools" });
+    fireEvent.click(screen.getByRole("button", { name: "DNS & edge" }));
+    fireEvent.click(screen.getByRole("button", { name: "API gateway" }));
+
+    await waitFor(() => expect(useArchitectureEditorStore.getState().nodes).toHaveLength(1));
+    expect(useArchitectureEditorStore.getState().nodes[0]?.data.properties).not.toHaveProperty("exposure");
   });
 });
