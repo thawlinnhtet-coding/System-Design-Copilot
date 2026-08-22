@@ -12,6 +12,8 @@ import { buildFlowLayout, componentDefaults, useArchitectureEditorStore, type Bo
 type PaletteItem = { label: string; category: ArchitectureComponentCategory; type: ArchitectureComponentType; icon: typeof Server; properties?: Record<string, string> };
 type PaletteGroup = { label: string; items: PaletteItem[] };
 type CanvasTool = "select" | "pan" | "component" | "connection" | "boundary";
+type BoundaryResizeDirection = "n" | "ne" | "e" | "se" | "s" | "sw" | "w" | "nw";
+type BoundaryResizeState = { id: string; direction: BoundaryResizeDirection; startClient: { x: number; y: number }; initial: { x: number; y: number; width: number; height: number } };
 
 const paletteGroups: PaletteGroup[] = [
   { label: "Clients", items: [
@@ -178,11 +180,13 @@ function dragComponentData(event: React.DragEvent<HTMLElement>, item: PaletteIte
   event.dataTransfer.effectAllowed = "move";
 }
 
-export function ArchitectureCanvas({ workspaceId, readOnly = false, viewport, onViewportChange, onFullScreenChange, onRequestInspector, fullScreen }: { workspaceId: string; readOnly?: boolean; viewport?: Viewport; onViewportChange?: (viewport: Viewport) => void; onFullScreenChange?: (fullScreen: boolean) => void; onRequestInspector?: () => void; fullScreen?: boolean }) {
-  return <ReactFlowProvider><ArchitectureCanvasInner controlledFullScreen={fullScreen} onFullScreenChange={onFullScreenChange} onRequestInspector={onRequestInspector} onViewportChange={onViewportChange} readOnly={readOnly} viewport={viewport} workspaceId={workspaceId} /></ReactFlowProvider>;
+export type CanvasSaveState = "loading" | "saved" | "unsaved" | "saving" | "conflict" | "error" | "offline";
+
+export function ArchitectureCanvas({ workspaceId, readOnly = false, viewport, onViewportChange, onFullScreenChange, onRequestInspector, onCloseInspector, onConnectionDraftChange, onSaveStateChange, fullScreen }: { workspaceId: string; readOnly?: boolean; viewport?: Viewport; onViewportChange?: (viewport: Viewport) => void; onFullScreenChange?: (fullScreen: boolean) => void; onRequestInspector?: () => void; onCloseInspector?: () => void; onConnectionDraftChange?: (draft: { sourceId: string; targetId?: string } | null) => void; onSaveStateChange?: (state: CanvasSaveState) => void; fullScreen?: boolean }) {
+  return <ReactFlowProvider><ArchitectureCanvasInner controlledFullScreen={fullScreen} onCloseInspector={onCloseInspector} onConnectionDraftChange={onConnectionDraftChange} onFullScreenChange={onFullScreenChange} onRequestInspector={onRequestInspector} onSaveStateChange={onSaveStateChange} onViewportChange={onViewportChange} readOnly={readOnly} viewport={viewport} workspaceId={workspaceId} /></ReactFlowProvider>;
 }
 
-function ArchitectureCanvasInner({ workspaceId, readOnly, viewport, onViewportChange, onFullScreenChange, onRequestInspector, controlledFullScreen }: { workspaceId: string; readOnly: boolean; viewport?: Viewport; onViewportChange?: (viewport: Viewport) => void; onFullScreenChange?: (fullScreen: boolean) => void; onRequestInspector?: () => void; controlledFullScreen?: boolean }) {
+function ArchitectureCanvasInner({ workspaceId, readOnly, viewport, onViewportChange, onFullScreenChange, onRequestInspector, onCloseInspector, onConnectionDraftChange, onSaveStateChange, controlledFullScreen }: { workspaceId: string; readOnly: boolean; viewport?: Viewport; onViewportChange?: (viewport: Viewport) => void; onFullScreenChange?: (fullScreen: boolean) => void; onRequestInspector?: () => void; onCloseInspector?: () => void; onConnectionDraftChange?: (draft: { sourceId: string; targetId?: string } | null) => void; onSaveStateChange?: (state: CanvasSaveState) => void; controlledFullScreen?: boolean }) {
   const api = useAuthenticatedApiClient();
   const { screenToFlowPosition, flowToScreenPosition, fitView } = useReactFlow();
   const viewportState = useViewport();
@@ -202,6 +206,7 @@ function ArchitectureCanvasInner({ workspaceId, readOnly, viewport, onViewportCh
   const applyNodes = useArchitectureEditorStore((state) => state.applyNodes);
   const addConnection = useArchitectureEditorStore((state) => state.addConnection);
   const addBoundary = useArchitectureEditorStore((state) => state.addBoundary);
+  const updateBoundary = useArchitectureEditorStore((state) => state.updateBoundary);
   const addComponent = useArchitectureEditorStore((state) => state.addComponent);
   const addComponentAndFocus = useCallback((category: ArchitectureComponentCategory, type: ArchitectureComponentType, overrides?: Parameters<typeof addComponent>[2]) => {
     addComponent(category, type, overrides);
@@ -238,6 +243,8 @@ function ArchitectureCanvasInner({ workspaceId, readOnly, viewport, onViewportCh
   const [boundaryTypeMenuOpen, setBoundaryTypeMenuOpen] = useState(false);
   const [boundaryPreview, setBoundaryPreview] = useState<{ start: { x: number; y: number }; current: { x: number; y: number } } | null>(null);
   const boundaryDrag = useRef<{ start: { x: number; y: number } } | null>(null);
+  const [boundaryResize, setBoundaryResize] = useState<BoundaryResizeState | null>(null);
+  const [boundaryResizePreview, setBoundaryResizePreview] = useState<{ id: string; left: number; top: number; width: number; height: number } | null>(null);
   const [internalFullScreen, setInternalFullScreen] = useState(controlledFullScreen ?? false);
   const fullScreen = controlledFullScreen ?? internalFullScreen;
   const flowRef = useRef<HTMLDivElement | null>(null);
@@ -250,15 +257,23 @@ function ArchitectureCanvasInner({ workspaceId, readOnly, viewport, onViewportCh
 
   function handleEdgesChange(changes: EdgeChange[]) {
     const change = changes.find((item) => item.type === "select");
-    if (change && "selected" in change && change.selected) selectEdge(change.id);
+    if (change && "selected" in change && change.selected) {
+      selectEdge(change.id);
+      onRequestInspector?.();
+    }
   }
 
   function handleSelectionChange(selection: { nodes: Array<{ id: string }>; edges: Array<{ id: string }> }) {
     const key = selection.edges.length > 0 ? `e:${selection.edges[0].id}` : `n:${selection.nodes.map((node) => node.id).sort().join(",")}`;
     if (lastSelection.current === key) return;
     lastSelection.current = key;
-    if (selection.edges.length > 0) selectEdge(selection.edges[0].id);
-    else setSelection(selection.nodes.map((node) => node.id));
+    if (selection.edges.length > 0) {
+      selectEdge(selection.edges[0].id);
+      onRequestInspector?.();
+    } else {
+      setSelection(selection.nodes.map((node) => node.id));
+      if (selection.nodes.length > 0) onRequestInspector?.();
+    }
   }
 
   const setFullScreenMode = useCallback((next: boolean) => {
@@ -270,8 +285,8 @@ function ArchitectureCanvasInner({ workspaceId, readOnly, viewport, onViewportCh
     function closeOnEscape(event: globalThis.KeyboardEvent) {
       if (event.key !== "Escape") return;
       if (pendingDelete) cancelDelete();
-      else if (pendingConnection) setPendingConnection(null);
-      else if (connectionSourceId) { setConnectionSourceId(null); setActiveTool("select"); }
+      else if (pendingConnection) { setPendingConnection(null); onConnectionDraftChange?.(null); }
+      else if (connectionSourceId) { setConnectionSourceId(null); onConnectionDraftChange?.(null); setActiveTool("select"); }
       else if (boundaryTypeMenuOpen) setBoundaryTypeMenuOpen(false);
       else if (boundaryDraft) { setBoundaryDraft(null); setBoundaryPreview(null); }
       else if (boundaryPreview) { boundaryDrag.current = null; setBoundaryPreview(null); }
@@ -279,7 +294,7 @@ function ArchitectureCanvasInner({ workspaceId, readOnly, viewport, onViewportCh
     }
     window.addEventListener("keydown", closeOnEscape);
     return () => window.removeEventListener("keydown", closeOnEscape);
-  }, [boundaryDraft, boundaryPreview, boundaryTypeMenuOpen, cancelDelete, connectionSourceId, fullScreen, pendingConnection, pendingDelete, setFullScreenMode]);
+  }, [boundaryDraft, boundaryPreview, boundaryTypeMenuOpen, cancelDelete, connectionSourceId, fullScreen, onConnectionDraftChange, pendingConnection, pendingDelete, setFullScreenMode]);
 
   useEffect(() => {
     if (query.data && initializedWorkspace !== workspaceId) {
@@ -365,6 +380,7 @@ function ArchitectureCanvasInner({ workspaceId, readOnly, viewport, onViewportCh
   }
 
   function openConnectionPicker(source: string, target: string) {
+    onConnectionDraftChange?.({ sourceId: source, targetId: target });
     const targetNode = useArchitectureEditorStore.getState().nodes.find((node) => node.id === target);
     const rect = flowRef.current?.getBoundingClientRect();
     if (!targetNode || !rect) {
@@ -387,8 +403,16 @@ function ArchitectureCanvasInner({ workspaceId, readOnly, viewport, onViewportCh
     if (!pendingConnection) return;
     const result = addConnection({ source: pendingConnection.source, target: pendingConnection.target, intent, protocol: "", guarantee: "", notes: "" });
     setConnectionMessage(result.ok ? "Connection added. It will autosave with the document." : result.message);
+    if (result.ok) {
+      const created = useArchitectureEditorStore.getState().edges.find((edge) => edge.source === pendingConnection.source && edge.target === pendingConnection.target && edge.data?.intent === intent);
+      if (created) {
+        selectEdge(created.id);
+        onRequestInspector?.();
+      }
+    }
     setPendingConnection(null);
     setConnectionSourceId(null);
+    onConnectionDraftChange?.(null);
     setActiveTool("select");
   }
 
@@ -424,7 +448,10 @@ function ArchitectureCanvasInner({ workspaceId, readOnly, viewport, onViewportCh
 
   function selectTool(tool: CanvasTool) {
     if (readOnly && tool !== "select" && tool !== "pan") return;
-    if (tool !== "connection") setConnectionSourceId(null);
+    if (tool !== "connection") {
+      setConnectionSourceId(null);
+      onConnectionDraftChange?.(null);
+    }
     setActiveTool(tool);
   }
 
@@ -432,6 +459,7 @@ function ArchitectureCanvasInner({ workspaceId, readOnly, viewport, onViewportCh
     const source = selectedNodes.length === 1 ? selectedNodes[0]?.id : null;
     if (!source) return;
     setConnectionSourceId(source);
+    onConnectionDraftChange?.({ sourceId: source });
     setActiveTool("connection");
     setConnectionMessage(`Source selected: ${nodes.find((node) => node.id === source)?.data.label ?? "Component"}. Select a target Component.`);
   }
@@ -444,12 +472,17 @@ function ArchitectureCanvasInner({ workspaceId, readOnly, viewport, onViewportCh
       }
       if (!connectionSourceId) {
         setConnectionSourceId(node.id);
+        onConnectionDraftChange?.({ sourceId: node.id });
         selectNode(node.id);
+        onRequestInspector?.();
         setConnectionMessage(`Source selected: ${node.data.label}. Select a target Component.`);
         return;
       }
     }
-    if (node.type === "component" || node.type === "boundary") selectNode(node.id);
+    if (node.type === "component" || node.type === "boundary") {
+      selectNode(node.id);
+      onRequestInspector?.();
+    }
   }
 
   function handlePaneClick(event: React.MouseEvent) {
@@ -461,8 +494,10 @@ function ArchitectureCanvasInner({ workspaceId, readOnly, viewport, onViewportCh
     if (activeTool === "boundary" && !readOnly) return;
     setPendingConnection(null);
     setConnectionSourceId(null);
+    onConnectionDraftChange?.(null);
     if (activeTool === "connection") setActiveTool("select");
     selectNode(null);
+    onCloseInspector?.();
   }
 
   function handleBoundaryMouseDown(event: MouseEvent) {
@@ -491,6 +526,66 @@ function ArchitectureCanvasInner({ workspaceId, readOnly, viewport, onViewportCh
     const rect = flowRef.current?.getBoundingClientRect();
     if (rect) { setBoundaryDraft({ position: { x: event.clientX - rect.left, y: event.clientY - rect.top }, flowPosition: position, size, label: "", type: "DEPLOYMENT" }); setBoundaryTypeMenuOpen(false); }
   }
+
+  function beginBoundaryResize(event: React.MouseEvent, boundary: CanvasBoundary, direction: BoundaryResizeDirection, rect: { left: number; top: number; width: number; height: number }) {
+    if (readOnly || activeTool !== "select" || event.button !== 0) return;
+    event.preventDefault();
+    event.stopPropagation();
+    selectNode(boundary.id);
+    const canvasRect = flowRef.current?.getBoundingClientRect();
+    if (!canvasRect) return;
+    const start = screenToFlowPosition({ x: canvasRect.left + rect.left, y: canvasRect.top + rect.top });
+    const end = screenToFlowPosition({ x: canvasRect.left + rect.left + rect.width, y: canvasRect.top + rect.top + rect.height });
+    const initial = {
+      x: typeof boundary.metadata?.x === "number" ? boundary.metadata.x : start.x,
+      y: typeof boundary.metadata?.y === "number" ? boundary.metadata.y : start.y,
+      width: typeof boundary.metadata?.width === "number" ? Math.max(24, boundary.metadata.width) : Math.abs(end.x - start.x),
+      height: typeof boundary.metadata?.height === "number" ? Math.max(24, boundary.metadata.height) : Math.abs(end.y - start.y),
+    };
+    setBoundaryResize({ id: boundary.id, direction, startClient: { x: event.clientX, y: event.clientY }, initial });
+    setBoundaryResizePreview({ id: boundary.id, ...rect });
+    onRequestInspector?.();
+  }
+
+  useEffect(() => {
+    if (!boundaryResize) return;
+    const handleMove = (event: MouseEvent) => {
+      const deltaX = (event.clientX - boundaryResize.startClient.x) / viewportState.zoom;
+      const deltaY = (event.clientY - boundaryResize.startClient.y) / viewportState.zoom;
+      const direction = boundaryResize.direction;
+      let left = boundaryResize.initial.x + (direction.includes("w") ? deltaX : 0);
+      let top = boundaryResize.initial.y + (direction.includes("n") ? deltaY : 0);
+      let right = boundaryResize.initial.x + boundaryResize.initial.width + (direction.includes("e") ? deltaX : 0);
+      let bottom = boundaryResize.initial.y + boundaryResize.initial.height + (direction.includes("s") ? deltaY : 0);
+      const minWidth = 120;
+      const minHeight = 80;
+      if (right - left < minWidth) { if (direction.includes("w")) left = right - minWidth; else right = left + minWidth; }
+      if (bottom - top < minHeight) { if (direction.includes("n")) top = bottom - minHeight; else bottom = top + minHeight; }
+      const canvasRect = flowRef.current?.getBoundingClientRect();
+      if (!canvasRect) return;
+      const screenStart = flowToScreenPosition({ x: left, y: top });
+      const screenEnd = flowToScreenPosition({ x: right, y: bottom });
+      setBoundaryResizePreview({ id: boundaryResize.id, left: Math.min(screenStart.x, screenEnd.x) - canvasRect.left, top: Math.min(screenStart.y, screenEnd.y) - canvasRect.top, width: Math.abs(screenEnd.x - screenStart.x), height: Math.abs(screenEnd.y - screenStart.y) });
+    };
+    const handleUp = (event: MouseEvent) => {
+      const deltaX = (event.clientX - boundaryResize.startClient.x) / viewportState.zoom;
+      const deltaY = (event.clientY - boundaryResize.startClient.y) / viewportState.zoom;
+      const direction = boundaryResize.direction;
+      let left = boundaryResize.initial.x + (direction.includes("w") ? deltaX : 0);
+      let top = boundaryResize.initial.y + (direction.includes("n") ? deltaY : 0);
+      let right = boundaryResize.initial.x + boundaryResize.initial.width + (direction.includes("e") ? deltaX : 0);
+      let bottom = boundaryResize.initial.y + boundaryResize.initial.height + (direction.includes("s") ? deltaY : 0);
+      if (right - left < 120) { if (direction.includes("w")) left = right - 120; else right = left + 120; }
+      if (bottom - top < 80) { if (direction.includes("n")) top = bottom - 80; else bottom = top + 80; }
+      const current = useArchitectureEditorStore.getState().boundaries.find((item) => item.id === boundaryResize.id);
+      if (current) updateBoundary(current.id, { metadata: { ...(current.metadata ?? {}), x: Math.round(left), y: Math.round(top), width: Math.round(right - left), height: Math.round(bottom - top) } });
+      setBoundaryResize(null);
+      setBoundaryResizePreview(null);
+    };
+    window.addEventListener("mousemove", handleMove);
+    window.addEventListener("mouseup", handleUp, { once: true });
+    return () => { window.removeEventListener("mousemove", handleMove); window.removeEventListener("mouseup", handleUp); };
+  }, [boundaryResize, flowToScreenPosition, screenToFlowPosition, selectNode, updateBoundary, viewportState.zoom]);
 
   useEffect(() => {
     const element = flowRef.current;
@@ -608,6 +703,10 @@ function ArchitectureCanvasInner({ workspaceId, readOnly, viewport, onViewportCh
     applyNodes(converted);
   }
   const visibleSaveState = !online ? "offline" : initializedWorkspace === workspaceId && saveState === "loading" ? "saved" : saveState;
+  useEffect(() => {
+    onSaveStateChange?.(visibleSaveState);
+    window.dispatchEvent(new CustomEvent("architecture-save-state", { detail: { workspaceId, state: visibleSaveState } }));
+  }, [onSaveStateChange, visibleSaveState, workspaceId]);
   const statusLabel = { loading: "Loading", saved: "Saved", unsaved: "Unsaved changes", saving: "Saving…", conflict: "Conflict", error: "Save failed", offline: "Offline" }[visibleSaveState];
   const isDraggingOver = dragDepth > 0;
   const legendHint = isDraggingOver
@@ -683,9 +782,9 @@ function ArchitectureCanvasInner({ workspaceId, readOnly, viewport, onViewportCh
     {connectionMessage ? <p className="border-b border-[#2b3337] px-4 py-2 text-xs text-[#a9e5d8]" role="status">{connectionMessage}</p> : null}
     <div className={`${fullScreen ? "flex min-h-0 flex-1 flex-col lg:flex-row" : "grid min-h-[560px] lg:grid-cols-[180px_minmax(0,1fr)]"} border border-[#35413d]`}>
       <aside aria-label="Component palette" className={fullScreen ? "flex w-full shrink-0 flex-col overflow-hidden border-b border-[#2b3337] bg-[#151b1d] p-3 lg:w-[180px] lg:border-b-0 lg:border-r" : "flex flex-col overflow-hidden border-b border-[#2b3337] bg-[#151b1d] p-3 lg:border-b-0 lg:border-r"}><p className="shrink-0 font-mono text-[9px] uppercase tracking-[0.14em] text-[#a7aeb3]">Components</p><div className="mt-2.5 flex min-h-8 shrink-0 w-full items-center gap-2 border border-[#3c4542] bg-[#202826] px-2.5"><Search aria-hidden="true" className="shrink-0 text-[#a7aeb3]" size={13} /><input aria-label="Search components" className="min-w-0 flex-1 bg-transparent text-[13px] text-[#f2f3f3] outline-none placeholder:text-[#a7aeb3]" disabled={readOnly} onChange={(event) => setPaletteSearch(event.target.value)} placeholder="Search components" value={paletteSearch} /></div><div className="mt-3 min-h-0 flex-1 space-y-1 overflow-x-hidden overflow-y-auto pr-1" data-testid="palette-list">{paletteSearch.trim() ? filteredGroups.map((group) => <div key={group.label}><p className="font-mono text-[10px] uppercase tracking-[0.14em] text-[#a7aeb3]">{group.label}</p><div className="mt-1.5 grid gap-1">{group.items.map(renderPaletteItem)}</div></div>) : paletteGroups.map((group) => <div key={group.label}><button aria-expanded={openGroup === group.label} className="flex min-h-8 w-full items-center justify-between px-1 text-[11px] font-semibold text-[#a7aeb3] hover:text-[#f0f3f1] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#a9e5d8]" onClick={() => setOpenGroup((current) => current === group.label ? "" : group.label)} type="button">{group.label}<ChevronDown aria-hidden="true" className={`shrink-0 transition-transform ${openGroup === group.label ? "rotate-180 text-[#0f766e]" : "text-[#5a635f]"}`} size={14} /></button>{openGroup === group.label ? <div className="mt-1.5 grid gap-1">{group.items.map(renderPaletteItem)}</div> : null}</div>)}{paletteSearch.trim() && filteredGroups.length === 0 ? <p className="text-[13px] text-[#a7aeb3]">No components match “{paletteSearch}”.</p> : null}</div><p className="mt-3 shrink-0 font-mono text-[10px] text-[#a7aeb3]">Drag to Canvas or press Enter</p></aside>
-      <div className={fullScreen ? "relative min-h-0 flex-1 overflow-hidden bg-[#101316]" : "relative h-[570px] overflow-hidden bg-[#101316]"} data-testid="architecture-flow" onDragEnter={(event) => { if (!readOnly && Array.from(event.dataTransfer.types).includes(componentDragMime)) setDragDepth((depth) => depth + 1); }} onDragLeave={() => setDragDepth((depth) => Math.max(0, depth - 1))} onDragOver={onFlowDragOver} onDrop={onFlowDrop} ref={flowRef}><ReactFlow connectionLineStyle={{ stroke: "#0f766e", strokeWidth: 1.5 }} connectOnClick={!readOnly && activeTool === "connection"} defaultViewport={viewport} edges={flowEdges} fitView={!viewport} isValidConnection={(connection) => Boolean(connection.source) && Boolean(connection.target) && connection.source !== connection.target} nodeExtent={canvasWorldExtent} nodeTypes={nodeTypes} nodes={renderedFlowNodes as unknown as CanvasNode[]} nodesConnectable={!readOnly} nodesDraggable={!readOnly && activeTool === "select"} onConnect={connect} onConnectEnd={() => setIsConnecting(false)} onConnectStart={() => setIsConnecting(true)} onEdgeClick={(_, edge) => selectEdge(edge.id)} onEdgesChange={readOnly ? undefined : handleEdgesChange} onMoveEnd={(_, nextViewport) => onViewportChange?.(nextViewport)} onNodeClick={handleNodeClick} onNodesChange={readOnly ? undefined : handleNodesChange} onPaneClick={handlePaneClick} onSelectionChange={handleSelectionChange} panOnDrag={activeTool === "pan"} proOptions={{ hideAttribution: true }} selectionOnDrag={!readOnly && activeTool === "select"} translateExtent={canvasWorldExtent}><Background color="#202a2d" gap={28} size={1} /></ReactFlow>
+      <div className={fullScreen ? "relative min-h-0 flex-1 overflow-hidden bg-[#101316]" : "relative h-[570px] overflow-hidden bg-[#101316]"} data-testid="architecture-flow" onDragEnter={(event) => { if (!readOnly && Array.from(event.dataTransfer.types).includes(componentDragMime)) setDragDepth((depth) => depth + 1); }} onDragLeave={() => setDragDepth((depth) => Math.max(0, depth - 1))} onDragOver={onFlowDragOver} onDrop={onFlowDrop} ref={flowRef}><ReactFlow connectionLineStyle={{ stroke: "#0f766e", strokeWidth: 1.5 }} connectOnClick={!readOnly && activeTool === "connection"} defaultViewport={viewport} edges={flowEdges} fitView={!viewport} isValidConnection={(connection) => Boolean(connection.source) && Boolean(connection.target) && connection.source !== connection.target} nodeExtent={canvasWorldExtent} nodeTypes={nodeTypes} nodes={renderedFlowNodes as unknown as CanvasNode[]} nodesConnectable={!readOnly} nodesDraggable={!readOnly && activeTool === "select"} onConnect={connect} onConnectEnd={() => setIsConnecting(false)} onConnectStart={() => setIsConnecting(true)} onEdgeClick={(_, edge) => { selectEdge(edge.id); onRequestInspector?.(); }} onEdgesChange={readOnly ? undefined : handleEdgesChange} onMoveEnd={(_, nextViewport) => onViewportChange?.(nextViewport)} onNodeClick={handleNodeClick} onNodesChange={readOnly ? undefined : handleNodesChange} onPaneClick={handlePaneClick} onSelectionChange={handleSelectionChange} panOnDrag={activeTool === "pan"} proOptions={{ hideAttribution: true }} selectionOnDrag={!readOnly && activeTool === "select"} translateExtent={canvasWorldExtent}><Background color="#202a2d" gap={28} size={1} /></ReactFlow>
         {boundaryPreviewRect ? <div aria-hidden="true" className="pointer-events-none absolute z-10 border border-dashed border-[#53615c] bg-transparent" data-testid="boundary-preview" style={boundaryPreviewRect} /> : null}
-        {persistedBoundaryRects.map((boundary) => <div className="pointer-events-none absolute border border-[#71817a] bg-transparent" data-testid="persisted-boundary-visual" key={boundary.id} style={{ left: boundary.left, top: boundary.top, width: boundary.width, height: boundary.height, zIndex: 10 }}><button aria-label={`Select boundary ${boundary.id}`} className="pointer-events-auto absolute inset-x-0 -top-1 h-2 cursor-pointer bg-transparent" onClick={() => selectNode(boundary.id)} type="button" /><button aria-label={`Select boundary ${boundary.id} left edge`} className="pointer-events-auto absolute inset-y-0 -left-1 w-2 cursor-pointer bg-transparent" onClick={() => selectNode(boundary.id)} type="button" /><button aria-label={`Select boundary ${boundary.id} right edge`} className="pointer-events-auto absolute inset-y-0 -right-1 w-2 cursor-pointer bg-transparent" onClick={() => selectNode(boundary.id)} type="button" /><button aria-label={`Select boundary ${boundary.id} bottom edge`} className="pointer-events-auto absolute inset-x-0 -bottom-1 h-2 cursor-pointer bg-transparent" onClick={() => selectNode(boundary.id)} type="button" /></div>)}
+        {persistedBoundaryRects.map((boundary) => { const boundaryData = boundaries.find((item) => item.id === boundary.id); if (!boundaryData) return null; const rect = boundaryResizePreview?.id === boundary.id ? boundaryResizePreview : boundary; const selected = selectedNodeId === boundary.id; const handleDefs: Array<{ direction: BoundaryResizeDirection; className: string; cursor: string }> = [{ direction: "nw", className: "-left-1 -top-1", cursor: "nwse-resize" }, { direction: "n", className: "inset-x-1 -top-1 h-2", cursor: "ns-resize" }, { direction: "ne", className: "-right-1 -top-1", cursor: "nesw-resize" }, { direction: "e", className: "-right-1 inset-y-1", cursor: "ew-resize" }, { direction: "se", className: "-right-1 -bottom-1", cursor: "nwse-resize" }, { direction: "s", className: "inset-x-1 -bottom-1 h-2", cursor: "ns-resize" }, { direction: "sw", className: "-left-1 -bottom-1", cursor: "nesw-resize" }, { direction: "w", className: "-left-1 inset-y-1", cursor: "ew-resize" }]; return <div className="pointer-events-none absolute border border-[#71817a] bg-transparent" data-testid="persisted-boundary-visual" key={boundary.id} style={{ left: rect.left, top: rect.top, width: rect.width, height: rect.height, zIndex: 10 }}><button aria-label={`Select boundary ${boundary.id}`} className="pointer-events-auto absolute inset-x-0 -top-1 h-2 cursor-pointer bg-transparent" onClick={() => { selectNode(boundary.id); onRequestInspector?.(); }} type="button" /><button aria-label={`Select boundary ${boundary.id} left edge`} className="pointer-events-auto absolute inset-y-0 -left-1 w-2 cursor-pointer bg-transparent" onClick={() => { selectNode(boundary.id); onRequestInspector?.(); }} type="button" /><button aria-label={`Select boundary ${boundary.id} right edge`} className="pointer-events-auto absolute inset-y-0 -right-1 w-2 cursor-pointer bg-transparent" onClick={() => { selectNode(boundary.id); onRequestInspector?.(); }} type="button" /><button aria-label={`Select boundary ${boundary.id} bottom edge`} className="pointer-events-auto absolute inset-x-0 -bottom-1 h-2 cursor-pointer bg-transparent" onClick={() => { selectNode(boundary.id); onRequestInspector?.(); }} type="button" />{selected && !readOnly && activeTool === "select" ? handleDefs.map(({ direction, className, cursor }) => <button aria-label={`Resize boundary ${boundary.id} ${direction}`} className={`pointer-events-auto absolute size-2 rounded-sm border border-[#a9e5d8] bg-[#0f766e] ${className}`} data-testid={`boundary-resize-handle-${boundary.id}-${direction}`} key={direction} onMouseDown={(event) => beginBoundaryResize(event, boundaryData, direction, rect)} style={{ cursor }} type="button" />) : null}</div>})}
         {nodes.length === 0 && boundaries.length === 0 ? <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center p-4"><div className="pointer-events-auto w-[520px] max-w-full border border-[#2b3337] bg-[#151c1a] p-8 text-center"><div aria-hidden="true" className="mx-auto flex size-[46px] items-center justify-center bg-[#203633]"><Network className="text-[#0f766e]" size={22} /></div><p className="mt-4 font-display text-[22px] font-normal text-[#f0f3f1]">No architecture Components yet.</p><p className="mt-2 text-[13px] leading-5 text-[#a7aeb3]">Drag a Component from the palette, press Enter on a palette item, or use the Component tool to start describing the system.</p><button className="mt-5 inline-flex min-h-9 items-center bg-[#0f766e] px-4 text-xs font-semibold text-[#f0f3f1]" onClick={() => addComponentAndFocus("COMPUTE", "SERVICE", { label: "Service", position: canvasCenterPosition() })} type="button">Add Component</button></div></div> : null}
         {selectionToolbar && selectedNodes.length > 0 && !pendingDelete ? <div className="absolute z-20 flex items-center gap-0.5 border border-[#2b3337] bg-[#202826] px-2 py-1.5" role="toolbar" style={{ left: selectionToolbar.x, top: selectionToolbar.y }}>{selectedNodes.length > 1 ? <span className="px-1.5 font-mono text-[10px] text-[#0f766e]">{selectedNodes.length} selected</span> : null}{selectedNodes.length > 1 ? <SelectionButton ariaLabel="Distribute selection" danger={false} icon={AlignHorizontalSpaceAround} onClick={() => distributeSelection(selectedNodeIds)} title="Distribute" /> : null}{selectedNodes.length > 1 ? <SelectionButton ariaLabel="Group selection" danger={false} icon={Group} onClick={() => groupSelection(selectedNodeIds)} title="Group" /> : null}<SelectionButton ariaLabel="Duplicate selection" danger={false} icon={Copy} onClick={() => duplicateNodes(selectedNodeIds)} title="Duplicate" />{selectedNodes.length === 1 ? <SelectionButton ariaLabel="Connect selection" danger={false} icon={Link} onClick={beginConnectionFromSelection} title="Connect" /> : null}<SelectionButton ariaLabel="Delete selection" danger icon={Trash2} onClick={requestDeleteSelection} title="Delete" /></div> : null}
         {objectToolbar && selectedBoundary && !pendingDelete ? <div className="absolute z-20 flex items-center gap-0.5 border border-[#2b3337] bg-[#202826] px-2 py-1.5" role="toolbar" aria-label="Boundary actions" style={{ left: objectToolbar.x, top: objectToolbar.y }}><SelectionButton ariaLabel="Edit boundary" danger={false} icon={SlidersHorizontal} onClick={() => { onRequestInspector?.(); globalThis.setTimeout(() => globalThis.document.getElementById("boundary-label")?.focus(), 0); }} title="Edit boundary" /><SelectionButton ariaLabel="Delete boundary" danger icon={Trash2} onClick={requestDeleteSelection} title="Delete boundary" /></div> : null}
@@ -760,7 +859,7 @@ export function ArchitectureInspector({ disabled, node, onChange, onDelete, onDu
   return <div><p className="font-mono text-[10px] uppercase tracking-[0.14em] text-[#a7aeb3]">Component Inspector</p><label className="mt-5 block text-xs text-[#a7aeb3]" htmlFor="component-label">Label</label><input className="mt-2 min-h-10 w-full border border-[#3c4542] bg-[#101316] px-2 text-sm text-[#f2f3f3] outline-none focus:border-[#a9e5d8] disabled:opacity-50" disabled={disabled} id="component-label" onChange={(event) => onChange({ label: event.target.value })} value={node.data.label} /><label className="mt-4 block text-xs text-[#a7aeb3]" htmlFor="component-category">Category</label><select className="mt-2 min-h-10 w-full border border-[#3c4542] bg-[#101316] px-2 text-sm text-[#f2f3f3] outline-none focus:border-[#a9e5d8] disabled:opacity-50" disabled={disabled} id="component-category" onChange={(event) => { const category = event.target.value as ArchitectureComponentCategory; onChange({ category, properties: componentDefaults[category] }); }} value={node.data.category}><option value="CLIENT">Client</option><option value="COMPUTE">Compute</option><option value="DATA_STORE">Data store</option><option value="MESSAGING">Messaging</option><option value="EDGE_SECURITY">Edge / security</option><option value="COORDINATION_CONFIG">Coordination / config</option><option value="IDENTITY_SECRETS">Identity / secrets</option><option value="OBSERVABILITY">Observability</option><option value="CUSTOM">Custom</option></select><label className="mt-4 block text-xs text-[#a7aeb3]" htmlFor="component-type">Type</label><select className="mt-2 min-h-10 w-full border border-[#3c4542] bg-[#101316] px-2 text-sm text-[#f2f3f3] outline-none focus:border-[#a9e5d8] disabled:opacity-50" disabled={disabled} id="component-type" onChange={(event) => onChange({ type: event.target.value as ArchitectureComponentType })} value={node.data.type}><option value="CLIENT">Client</option><option value="SERVICE">Service</option><option value="FUNCTION">Function</option><option value="WORKER">Worker</option><option value="BATCH_JOB">Batch job</option><option value="RELATIONAL_DATABASE">Relational database</option><option value="DOCUMENT_DATABASE">Document database</option><option value="CACHE">Cache</option><option value="OBJECT_STORE">Object store</option><option value="QUEUE">Queue</option><option value="EVENT_BUS">Event bus</option><option value="STREAM">Stream</option><option value="DNS">DNS</option><option value="CDN">CDN</option><option value="GATEWAY">API gateway</option><option value="LOAD_BALANCER">Load balancer</option><option value="WAF">WAF</option><option value="CONFIG_SERVICE">Config service</option><option value="SERVICE_REGISTRY">Service registry</option><option value="IDENTITY_PROVIDER">Identity provider</option><option value="SECRETS_MANAGER">Secrets manager</option><option value="LOGGING">Logging</option><option value="METRICS">Metrics</option><option value="TRACING">Tracing</option><option value="EXTERNAL_API">External API</option><option value="CUSTOM_COMPONENT">Custom Component</option></select><label className="mt-4 block text-xs text-[#a7aeb3]" htmlFor="component-property">{propertyKey.replace(/([A-Z])/g, " $1")}</label><select className="mt-2 min-h-10 w-full border border-[#3c4542] bg-[#101316] px-2 text-sm text-[#f2f3f3] outline-none focus:border-[#a9e5d8] disabled:opacity-50" disabled={disabled} id="component-property" onChange={(event) => onChange({ properties: { ...properties, [propertyKey]: event.target.value } })} value={String(properties[propertyKey] ?? "")}><option value="">Not specified</option>{options.map((value) => <option key={value} value={value}>{({ IN_MEMORY: "In-memory", S3_COMPATIBLE: "S3-compatible", NOSQL: "NoSQL-compatible" } as Record<string, string>)[value] ?? value.replaceAll("_", " ")}</option>)}</select>{propertyFields[node.data.category].map((field) => <label className="mt-4 block text-xs text-[#a7aeb3]" key={field}>{field.replace(/([A-Z])/g, " $1")}<textarea className="mt-2 min-h-14 w-full border border-[#3c4542] bg-[#101316] px-2 py-2 text-xs text-[#f2f3f3] outline-none focus:border-[#a9e5d8] disabled:opacity-50" disabled={disabled} maxLength={500} onChange={(event) => onChange({ properties: { ...properties, [field]: event.target.value } })} value={String(properties[field] ?? "")} /></label>)}    <div className="mt-7 flex flex-wrap gap-2"><button className="inline-flex min-h-9 items-center gap-2 border border-[#3c4542] px-3 text-xs font-semibold text-[#f2f3f3] hover:border-[#a9e5d8] disabled:cursor-not-allowed disabled:opacity-50" disabled={disabled} onClick={onDuplicate} type="button"><Copy aria-hidden="true" size={14} />Duplicate</button><button className="inline-flex min-h-9 items-center gap-2 border border-[#ff9a8b] px-3 text-xs font-semibold text-[#ffb4a8] hover:bg-[#321d1a] disabled:cursor-not-allowed disabled:opacity-50" disabled={disabled} onClick={onDelete} type="button"><Trash2 aria-hidden="true" size={14} />Delete Component</button></div></div>;
 }
 
-export function ConnectionInspector({ disabled, edge, sourceLabel, targetLabel, onChange, onDelete }: { disabled: boolean; edge: CanvasEdge; sourceLabel: string; targetLabel: string; onChange: (patch: Partial<CanvasEdgeData>) => void; onDelete: () => void }) {
+export function ConnectionInspector({ disabled, edge, saveState, sourceLabel, targetLabel, onChange, onDelete }: { disabled: boolean; edge: CanvasEdge; saveState: CanvasSaveState; sourceLabel: string; targetLabel: string; onChange: (patch: Partial<CanvasEdgeData>) => void; onDelete: () => void }) {
   const data = edge.data ?? { intent: "REQUEST_RESPONSE" };
   const humanize = (value?: string) => value ? value.replaceAll("_", " ").replace(/([a-z])([A-Z])/g, "$1 $2").toLowerCase().replace(/^./, (character) => character.toUpperCase()) : "Not specified";
   const fieldClass = "mt-1.5 min-h-9 w-full rounded-[4px] border border-[#d6d1c5] bg-[#f4f1e8] px-3 text-[12px] text-[#18201e] outline-none focus:border-[#0f766e] disabled:opacity-50";
@@ -788,8 +887,10 @@ export function ConnectionInspector({ disabled, edge, sourceLabel, targetLabel, 
       <label className="mt-4 block text-[12px] text-[#626a66]" htmlFor="connection-notes">Notes<textarea className={`${fieldClass} min-h-20 py-2`} disabled={disabled} id="connection-notes" maxLength={1000} onChange={(event) => onChange({ notes: event.target.value })} placeholder="Optional notes" value={data.notes ?? ""} /></label>
     </div>
     <div className="mt-6 flex flex-wrap gap-2 border-t border-[#d6d1c5] pt-5">
-      <button className="inline-flex min-h-[38px] items-center rounded-[4px] bg-[#0f766e] px-3 text-[12px] text-white hover:bg-[#0b625c] disabled:cursor-not-allowed disabled:opacity-50" disabled={disabled} onClick={() => onChange({})} type="button">Save changes</button>
+      <p aria-live="polite" className={`inline-flex min-h-[38px] items-center text-[11px] ${saveState === "error" || saveState === "conflict" || saveState === "offline" ? "text-[#8d332a]" : "text-[#626a66]"}`}>{inspectorSaveStatusLabel(saveState)}</p>
       <button className="inline-flex min-h-[38px] items-center gap-2 rounded-[4px] border border-[#c7a09a] px-3 text-[12px] text-[#8d332a] hover:bg-[#f8eeeb] disabled:cursor-not-allowed disabled:opacity-50" disabled={disabled} onClick={onDelete} type="button"><Trash2 aria-hidden="true" size={14} />Delete connection</button>
     </div>
   </section>;
 }
+
+function inspectorSaveStatusLabel(state: CanvasSaveState) { return { loading: "Loading…", saved: "Saved automatically", unsaved: "Unsaved changes", saving: "Saving…", conflict: "Save conflict", error: "Couldn’t save", offline: "Offline — draft kept locally" }[state]; }

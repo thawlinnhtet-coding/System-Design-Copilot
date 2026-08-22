@@ -117,6 +117,22 @@ describe("ArchitectureCanvas", () => {
     expect(screen.queryByText("No architecture Components yet.")).not.toBeInTheDocument();
   });
 
+  it("resizes a selected boundary from its edge handle and persists the new geometry", async () => {
+    api.getArchitectureDocument.mockResolvedValue({ workspaceId: "workspace-1", version: 0, document: { schemaVersion: 1, components: [], connections: [], boundaries: [{ id: "boundary-1", label: "Primary region", type: "REGION", componentIds: [], metadata: { x: 100, y: 100, width: 300, height: 200 } }] } });
+    renderWithProviders(<ArchitectureCanvas workspaceId="workspace-1" />);
+
+    await screen.findByRole("toolbar", { name: "Canvas tools" });
+    await waitFor(() => expect(screen.getByTestId("persisted-boundary-visual")).toBeVisible());
+    fireEvent.click(screen.getByRole("button", { name: "Select boundary boundary-1" }));
+
+    const handle = await screen.findByTestId("boundary-resize-handle-boundary-1-se");
+    fireEvent.mouseDown(handle, { button: 0, clientX: 400, clientY: 300 });
+    fireEvent.mouseMove(window, { clientX: 480, clientY: 360 });
+    fireEvent.mouseUp(window, { button: 0, clientX: 480, clientY: 360 });
+
+    await waitFor(() => expect(useArchitectureEditorStore.getState().boundaries[0]?.metadata).toMatchObject({ width: 380, height: 260 }));
+  });
+
   it("loads pre-populated components into the editor without dropping them", async () => {
     api.getArchitectureDocument.mockResolvedValue({ workspaceId: "workspace-1", version: 0, document: { schemaVersion: 1, components: [{ id: "component-1", category: "COMPUTE", type: "SERVICE", label: "API", properties: { runtime: "OTHER" }, position: { x: 100, y: 100 } }], connections: [], boundaries: [] } });
     renderWithProviders(<ArchitectureCanvas workspaceId="workspace-1" />);
