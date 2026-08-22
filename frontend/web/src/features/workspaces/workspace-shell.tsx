@@ -4,15 +4,16 @@ import { SignInButton, useAuth } from "@clerk/nextjs";
 import { ArrowLeft, PanelRight, Trash2 } from "lucide-react";
 import type { Viewport } from "@xyflow/react";
 import Link from "next/link";
-import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { useAuthenticatedApiClient, type WorkspaceSummary } from "@/lib/api/authenticated-client";
 import { WorkspaceReasoning } from "./workspace-reasoning";
 import { DecisionLog } from "./decision-log";
-import { ArchitectureCanvas, ArchitectureInspector, ConnectionInspector } from "./architecture-canvas";
+import { ArchitectureCanvas, ConnectionInspector } from "./architecture-canvas";
 import { useArchitectureEditorStore, type CanvasBoundary } from "./architecture-editor-store";
 import { ScenarioPanel } from "./scenario-panel";
 import { ReviewExperience } from "./review-experience";
 import { CopilotPanel } from "./copilot-panel";
+import { PencilComponentInspector } from "./pencil-component-inspector";
 
 type Stage = "clarify" | "design" | "stress" | "review";
 type ContextTab = "inspector" | "copilot";
@@ -32,7 +33,8 @@ export function WorkspaceShell({ workspaceId }: { workspaceId: string }) {
   const [error, setError] = useState<string | null>(null);
   const [isRestoring, setIsRestoring] = useState(false);
   const [contextOpen, setContextOpen] = useState(true);
-  const [canvasFullScreen, setCanvasFullScreen] = useState(false);
+  const [canvasFullScreen, setCanvasFullScreenState] = useState(false);
+  const contextBeforeCanvasFullScreen = useRef(true);
   const contextStorageKey = `workspace-context-tab:${workspaceId}`;
   const subscribeToContextTab = useCallback((onChange: () => void) => subscribeContextTab(contextStorageKey, onChange), [contextStorageKey]);
   const getContextTab = useCallback(() => readContextTab(contextStorageKey), [contextStorageKey]);
@@ -72,10 +74,21 @@ export function WorkspaceShell({ workspaceId }: { workspaceId: string }) {
   function toggleContextPanel() {
     if (contextOpen) {
       setContextOpen(false);
-      setCanvasFullScreen(false);
     } else {
       setContextOpen(true);
     }
+  }
+
+  function setCanvasFullScreen(next: boolean) {
+    if (next) {
+      contextBeforeCanvasFullScreen.current = contextOpen;
+      // Focus Canvas starts unobstructed. The canvas can reopen the inspector
+      // when the user chooses an edit action or taps the Inspector button.
+      setContextOpen(false);
+    } else {
+      setContextOpen(contextBeforeCanvasFullScreen.current);
+    }
+    setCanvasFullScreenState(next);
   }
 
   async function saveViewport(nextViewport: Viewport) {
@@ -110,7 +123,7 @@ export function WorkspaceShell({ workspaceId }: { workspaceId: string }) {
   if (!workspace) return <p className="text-sm text-text-muted">Opening Workspace...</p>;
 
   return <div className="flex min-h-[calc(100vh-56px)] flex-col bg-surface md:flex-row">
-    <aside aria-label="Workspace stages" className="hidden w-44 shrink-0 bg-chrome-800 px-[14px] py-6 text-text-on-dark md:flex md:flex-col">
+    <aside aria-label="Workspace stages" className={`${canvasFullScreen ? "hidden" : ""} w-44 shrink-0 bg-chrome-800 px-[14px] py-6 text-text-on-dark md:flex md:flex-col`}>
       <Link aria-label="Back to Practice" className="flex items-center gap-2 px-2 text-xs text-text-on-dark-secondary hover:text-text-on-dark" href="/practice"><ArrowLeft aria-hidden="true" size={15} />Back to Practice</Link>
       <div className="mt-7 px-2"><p className="font-mono text-[10px] leading-4 text-text-on-dark-secondary">PRACTICE LOOP</p><p className="mt-1 font-display text-base font-medium leading-tight text-text-on-dark">From question to evidence</p></div>
       <div className="mt-5 grid gap-2">
@@ -125,17 +138,18 @@ export function WorkspaceShell({ workspaceId }: { workspaceId: string }) {
       <div className="mt-auto px-2"><p className="font-mono text-[10px] text-text-on-dark-secondary">{stageProgress(stage)} OF 4 STAGES</p><div className="mt-2 h-1 rounded-full bg-[#3a4541]"><div className="h-1 rounded-full bg-signal" style={{ width: `${(stageIndex(stage) + 1) * 25}%` }} /></div></div>
     </aside>
     <section className="flex min-h-0 flex-1 flex-col">
-      <header className="flex min-h-[58px] items-center justify-between gap-4 border-b border-line bg-surface px-5 sm:px-7">
+      {canvasFullScreen ? null : <header className="flex min-h-[58px] items-center justify-between gap-4 border-b border-line bg-surface px-5 sm:px-7">
         <div className="flex min-w-0 items-baseline gap-3"><h1 className="truncate font-display text-[17px] font-medium">{workspace.name ?? "Untitled Workspace"}</h1><span className="hidden font-mono text-[11px] text-text-muted sm:inline">{workspace.source === "CURATED_CHALLENGE" ? "CHALLENGE WORKSPACE" : "CUSTOM WORKSPACE"}</span></div>
         <div className="flex items-center gap-2 text-text-muted"><span className="hidden font-mono text-[11px] uppercase tracking-[0.08em] sm:inline">{formatSaveState(workspace.saveState)}</span><button aria-controls="workspace-context-panel" aria-expanded={contextOpen} aria-label={contextOpen ? "Close contextual rail" : "Open contextual rail"} className="icon-button md:hidden" onClick={toggleContextPanel} type="button"><PanelRight aria-hidden="true" size={16} /></button></div>
-      </header>
-      {workspace.status === "ARCHIVED" ? <section className="flex flex-col justify-between gap-4 border-b border-amber-500/30 bg-amber-500/10 px-5 py-4 sm:flex-row sm:items-center sm:px-7" aria-label="Archived Workspace status"><div><p className="font-mono text-[10px] uppercase tracking-[0.14em] text-amber-800">ARCHIVED / READ-ONLY</p><p className="mt-1 text-sm text-foreground">Editing, Copilot use, and Review submission are unavailable until this Workspace is restored. Export remains available.</p></div><button className="inline-flex min-h-11 shrink-0 items-center justify-center border border-signal bg-signal px-4 text-sm font-semibold text-text-on-dark disabled:opacity-50" disabled={isRestoring} onClick={() => void restoreWorkspace()} type="button">{isRestoring ? "Restoring..." : "Restore Workspace"}</button></section> : null}
-      <nav aria-label="Mobile Workspace stages" className="grid grid-cols-4 border-b border-line bg-background md:hidden">{stages.map((item) => <button aria-current={stage === item.id ? "step" : undefined} className={`min-h-12 border-r border-line px-2 text-xs font-semibold last:border-r-0 ${stage === item.id ? "text-signal" : "text-text-muted"}`} key={item.id} onClick={() => void selectStage(item.id)} type="button"><span className="mr-1 font-mono text-[10px]">{item.number}</span>{item.label}</button>)}</nav>
-      <div className="flex min-h-0 flex-1 flex-col lg:flex-row">
-        <main className={stage === "design" ? (canvasFullScreen ? "min-w-0 flex-1 overflow-hidden" : "min-w-0 flex-1 overflow-auto") : (canvasFullScreen ? "min-w-0 flex-1 overflow-hidden" : "min-w-0 flex-1 overflow-auto px-5 py-8 sm:px-8 lg:px-12 lg:py-10")}>
-          <div className={stage === "design" || canvasFullScreen ? "flex h-full flex-col" : "mx-auto max-w-[1000px]"}>{stage === "clarify" ? <ClarifyArtifact workspace={workspace} readOnly={workspace.status === "ARCHIVED"} workspaceId={workspaceId} onDesign={() => void selectStage("design")} /> : stage === "design" ? <><section className={canvasFullScreen ? "flex min-h-0 flex-1 flex-col bg-[#0d1211] px-5 py-6 sm:px-7 sm:py-7" : "flex min-h-0 w-full max-w-[1310px] flex-1 flex-col bg-[#0d1211] px-5 py-6 sm:px-8 lg:px-10 sm:py-7"}><p className="font-mono text-[10px] uppercase tracking-[0.16em] text-[#a7aeb3]">DESIGN / ARCHITECTURE DOCUMENT</p><h2 className="mt-3 max-w-3xl font-display text-[34px] font-medium leading-[1.08] tracking-[-0.03em] text-[#f0f3f1]">{canvasFullScreen ? "Architecture Canvas" : "Describe the system as connected responsibilities."}</h2><p className="mt-3 max-w-2xl text-[15px] leading-6 text-[#a7aeb3]">{canvasFullScreen ? "Full-screen editing · Press Esc to return to the Workspace." : "Place the Components, connect the paths, and keep the structure explainable."}</p><div className={canvasFullScreen ? "mt-5 flex min-h-0 flex-1 flex-col" : "mt-7"}><ArchitectureCanvas fullScreen={canvasFullScreen} onFullScreenChange={setCanvasFullScreen} onViewportChange={(nextViewport) => void saveViewport(nextViewport)} readOnly={workspace.status === "ARCHIVED"} viewport={viewportFromWorkspace(workspace)} workspaceId={workspaceId} /></div></section>{canvasFullScreen ? null : <div className="mt-10"><DecisionLog readOnly={workspace.status === "ARCHIVED"} workspaceId={workspaceId} /></div>}</> : <StagePlaceholder stage={stage} workspace={workspace} />}</div>
+      </header>}
+      {workspace.status === "ARCHIVED" && !canvasFullScreen ? <section className="flex flex-col justify-between gap-4 border-b border-amber-500/30 bg-amber-500/10 px-5 py-4 sm:flex-row sm:items-center sm:px-7" aria-label="Archived Workspace status"><div><p className="font-mono text-[10px] uppercase tracking-[0.14em] text-amber-800">ARCHIVED / READ-ONLY</p><p className="mt-1 text-sm text-foreground">Editing, Copilot use, and Review submission are unavailable until this Workspace is restored. Export remains available.</p></div><button className="inline-flex min-h-11 shrink-0 items-center justify-center border border-signal bg-signal px-4 text-sm font-semibold text-text-on-dark disabled:opacity-50" disabled={isRestoring} onClick={() => void restoreWorkspace()} type="button">{isRestoring ? "Restoring..." : "Restore Workspace"}</button></section> : null}
+      {canvasFullScreen ? null : <nav aria-label="Mobile Workspace stages" className="grid grid-cols-4 border-b border-line bg-background md:hidden">{stages.map((item) => <button aria-current={stage === item.id ? "step" : undefined} className={`min-h-12 border-r border-line px-2 text-xs font-semibold last:border-r-0 ${stage === item.id ? "text-signal" : "text-text-muted"}`} key={item.id} onClick={() => void selectStage(item.id)} type="button"><span className="mr-1 font-mono text-[10px]">{item.number}</span>{item.label}</button>)}</nav>}
+      <div className={`relative flex min-h-0 flex-1 flex-col lg:flex-row ${canvasFullScreen ? "overflow-hidden" : ""}`}>
+        <main className={stage === "design" ? (canvasFullScreen ? "relative min-w-0 flex-1 overflow-hidden" : contextOpen ? "min-w-0 flex-1 overflow-auto" : "w-full overflow-auto lg:w-[calc(100%_-_320px)]") : (canvasFullScreen ? "relative min-w-0 flex-1 overflow-hidden" : "min-w-0 flex-1 overflow-auto px-5 py-8 sm:px-8 lg:px-12 lg:py-10")}>
+          {canvasFullScreen && !contextOpen ? <button aria-controls="workspace-context-panel" aria-expanded="false" aria-label="Open inspector" className="absolute right-4 top-4 z-30 inline-flex min-h-9 items-center gap-2 border border-[#3c4542] bg-[#202826] px-3 text-[11px] font-semibold text-[#f2f3f1] shadow-lg hover:border-[#a9e5d8]" onClick={toggleContextPanel} type="button"><PanelRight aria-hidden="true" size={14} />Inspector</button> : null}
+          <div className={stage === "design" || canvasFullScreen ? "flex h-full flex-col" : "mx-auto max-w-[1000px]"}>{stage === "clarify" ? <ClarifyArtifact workspace={workspace} readOnly={workspace.status === "ARCHIVED"} workspaceId={workspaceId} onDesign={() => void selectStage("design")} /> : stage === "design" ? <><section className={canvasFullScreen ? "flex min-h-0 flex-1 flex-col bg-[#0d1211] px-5 py-6 sm:px-7 sm:py-7" : "flex min-h-0 w-full max-w-[1310px] flex-1 flex-col bg-[#0d1211] px-5 py-6 sm:px-8 lg:px-10 sm:py-7"}><p className="font-mono text-[10px] uppercase tracking-[0.16em] text-[#a7aeb3]">{canvasFullScreen ? "DESIGN / FOCUS CANVAS" : "DESIGN / ARCHITECTURE DOCUMENT"}</p><h2 className="mt-3 max-w-3xl font-display text-[34px] font-medium leading-[1.08] tracking-[-0.03em] text-[#f0f3f1]">{canvasFullScreen ? "Focus Canvas" : "Describe the system as connected responsibilities."}</h2><p className="mt-3 max-w-2xl text-[15px] leading-6 text-[#a7aeb3]">{canvasFullScreen ? "Focused editing · Press Esc to return to the Workspace." : "Place the Components, connect the paths, and keep the structure explainable."}</p><div className={canvasFullScreen ? "mt-5 flex min-h-0 flex-1 flex-col" : "mt-7"}><ArchitectureCanvas fullScreen={canvasFullScreen} onFullScreenChange={setCanvasFullScreen} onRequestInspector={() => setContextOpen(true)} onViewportChange={(nextViewport) => void saveViewport(nextViewport)} readOnly={workspace.status === "ARCHIVED"} viewport={viewportFromWorkspace(workspace)} workspaceId={workspaceId} /></div></section>{canvasFullScreen ? null : <div className="mt-10"><DecisionLog readOnly={workspace.status === "ARCHIVED"} workspaceId={workspaceId} /></div>}</> : <StagePlaceholder stage={stage} workspace={workspace} />}</div>
         </main>
-        {contextOpen ? <WorkspaceContextPanel activeTab={contextTab} onClose={toggleContextPanel} onTabChange={(tab) => persistContextTab(contextStorageKey, tab)} readOnly={workspace.status === "ARCHIVED"} stage={stage} workspaceId={workspaceId} /> : null}
+        {contextOpen ? <WorkspaceContextPanel activeTab={contextTab} focusMode={canvasFullScreen} onClose={toggleContextPanel} onTabChange={(tab) => persistContextTab(contextStorageKey, tab)} readOnly={workspace.status === "ARCHIVED"} stage={stage} workspaceId={workspaceId} /> : null}
       </div>
     </section>
   </div>;
@@ -162,9 +176,9 @@ function ClarifyArtifact({ workspace, readOnly, workspaceId, onDesign }: { works
   </article>;
 }
 
-function WorkspaceContextPanel({ activeTab, onClose, onTabChange, readOnly, stage, workspaceId }: { activeTab: ContextTab; onClose: () => void; onTabChange: (tab: ContextTab) => void; readOnly: boolean; stage: Stage; workspaceId: string }) {
-  return <aside aria-label="Workspace context panel" className="fixed inset-0 z-30 flex min-h-0 w-full flex-col overflow-hidden border-line bg-surface p-[22px] lg:static lg:z-auto lg:w-[320px] lg:shrink-0 lg:overflow-hidden lg:border-l" id="workspace-context-panel">
-    <div className="flex items-center justify-between gap-5 border-b border-line pb-3"><div className="flex items-center gap-5" role="tablist" aria-label="Workspace context tabs"><button aria-selected={activeTab === "inspector"} className={`text-xs ${activeTab === "inspector" ? "font-semibold text-signal" : "text-text-muted hover:text-foreground"}`} onClick={() => onTabChange("inspector")} role="tab" type="button">Inspector</button><button aria-selected={activeTab === "copilot"} className={`text-xs ${activeTab === "copilot" ? "font-semibold text-signal" : "text-text-muted hover:text-foreground"}`} onClick={() => onTabChange("copilot")} role="tab" type="button">Copilot</button></div><button aria-label="Close contextual panel" className="text-xs font-semibold text-text-muted hover:text-foreground lg:hidden" onClick={onClose} type="button">Close</button></div>
+function WorkspaceContextPanel({ activeTab, focusMode, onClose, onTabChange, readOnly, stage, workspaceId }: { activeTab: ContextTab; focusMode: boolean; onClose: () => void; onTabChange: (tab: ContextTab) => void; readOnly: boolean; stage: Stage; workspaceId: string }) {
+  return <aside aria-label="Workspace context panel" className={`${focusMode ? "absolute inset-y-0 right-0 z-30 w-full max-w-[320px] shadow-2xl" : "fixed inset-0 z-30 w-full lg:static lg:z-auto lg:w-[320px] lg:shadow-none"} flex min-h-0 flex-col overflow-hidden border-line bg-surface p-[22px] lg:shrink-0 lg:border-l`} id="workspace-context-panel">
+    <div className="flex items-center justify-between gap-5 border-b border-line pb-3"><div className="flex items-center gap-5" role="tablist" aria-label="Workspace context tabs"><button aria-selected={activeTab === "inspector"} className={`text-xs ${activeTab === "inspector" ? "font-semibold text-signal" : "text-text-muted hover:text-foreground"}`} onClick={() => onTabChange("inspector")} role="tab" type="button">Inspector</button><button aria-selected={activeTab === "copilot"} className={`text-xs ${activeTab === "copilot" ? "font-semibold text-signal" : "text-text-muted hover:text-foreground"}`} onClick={() => onTabChange("copilot")} role="tab" type="button">Copilot</button></div><button aria-label="Close contextual panel" className={`text-xs font-semibold text-text-muted hover:text-foreground ${focusMode ? "" : "lg:hidden"}`} onClick={onClose} type="button">Close</button></div>
     <div className="min-h-0 flex-1 overflow-y-auto lg:overflow-hidden">{activeTab === "copilot" ? <CopilotPanel embedded readOnly={readOnly} workspaceId={workspaceId} /> : <ContextInspector onOpenCopilot={() => onTabChange("copilot")} readOnly={readOnly} stage={stage} />}</div>
   </aside>;
 }
@@ -177,7 +191,7 @@ function ContextInspector({ onOpenCopilot, readOnly, stage }: { onOpenCopilot: (
   const guidance = stage === "clarify"
     ? "Read the brief, write one requirement in plain language, and add an assumption or question only when it will change the design."
     : stage === "design"
-      ? "Select a Component on the Architecture Canvas to inspect its semantic type, properties, and decisions."
+    ? "Select a Component, Connection, or Boundary on the Architecture Canvas to inspect and edit it."
       : "The primary artifact remains in the document area. Use this panel for focused context without leaving your current stage.";
   return <section className="pt-5"><p className="font-mono text-[11px] leading-4 text-text-muted">{isClarify ? "CLARIFY / INSPECTOR" : "INSPECTOR"}</p><h2 className="mt-2 font-display text-[22px] font-normal leading-[1.2]">{isClarify ? "Start with one requirement." : stage === "design" ? "Select a Component." : `${stageLabel} context`}</h2>{isClarify ? null : <dl className="mt-5 grid gap-3 border-y border-line py-4 text-[13px]"><div className="flex justify-between gap-4"><dt className="text-text-muted">Stage</dt><dd className="text-right text-foreground">{stageLabel}</dd></div><div className="flex justify-between gap-4"><dt className="text-text-muted">Primary artifact</dt><dd className="text-right text-foreground">{artifact}</dd></div></dl>}<p className="mt-4 text-[13px] leading-5 text-text-muted">{isClarify ? "Read the brief, write one requirement in plain language, and open Copilot when you want a second opinion." : guidance}</p><button aria-label="Open Copilot" className="mt-5 inline-flex min-h-10 items-center border border-signal px-3 text-sm font-semibold text-signal hover:bg-signal-soft" onClick={onOpenCopilot} type="button">Open Copilot&nbsp; →</button></section>;
 }
@@ -194,7 +208,6 @@ function DesignContextInspector({ onOpenCopilot, readOnly }: { onOpenCopilot: ()
   const updateConnection = useArchitectureEditorStore((state) => state.updateConnection);
   const updateBoundary = useArchitectureEditorStore((state) => state.updateBoundary);
   const requestDelete = useArchitectureEditorStore((state) => state.requestDelete);
-  const duplicateComponent = useArchitectureEditorStore((state) => state.duplicateComponent);
   const duplicateNodes = useArchitectureEditorStore((state) => state.duplicateNodes);
   if (edge) {
     const source = nodes.find((item) => item.id === edge.source);
@@ -206,8 +219,8 @@ function DesignContextInspector({ onOpenCopilot, readOnly }: { onOpenCopilot: ()
     const selected = nodes.filter((item) => selectedNodeIds.includes(item.id));
     return <section className="pt-5"><p className="font-mono text-[11px] leading-4 text-text-muted">DESIGN / INSPECTOR</p><h2 className="mt-2 font-display text-[22px] font-normal leading-[1.2]">{selected.length} Components selected</h2><p className="mt-4 text-[13px] leading-5 text-text-muted">Duplicate, group, distribute, or delete the selection from the Canvas toolbar above the selection.</p><div className="mt-5 flex flex-wrap gap-2"><button className="inline-flex min-h-10 items-center border border-line px-3 text-sm text-foreground hover:border-signal" disabled={readOnly} onClick={() => duplicateNodes(selectedNodeIds)} type="button">Duplicate</button><button className="inline-flex min-h-10 items-center border border-danger/50 px-3 text-sm text-danger hover:bg-danger/10 disabled:cursor-not-allowed disabled:opacity-50" disabled={readOnly} onClick={() => requestDelete({ kind: "nodes", ids: selectedNodeIds, label: `${selected.length} Components`, connectionCount: 0 })} type="button">Delete</button></div></section>;
   }
-  if (!node) return <section className="pt-5"><p className="font-mono text-[11px] leading-4 text-text-muted">DESIGN / INSPECTOR</p><h2 className="mt-2 font-display text-[22px] font-normal leading-[1.2]">Select a Component or Connection.</h2><p className="mt-4 text-[13px] leading-5 text-text-muted">Select a Component to inspect its responsibility and properties, or a Connection to describe its intent, protocol, and guarantees.</p><button aria-label="Open Copilot" className="mt-5 inline-flex min-h-10 items-center border border-signal px-3 text-sm font-semibold text-signal hover:bg-signal-soft" onClick={onOpenCopilot} type="button">Open Copilot</button></section>;
-  return <ArchitectureInspector disabled={readOnly} node={node} onChange={(patch) => updateComponent(node.id, patch)} onDelete={() => requestDelete({ kind: "nodes", ids: [node.id], label: node.data.label, connectionCount: edgesTouching(node.id) })} onDuplicate={() => duplicateComponent(node.id)} />;
+  if (!node) return <section className="pt-5"><p className="font-mono text-[11px] leading-4 text-text-muted">DESIGN / INSPECTOR</p><h2 className="mt-2 font-display text-[22px] font-normal leading-[1.2]">Select a canvas object.</h2><p className="mt-4 text-[13px] leading-5 text-text-muted">Select a Component, Connection, or Boundary to inspect its details, edit its values, or delete it.</p><button aria-label="Open Copilot" className="mt-5 inline-flex min-h-10 items-center border border-signal px-3 text-sm font-semibold text-signal hover:bg-signal-soft" onClick={onOpenCopilot} type="button">Open Copilot</button></section>;
+  return <PencilComponentInspector disabled={readOnly} node={node} onChange={(patch) => updateComponent(node.id, patch)} onDelete={() => requestDelete({ kind: "nodes", ids: [node.id], label: node.data.label, connectionCount: edgesTouching(node.id) })} />;
 }
 
 function edgesTouching(nodeId: string) {
@@ -215,7 +228,28 @@ function edgesTouching(nodeId: string) {
 }
 
 function BoundaryInspector({ boundary, disabled, memberCount, onChange, onDelete }: { boundary: { label: string; type: CanvasBoundary["type"] }; disabled: boolean; memberCount: number; onChange: (patch: { label?: string; type?: CanvasBoundary["type"] }) => void; onDelete: () => void }) {
-  return <div><p className="font-mono text-[10px] uppercase tracking-[0.14em] text-[#a7aeb3]">Boundary Inspector</p><label className="mt-5 block text-xs text-[#a7aeb3]" htmlFor="boundary-label">Label</label><input className="mt-2 min-h-10 w-full border border-[#3c4542] bg-[#101316] px-2 text-sm text-[#f2f3f3] outline-none focus:border-[#a9e5d8] disabled:opacity-50" disabled={disabled} id="boundary-label" onChange={(event) => onChange({ label: event.target.value })} value={boundary.label} /><label className="mt-4 block text-xs text-[#a7aeb3]" htmlFor="boundary-type">Type</label><select className="mt-2 min-h-10 w-full border border-[#3c4542] bg-[#101316] px-2 text-sm text-[#f2f3f3] outline-none focus:border-[#a9e5d8] disabled:opacity-50" disabled={disabled} id="boundary-type" onChange={(event) => onChange({ type: event.target.value as CanvasBoundary["type"] })} value={boundary.type}><option value="DEPLOYMENT">Deployment</option><option value="NETWORK">Network</option><option value="REGION">Region</option><option value="AVAILABILITY">Availability</option><option value="TRUST">Trust</option></select><p className="mt-4 text-[13px] text-text-muted">{memberCount} Component{memberCount === 1 ? "" : "s"} in this Boundary.</p><button className="mt-6 inline-flex min-h-9 items-center gap-2 border border-danger/50 px-3 text-xs font-semibold text-danger hover:bg-danger/10 disabled:cursor-not-allowed disabled:opacity-50" disabled={disabled} onClick={onDelete} type="button"><Trash2 aria-hidden="true" size={14} />Delete Boundary</button></div>;
+  const humanize = (value: string) => value.replaceAll("_", " ").replace(/^./, (character) => character.toUpperCase());
+  const fieldClass = "mt-1.5 min-h-9 w-full rounded-[4px] border border-[#d6d1c5] bg-[#f4f1e8] px-3 text-[12px] text-[#18201e] outline-none focus:border-[#0f766e] disabled:opacity-50";
+  return <section className="pt-5">
+    <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-[#626a66]">Selected boundary</p>
+    <h2 className="mt-2 font-display text-[22px] font-normal leading-[1.2] text-[#18201e]">{boundary.label}</h2>
+    <p className="mt-3 text-[13px] leading-5 text-[#626a66]">Describe the scope this Boundary represents and keep its relationship to the architecture clear.</p>
+    <dl className="mt-5 grid gap-3 text-[12px]">
+      <div className="flex items-center justify-between gap-4"><dt className="text-[#626a66]">Type</dt><dd className="text-right text-[#18201e]">{humanize(boundary.type)}</dd></div>
+      <div className="flex items-center justify-between gap-4"><dt className="text-[#626a66]">Members</dt><dd className="text-right text-[#18201e]">{memberCount} Component{memberCount === 1 ? "" : "s"}</dd></div>
+    </dl>
+    <div className="mt-7">
+      <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-[#626a66]">Edit boundary</p>
+      <label className="mt-4 block text-[10px] text-[#626a66]" htmlFor="boundary-label">Name</label>
+      <input className={fieldClass} disabled={disabled} id="boundary-label" onChange={(event) => onChange({ label: event.target.value })} value={boundary.label} />
+      <label className="mt-3 block text-[10px] text-[#626a66]" htmlFor="boundary-type">Type</label>
+      <select className={fieldClass} disabled={disabled} id="boundary-type" onChange={(event) => onChange({ type: event.target.value as CanvasBoundary["type"] })} value={boundary.type}><option value="DEPLOYMENT">Deployment</option><option value="NETWORK">Network / VPC</option><option value="REGION">Cloud region</option><option value="AVAILABILITY">Availability zone</option><option value="TRUST">Trust / security</option></select>
+    </div>
+    <div className="mt-6 flex flex-wrap gap-2 border-t border-[#d6d1c5] pt-5">
+      <button className="inline-flex min-h-[38px] items-center rounded-[4px] bg-[#0f766e] px-3 text-[12px] font-semibold text-white hover:bg-[#0b625c] disabled:cursor-not-allowed disabled:opacity-50" disabled={disabled} onClick={() => onChange({})} type="button">Save changes</button>
+      <button className="inline-flex min-h-[38px] items-center gap-2 rounded-[4px] border border-[#c7a09a] px-3 text-[12px] font-semibold text-[#8d332a] hover:bg-[#f8eeeb] disabled:cursor-not-allowed disabled:opacity-50" disabled={disabled} onClick={onDelete} type="button"><Trash2 aria-hidden="true" size={14} />Delete boundary</button>
+    </div>
+  </section>;
 }
 
 function toStage(value: string | undefined): Stage {

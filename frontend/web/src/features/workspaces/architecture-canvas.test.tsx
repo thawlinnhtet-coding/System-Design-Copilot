@@ -97,9 +97,24 @@ describe("ArchitectureCanvas", () => {
     fireEvent.click(screen.getByRole("button", { name: "Boundary" }));
     const canvas = screen.getByTestId("architecture-flow");
     fireEvent.mouseDown(canvas, { button: 0, clientX: 120, clientY: 120 });
+    fireEvent.mouseMove(canvas, { clientX: 520, clientY: 360 });
+    expect(screen.getByTestId("boundary-preview")).toBeVisible();
     fireEvent.mouseUp(canvas, { button: 0, clientX: 520, clientY: 360 });
 
     expect(await screen.findByRole("dialog", { name: "Add boundary" })).toBeVisible();
+    expect(screen.getByTestId("boundary-preview")).toBeVisible();
+    fireEvent.change(screen.getByLabelText("Label"), { target: { value: "Primary region" } });
+    fireEvent.click(screen.getByRole("button", { name: "Boundary type" }));
+    expect(screen.getByRole("listbox", { name: "Boundary type options" })).toBeVisible();
+    fireEvent.click(screen.getByRole("option", { name: "Cloud region" }));
+    fireEvent.click(screen.getByRole("button", { name: "Add Boundary" }));
+    await waitFor(() => expect(useArchitectureEditorStore.getState().boundaries).toHaveLength(1));
+    expect(useArchitectureEditorStore.getState().boundaries[0]?.type).toBe("REGION");
+    expect(screen.queryByTestId("boundary-preview")).not.toBeInTheDocument();
+    expect(screen.getByTestId("persisted-boundary-visual")).toBeVisible();
+    expect(screen.getByText("Primary region / CLOUD REGION BOUNDARY")).toBeInTheDocument();
+    expect(screen.getByTestId("persisted-boundary-label")).toHaveTextContent("Primary region / CLOUD REGION BOUNDARY");
+    expect(screen.queryByText("No architecture Components yet.")).not.toBeInTheDocument();
   });
 
   it("loads pre-populated components into the editor without dropping them", async () => {

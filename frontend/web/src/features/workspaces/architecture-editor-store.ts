@@ -404,7 +404,7 @@ export function buildFlowLayout(nodes: CanvasNode[], boundaries: CanvasBoundary[
     const parentId = boundary.parentBoundaryId && byId.has(boundary.parentBoundaryId) ? boundary.parentBoundaryId : undefined;
     const parentOrigin = parentId ? geom.get(parentId)! : { x: 0, y: 0 };
     parentOrigins.set(boundary.id, parentOrigin);
-    flowNodes.push({ id: boundary.id, type: "boundary", position: { x: origin.x - parentOrigin.x, y: origin.y - parentOrigin.y }, parentId, draggable: false, selectable: true, zIndex: 0, style: { width: origin.w, height: origin.h }, data: { label: boundary.label, boundaryType: boundary.type } });
+    flowNodes.push({ id: boundary.id, type: "boundary", position: { x: origin.x - parentOrigin.x, y: origin.y - parentOrigin.y }, parentId, draggable: false, selectable: true, zIndex: 100, style: { width: origin.w, height: origin.h }, data: { label: boundary.label, boundaryType: boundary.type } });
   }
 
   for (const node of nodes) {

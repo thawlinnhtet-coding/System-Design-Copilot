@@ -79,6 +79,20 @@ describe("architecture editor draft", () => {
     expect(useArchitectureEditorStore.getState().document?.boundaries[0]).toMatchObject({ label: "Primary region", componentIds: [component.id] });
   });
 
+  it("selects a newly added boundary and preserves its requested bounds around members", () => {
+    act(() => {
+      const editor = useArchitectureEditorStore.getState();
+      editor.addComponent("COMPUTE", "SERVICE", { position: { x: 120, y: 120 } });
+      const component = useArchitectureEditorStore.getState().nodes[0]!;
+      editor.addBoundary({ label: "Primary region", type: "REGION", componentIds: [component.id], metadata: { x: 80, y: 80, width: 420, height: 300 } });
+    });
+    const state = useArchitectureEditorStore.getState();
+    expect(state.selectedNodeId).toBe(state.boundaries[0]?.id);
+    const boundaryNode = buildFlowLayout(state.nodes, state.boundaries).flowNodes.find((node) => node.type === "boundary");
+    expect(boundaryNode?.position).toEqual({ x: 80, y: 80 });
+    expect(boundaryNode?.style).toMatchObject({ width: 420, height: 300 });
+  });
+
   it("duplicates a component with a fresh id and offset position", () => {
     act(() => {
       const editor = useArchitectureEditorStore.getState();
@@ -115,6 +129,21 @@ describe("architecture editor draft", () => {
     act(() => useArchitectureEditorStore.getState().deleteConnection(edge.id));
     expect(useArchitectureEditorStore.getState().edges).toHaveLength(0);
     expect(useArchitectureEditorStore.getState().selectedEdgeId).toBeNull();
+  });
+
+  it("marks a save without replacing selected React Flow objects", () => {
+    act(() => useArchitectureEditorStore.getState().addComponent("COMPUTE", "SERVICE"));
+    const before = useArchitectureEditorStore.getState();
+    const selectedId = before.selectedNodeId;
+    const selectedNode = before.nodes[0];
+
+    act(() => useArchitectureEditorStore.getState().markSaved(1, before.document!));
+
+    const after = useArchitectureEditorStore.getState();
+    expect(after.nodes[0]).toBe(selectedNode);
+    expect(after.selectedNodeId).toBe(selectedId);
+    expect(after.dirty).toBe(false);
+    expect(after.version).toBe(1);
   });
 
   it("derives visual boundary containers that hold member components", () => {
